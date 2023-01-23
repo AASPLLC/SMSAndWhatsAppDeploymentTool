@@ -3,7 +3,7 @@ Provider Deployment Tool - Creates entire Azure environment automatically for th
 
 The following will need to be provided manually for security reasons:
 
-1. WordsList.json is the JSON for random word generating and is optional. This should go in the deployment apps JSON folder if given or created during deployment.
+1. The WordsList.json file is an optional JSON for generating random words. If provided or created during deployment, it should be placed in the deployment apps JSON folder.
 
 The format below is in case you want to create your own word list:
 ```
