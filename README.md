@@ -5,6 +5,9 @@ This application will assist provider that will need to set up a server that is 
 
 When configuring the Microsoft Teams Application settings, users will need access to the public KeyVault created by this deployment. This public KeyVault is controlled by RBAC; to grant access, simply add the user you want to have access and they will be able to connect to your server and use the application.
 
+Reference for adding users to RBAC: https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal
+The role users or a group of users will need is: Key Vault Secrets User
+
 The following will need to be provided manually for security reasons:
 
 1. The WordsList.json file is an optional JSON for generating random words. If provided or created during deployment, it should be placed in the deployment apps JSON folder.
