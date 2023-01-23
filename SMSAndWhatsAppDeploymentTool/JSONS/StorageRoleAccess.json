@@ -1,0 +1,62 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "storageAccounts": {
+      "type": "string",
+      "defaultValue": "hidden",
+      "metadata": {
+        "description": ""
+      }
+    },
+    "prin": {
+      "type": "string",
+      "defaultValue": "hidden",
+      "metadata": {
+        "description": ""
+      }
+    },
+    "role": {
+      "type": "string",
+      "defaultValue": "hidden",
+      "metadata": {
+        "description": ""
+      }
+    },
+    "name": {
+      "type": "string",
+      "defaultValue": "[newGuid()]",
+      "metadata": {
+        "description": ""
+      }
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2019-04-01",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[parameters('storageAccounts')]",
+      "location": "hidden",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "Storage",
+      "properties": {
+
+      }
+    },
+    {
+      "apiVersion": "2022-04-01",
+      "type": "Microsoft.Authorization/roleAssignments",
+      "name": "[parameters('name')]",
+      "properties": {
+        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', parameters('role'))]",
+        "principalId": "[parameters('prin')]"
+      },
+      "scope": "Microsoft.Storage/storageAccounts/hidden",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts'))]"
+      ]
+    }
+  ]
+}
