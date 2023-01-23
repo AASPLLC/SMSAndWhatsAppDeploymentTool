@@ -58,3 +58,5 @@ These values must be specific, but for reference, this is the format:
     "countersContainerName": ""
 }
 ```
+
+This application is dependent on the following library: https://github.com/AASPWayne/AASPGlobalLibrary 
