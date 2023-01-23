@@ -1,6 +1,10 @@
 # SMSAndWhatsAppDeploymentTool
 Provider Deployment Tool - Creates entire Azure environment automatically for the Microsoft Teams SMS and WhatsApp Application.
 
+This application will assist provider that will need to set up a server that is capable of handling both incoming and outgoing messages. This server should be able to securely store the messages. The provider should also ensure that the server is secure and that all messages are encrypted. Additionally, the provider should ensure that the server is regularly updated with the latest security patches and that all access to the server is monitored and logged.
+
+When configuring the Microsoft Teams Application settings, users will need access to the public KeyVault created by this deployment. This public KeyVault is controlled by RBAC; to grant access, simply add the user you want to have access and they will be able to connect to your server and use the application.
+
 The following will need to be provided manually for security reasons:
 
 1. The WordsList.json file is an optional JSON for generating random words. If provided or created during deployment, it should be placed in the deployment apps JSON folder.
