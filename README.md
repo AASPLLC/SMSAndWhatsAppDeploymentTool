@@ -59,4 +59,29 @@ These values must be specific, but for reference, this is the format:
 }
 ```
 
+4. The SecretNames.json file is specific to Key Vault secret names and is required for the application to deploy correctly.
+
+These values must be specific, but for reference, this is the format:
+```
+{
+  "PDynamicsEnvironment": "",
+  "PAccountsDBPrefix": "",
+  "PSMSDBPrefix": "",
+  "PWhatsAppDBPrefix": "",
+  "PCommsEndpoint": "",
+  "PWhatsAppAccess": "",
+  "PTenantID": "",
+  "IoOrgID": "",
+  "IoClientID": "",
+  "IoSecret": "",
+  "IoEmail": "",
+  "IoJobs": "",
+  "IoCallback": "",
+  "Type": "",
+  "IoCosmos": "",
+  "IoKey": "",
+  "RESTSite": ""
+}
+```
+
 This application is dependent on the following library: [AASP Global Library](https://github.com/AASPWayne/AASPGlobalLibrary)
