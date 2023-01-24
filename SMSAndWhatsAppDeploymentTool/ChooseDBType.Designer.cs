@@ -95,6 +95,8 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.dataverseBTN);
             this.Controls.Add(this.cosmosBTN);
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "ChooseDBType";
             this.Text = "Choose Database Type";
             this.Load += new System.EventHandler(this.ChooseDBType_Load);

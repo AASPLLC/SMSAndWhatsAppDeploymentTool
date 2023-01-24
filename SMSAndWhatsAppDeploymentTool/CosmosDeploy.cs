@@ -15,7 +15,7 @@ namespace SMSAndWhatsAppDeploymentTool
 {
     public partial class CosmosDeploy : Form
     {
-        public MessageBox2 mb = new MessageBox2();
+        public MessageBox2 mb = new();
 
         public ArmClientHandler? Arm { get; set; }
 
@@ -63,7 +63,7 @@ namespace SMSAndWhatsAppDeploymentTool
                 "Please refer to the WhatsApp Configuration documentation provided.");
 
             string vaultnametip = "Internal vault will be desired name + \"io\"";
-            t_Tip.SetToolTip(desiredKeyvaultNameTB, vaultnametip);
+            t_Tip.SetToolTip(desiredPublicKeyvaultNameTB, vaultnametip);
             t_Tip.SetToolTip(keyvaultLBL, vaultnametip);
 
             string smsnametip = "SMS function app will be desired name + \"SMSApp\"";
@@ -88,7 +88,7 @@ namespace SMSAndWhatsAppDeploymentTool
             desiredWhatsAppFunctionNameTB.Enabled = false;
             desiredStorageNameTB.Enabled = false;
             desiredSMSFunctionAppNameTB.Enabled = false;
-            desiredKeyvaultNameTB.Enabled = false;
+            desiredPublicKeyvaultNameTB.Enabled = false;
             desiredCommunicationsNameTB.Enabled = false;
             desiredCosmosRESTAPIFunctionNameTB.Enabled = false;
             autoGenerateNamesBTN.Enabled = false;
@@ -97,6 +97,7 @@ namespace SMSAndWhatsAppDeploymentTool
             whatsappCallbackTokenTB.Enabled = false;
             CallbackUniqueBTN.Enabled = false;
             desiredCosmosAccountNameFunctionNameTB.Enabled = false;
+            desiredInternalKeyvaultNameTB.Enabled = false;
         }
 
         public void EnableAll()
@@ -105,7 +106,7 @@ namespace SMSAndWhatsAppDeploymentTool
             desiredWhatsAppFunctionNameTB.Enabled = true;
             desiredStorageNameTB.Enabled = true;
             desiredSMSFunctionAppNameTB.Enabled = true;
-            desiredKeyvaultNameTB.Enabled = true;
+            desiredPublicKeyvaultNameTB.Enabled = true;
             desiredCommunicationsNameTB.Enabled = true;
             desiredCosmosRESTAPIFunctionNameTB.Enabled = true;
             autoGenerateNamesBTN.Enabled = true;
@@ -114,6 +115,7 @@ namespace SMSAndWhatsAppDeploymentTool
             whatsappCallbackTokenTB.Enabled = true;
             CallbackUniqueBTN.Enabled = true;
             desiredCosmosAccountNameFunctionNameTB.Enabled = true;
+            desiredInternalKeyvaultNameTB.Enabled = true;
         }
 
         public async Task FinishCreation()
@@ -123,7 +125,7 @@ namespace SMSAndWhatsAppDeploymentTool
                 DisableAll();
 
             DialogResult results = new();
-            if (desiredKeyvaultNameTB.Text.Length > 22)
+            if (desiredPublicKeyvaultNameTB.Text.Length > 22)
                 results = MessageBox.Show("KeyVault name must be under 22 characters.");
             if (results == DialogResult.OK) { }
             else
@@ -136,7 +138,8 @@ namespace SMSAndWhatsAppDeploymentTool
                     desiredStorageNameTB.Text,
                     desiredSMSFunctionAppNameTB.Text,
                     desiredWhatsAppFunctionNameTB.Text,
-                    desiredKeyvaultNameTB.Text,
+                    desiredPublicKeyvaultNameTB.Text,
+                    desiredInternalKeyvaultNameTB.Text,
                     desiredCosmosRESTAPIFunctionNameTB.Text,
                     desiredCosmosAccountNameFunctionNameTB.Text,
                     this);
@@ -198,9 +201,9 @@ namespace SMSAndWhatsAppDeploymentTool
                 desiredWhatsAppFunctionNameTB.Text = WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord();
             desiredWhatsAppFunctionNameTB.Text = ChooseDBType.GenerateUniqueString(desiredWhatsAppFunctionNameTB.Text);
 
-            if (desiredKeyvaultNameTB.Text == "")
-                desiredKeyvaultNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
-            desiredKeyvaultNameTB.Text = ChooseDBType.GenerateUniqueString(desiredKeyvaultNameTB.Text);
+            if (desiredPublicKeyvaultNameTB.Text == "")
+                desiredPublicKeyvaultNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
+            desiredPublicKeyvaultNameTB.Text = ChooseDBType.GenerateUniqueString(desiredPublicKeyvaultNameTB.Text);
 
             if (desiredCosmosRESTAPIFunctionNameTB.Text == "")
                 desiredCosmosRESTAPIFunctionNameTB.Text = WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord();
@@ -209,6 +212,10 @@ namespace SMSAndWhatsAppDeploymentTool
             if (desiredCosmosAccountNameFunctionNameTB.Text == "")
                 desiredCosmosAccountNameFunctionNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
             desiredCosmosAccountNameFunctionNameTB.Text = ChooseDBType.GenerateUniqueString(desiredCosmosAccountNameFunctionNameTB.Text);
+
+            if (desiredInternalKeyvaultNameTB.Text == "")
+                desiredInternalKeyvaultNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
+            desiredInternalKeyvaultNameTB.Text = ChooseDBType.GenerateUniqueString(desiredInternalKeyvaultNameTB.Text);
         }
 
         private void UniqueStringBTN_Click(object sender, EventArgs e)
@@ -241,11 +248,16 @@ namespace SMSAndWhatsAppDeploymentTool
             desiredStorageNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
             desiredSMSFunctionAppNameTB.Text = WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord();
             desiredWhatsAppFunctionNameTB.Text = WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord();
-            desiredKeyvaultNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
             desiredCosmosAccountNameFunctionNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
             desiredCosmosRESTAPIFunctionNameTB.Text = WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord();
-            if (desiredKeyvaultNameTB.Text.Length > 22)
-                desiredKeyvaultNameTB.Text = desiredKeyvaultNameTB.Text[..22];
+
+            desiredPublicKeyvaultNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
+            if (desiredPublicKeyvaultNameTB.Text.Length > 24)
+                desiredPublicKeyvaultNameTB.Text = desiredPublicKeyvaultNameTB.Text[..24];
+
+            desiredInternalKeyvaultNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
+            if (desiredInternalKeyvaultNameTB.Text.Length > 24)
+                desiredInternalKeyvaultNameTB.Text = desiredInternalKeyvaultNameTB.Text[..24];
         }
 
         private void CosmosDeploy_Closed(object sender, FormClosedEventArgs e)

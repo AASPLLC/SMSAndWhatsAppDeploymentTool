@@ -103,6 +103,8 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.comboBox1);
             this.Controls.Add(this.button1);
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "CosmosConfig";
             this.Text = "Cosmos Configuration";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.InstallConfig_Closed);

@@ -15,7 +15,7 @@ namespace SMSAndWhatsAppDeploymentTool
 {
     public partial class DataverseDeploy : Form
     {
-        public MessageBox2 mb = new MessageBox2();
+        public MessageBox2 mb = new();
 
         public ArmClientHandler? Arm { get; set; }
 
@@ -61,7 +61,7 @@ namespace SMSAndWhatsAppDeploymentTool
                 "Please refer to the WhatsApp Configuration documentation provided.");
 
             string vaultnametip = "Internal vault will be desired name + \"io\"";
-            t_Tip.SetToolTip(desiredKeyvaultNameTB, vaultnametip);
+            t_Tip.SetToolTip(desiredPublicKeyvaultNameTB, vaultnametip);
             t_Tip.SetToolTip(keyvaultLBL, vaultnametip);
 
             string smsnametip = "SMS function app will be desired name + \"SMSApp\"";
@@ -82,13 +82,14 @@ namespace SMSAndWhatsAppDeploymentTool
             desiredWhatsAppFunctionNameTB.Enabled = false;
             desiredStorageNameTB.Enabled = false;
             desiredSMSFunctionAppNameTB.Enabled = false;
-            desiredKeyvaultNameTB.Enabled = false;
+            desiredPublicKeyvaultNameTB.Enabled = false;
             desiredCommunicationsNameTB.Enabled = false;
             autoGenerateNamesBTN.Enabled = false;
             uniqueStringBTN.Enabled = false;
             whatsappSystemTokenTB.Enabled = false;
             whatsappCallbackTokenTB.Enabled = false;
             CallbackUniqueBTN.Enabled = false;
+            desiredInternalKeyvaultNameTB.Enabled = false;
         }
 
         public void EnableAll()
@@ -97,13 +98,14 @@ namespace SMSAndWhatsAppDeploymentTool
             desiredWhatsAppFunctionNameTB.Enabled = true;
             desiredStorageNameTB.Enabled = true;
             desiredSMSFunctionAppNameTB.Enabled = true;
-            desiredKeyvaultNameTB.Enabled = true;
+            desiredPublicKeyvaultNameTB.Enabled = true;
             desiredCommunicationsNameTB.Enabled = true;
             autoGenerateNamesBTN.Enabled = true;
             uniqueStringBTN.Enabled = true;
             whatsappSystemTokenTB.Enabled = true;
             whatsappCallbackTokenTB.Enabled = true;
             CallbackUniqueBTN.Enabled = true;
+            desiredInternalKeyvaultNameTB.Enabled = true;
         }
 
         public async Task FinishCreation()
@@ -111,7 +113,7 @@ namespace SMSAndWhatsAppDeploymentTool
             //try
             //{
             DialogResult results = new();
-            if (desiredKeyvaultNameTB.Text.Length > 22)
+            if (desiredPublicKeyvaultNameTB.Text.Length > 22)
                 results = MessageBox.Show("KeyVault name must be under 22 characters.");
             if (results == DialogResult.OK) { }
             else
@@ -126,7 +128,8 @@ namespace SMSAndWhatsAppDeploymentTool
                         desiredStorageNameTB.Text,
                         desiredSMSFunctionAppNameTB.Text,
                         desiredWhatsAppFunctionNameTB.Text,
-                        desiredKeyvaultNameTB.Text,
+                        desiredPublicKeyvaultNameTB.Text,
+                        desiredInternalKeyvaultNameTB.Text,
                         //true, //can add easily as a feature now, currently hardcoded as on
                         this);
 
@@ -177,16 +180,29 @@ namespace SMSAndWhatsAppDeploymentTool
 
         void ObfuscateStrings()
         {
-            if (desiredCommunicationsNameTB.Text != "")
-                desiredCommunicationsNameTB.Text = ChooseDBType.GenerateUniqueString(desiredCommunicationsNameTB.Text);
-            if (desiredStorageNameTB.Text != "")
-                desiredStorageNameTB.Text = ChooseDBType.GenerateUniqueString(desiredStorageNameTB.Text);
-            if (desiredSMSFunctionAppNameTB.Text != "")
-                desiredSMSFunctionAppNameTB.Text = ChooseDBType.GenerateUniqueString(desiredSMSFunctionAppNameTB.Text);
-            if (desiredWhatsAppFunctionNameTB.Text != "")
-                desiredWhatsAppFunctionNameTB.Text = ChooseDBType.GenerateUniqueString(desiredWhatsAppFunctionNameTB.Text);
-            if (desiredKeyvaultNameTB.Text != "")
-                desiredKeyvaultNameTB.Text = ChooseDBType.GenerateUniqueString(desiredKeyvaultNameTB.Text);
+            if (desiredCommunicationsNameTB.Text == "")
+                desiredCommunicationsNameTB.Text = WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord();
+            desiredCommunicationsNameTB.Text = ChooseDBType.GenerateUniqueString(desiredCommunicationsNameTB.Text);
+
+            if (desiredStorageNameTB.Text == "")
+                desiredStorageNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
+            desiredStorageNameTB.Text = ChooseDBType.GenerateUniqueString(desiredStorageNameTB.Text);
+
+            if (desiredSMSFunctionAppNameTB.Text == "")
+                desiredSMSFunctionAppNameTB.Text = WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord();
+            desiredSMSFunctionAppNameTB.Text = ChooseDBType.GenerateUniqueString(desiredSMSFunctionAppNameTB.Text);
+
+            if (desiredWhatsAppFunctionNameTB.Text == "")
+                desiredWhatsAppFunctionNameTB.Text = WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord();
+            desiredWhatsAppFunctionNameTB.Text = ChooseDBType.GenerateUniqueString(desiredWhatsAppFunctionNameTB.Text);
+
+            if (desiredPublicKeyvaultNameTB.Text == "")
+                desiredPublicKeyvaultNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
+            desiredPublicKeyvaultNameTB.Text = ChooseDBType.GenerateUniqueString(desiredPublicKeyvaultNameTB.Text);
+
+            if (desiredInternalKeyvaultNameTB.Text == "")
+                desiredInternalKeyvaultNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
+            desiredInternalKeyvaultNameTB.Text = ChooseDBType.GenerateUniqueString(desiredInternalKeyvaultNameTB.Text);
         }
 
         private void UniqueStringBTN_Click(object sender, EventArgs e)
@@ -219,9 +235,14 @@ namespace SMSAndWhatsAppDeploymentTool
             desiredStorageNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
             desiredSMSFunctionAppNameTB.Text = WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord();
             desiredWhatsAppFunctionNameTB.Text = WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord() + "-" + WordGenerator.GetRandomWord();
-            desiredKeyvaultNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
-            if (desiredKeyvaultNameTB.Text.Length > 22)
-                desiredKeyvaultNameTB.Text = desiredKeyvaultNameTB.Text[..22];
+
+            desiredPublicKeyvaultNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
+            if (desiredPublicKeyvaultNameTB.Text.Length > 24)
+                desiredPublicKeyvaultNameTB.Text = desiredPublicKeyvaultNameTB.Text[..24];
+
+            desiredInternalKeyvaultNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
+            if (desiredInternalKeyvaultNameTB.Text.Length > 24)
+                desiredInternalKeyvaultNameTB.Text = desiredInternalKeyvaultNameTB.Text[..24];
         }
 
         private void DataverseDeploy_Closed(object sender, FormClosedEventArgs e)
