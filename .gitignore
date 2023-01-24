@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /SMSAndWhatsAppDeploymentTool/JSONS/WordsList.json
 /SMSAndWhatsAppDeploymentTool/JSONS/CustomSettings.json
+/SMSAndWhatsAppDeploymentTool/JSONS/SecretNames.json
