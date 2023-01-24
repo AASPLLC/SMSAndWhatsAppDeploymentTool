@@ -8,12 +8,13 @@ using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.AppService.Models;
 using static AASPGlobalLibrary.CreateAzureAPIHandler;
 using Azure.ResourceManager.CosmosDB;
+using SMSAndWhatsAppDeploymentTool.JSONParsing;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
     public class KeyVaultResourceHandler
     {
-        public static async Task InitialCreation(WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, StorageAccountResource storageIdentity, string[] databases, List<string> apipackage, string connString, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, DataverseDeploy form)
+        public static async Task InitialCreation(JSONSecretNames secretNames, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, StorageAccountResource storageIdentity, string[] databases, List<string> apipackage, string connString, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, DataverseDeploy form)
         {
             //string prefix = "smsapp_";
             //must be lowercase or errors will occur
@@ -44,6 +45,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             if (!skip && smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
             {
                 await CreateKeyVaultSecretsDataverse(
+                    secretNames,
                     publicVault,
                     internalVault,
                     form.TenantID,
@@ -65,7 +67,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             await UpdateFunctionConfigs(desiredInternalKeyVaultName, smsSiteResource, whatsAppSiteResource);
             form.OutputRT.Text += Environment.NewLine + "Finished updating function app configs";
         }
-        public static async Task InitialCreation(string desiredRestSite, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, StorageAccountResource storageIdentity, string key, string desiredCosmosName, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, Guid TenantId, CosmosDeploy form)
+        public static async Task InitialCreation(JSONSecretNames secretNames, string desiredRestSite, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, StorageAccountResource storageIdentity, string key, string desiredCosmosName, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, Guid TenantId, CosmosDeploy form)
         {
             VaultResource publicVault;
             VaultResource internalVault;
@@ -91,7 +93,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
 
             if (!skip && smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
-                await CreateKeyVaultSecretsCosmos(desiredRestSite, publicVault, internalVault, TenantId, whatsappSystemAccessToken, whatsappCallbackToken, smsSiteResource.Data.Identity.PrincipalId.Value.ToString(), whatsAppSiteResource.Data.Identity.PrincipalId.Value.ToString(), smsEndpoint, storageIdentity.Id.Name, key, desiredCosmosName, form);
+                await CreateKeyVaultSecretsCosmos(secretNames, desiredRestSite, publicVault, internalVault, TenantId, whatsappSystemAccessToken, whatsappCallbackToken, smsSiteResource.Data.Identity.PrincipalId.Value.ToString(), whatsAppSiteResource.Data.Identity.PrincipalId.Value.ToString(), smsEndpoint, storageIdentity.Id.Name, key, desiredCosmosName, form);
 
             form.OutputRT.Text += Environment.NewLine + "Updating function app configs";
             await UpdateFunctionConfigs(desiredInternalKeyVaultName, smsSiteResource, whatsAppSiteResource);
@@ -147,29 +149,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return keyVaultResponse;
         }
 
-        class JSONSecretNames
+        static async Task CreateKeyVaultSecretsDataverse(JSONSecretNames secretNames, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsObjectId, string whatsAppObjectId, string smsEndpoint, string storageName, string storageAccountPrimaryKey, List<string> package, string dynamicsOrgId, string[] databases, DataverseDeploy form)
         {
-            public string? PDynamicsEnvironment { get; set; }
-            public string? PAccountsDBPrefix { get; set; }
-            public string? PSMSDBPrefix { get; set; }
-            public string? PWhatsAppDBPrefix { get; set; }
-            public string? PCommsEndpoint { get; set; }
-            public string? PWhatsAppAccess { get; set; }
-            public string? PTenantID { get; set; }
-            public string? IoOrgID { get; set; }
-            public string? IoClientID { get; set; }
-            public string? IoSecret { get; set; }
-            public string? IoEmail { get; set; }
-            public string? IoJobs { get; set; }
-            public string? IoCallback { get; set; }
-            public string? Type { get; set; }
-            public string? IoCosmos { get; set; }
-            public string? IoKey { get; set; }
-            public string? RESTSite { get; set; }
-        }
-        static async Task CreateKeyVaultSecretsDataverse(VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsObjectId, string whatsAppObjectId, string smsEndpoint, string storageName, string storageAccountPrimaryKey, List<string> package, string dynamicsOrgId, string[] databases, DataverseDeploy form)
-        {
-            JSONSecretNames secretNames = await Globals.LoadJSON<JSONSecretNames>(Environment.CurrentDirectory + "/JSONS/SecretNames.json");
             var name = await TokenHandler.JwtGetUsersInfo.GetUsersEmail(); // JwtGetUsersInfo jwtGetUsersInfo = new JwtGetUsersInfo();
 
 #pragma warning disable CS8604 // Possible null reference argument.                                                                       //var name = await jwtGetUsersInfo.GetUsersEmail(tokenCredential);
@@ -239,9 +220,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created and locked by RBAC access.";
         }
-        static async Task CreateKeyVaultSecretsCosmos(string desiredRestSite, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsObjectId, string whatsAppObjectId, string smsEndpoint, string storageName, string storageAccountPrimaryKey, string desiredCosmosName, CosmosDeploy form)
+        static async Task CreateKeyVaultSecretsCosmos(JSONSecretNames secretNames, string desiredRestSite, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsObjectId, string whatsAppObjectId, string smsEndpoint, string storageName, string storageAccountPrimaryKey, string desiredCosmosName, CosmosDeploy form)
         {
-            JSONSecretNames secretNames = await Globals.LoadJSON<JSONSecretNames>(Environment.CurrentDirectory + "/JSONS/SecretNames.json");
             var name = await TokenHandler.JwtGetUsersInfo.GetUsersEmail(); // JwtGetUsersInfo jwtGetUsersInfo = new JwtGetUsersInfo();
                                                                            //var name = await jwtGetUsersInfo.GetUsersEmail(tokenCredential);
 #pragma warning disable CS8604 // Possible null reference argument.                                                                       //var name = await jwtGetUsersInfo.GetUsersEmail(tokenCredential);

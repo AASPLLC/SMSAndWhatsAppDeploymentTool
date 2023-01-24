@@ -59,10 +59,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
                 CosmosDBSqlDatabaseResource dbResponse = (await dbAccountResponse.GetCosmosDBSqlDatabases().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.accountsContainerName[..^1], new(form.SelectedRegion, new(cosmosLibrary.accountsContainerName[..^1])))).Value;
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
-                              //CosmosDBSqlContainerResource accountResponse = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, customAccountsContainerName, new(SelectedRegion, new(customAccountsContainerName)))).Value;
-                              //CosmosDBSqlContainerResource counterResponse = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, customCounterContainerName, new(SelectedRegion, new(customCounterContainerName)))).Value;
-                              //CosmosDBSqlContainerResource smsResponse = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, customSMSContainerName, new(SelectedRegion, new(customSMSContainerName)))).Value;
-                              //CosmosDBSqlContainerResource whatsAppResponse = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, customWhatsAppContainerName, new(SelectedRegion, new(customWhatsAppContainerName)))).Value;
                 CosmosDBContainerPartitionKey partKey = new() { Kind = CosmosDBPartitionKind.Hash };
                 partKey.Paths.Add(cosmosLibrary.accountsIDName);
                 _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.accountsContainerName, new(form.SelectedRegion, new(cosmosLibrary.accountsContainerName) { PartitionKey = partKey }))).Value;
