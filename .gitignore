@@ -364,3 +364,5 @@ FodyWeavers.xsd
 /SMSAndWhatsAppDeploymentTool/JSONS/WordsList.json
 /SMSAndWhatsAppDeploymentTool/JSONS/CustomSettings.json
 /SMSAndWhatsAppDeploymentTool/JSONS/SecretNames.json
+/SMSAndWhatsAppDeploymentTool/JSONS/defaultLibraryCosmos.json
+/SMSAndWhatsAppDeploymentTool/JSONS/defaultLibraryDataverse.json
