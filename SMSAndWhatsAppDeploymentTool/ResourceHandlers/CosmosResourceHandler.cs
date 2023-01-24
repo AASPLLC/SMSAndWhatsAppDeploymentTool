@@ -24,15 +24,15 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             public string? accountsContainerName { get; set; }
             public string? countersContainerName { get; set; }
         }
-        public static async Task InitialCreation(ResourceIdentifier subnetID, string desiredCosmosName, string vnetName, CosmosDeploy form, bool useArm = false)
+        public static async Task InitialCreation(ResourceIdentifier subnetID, string DBName, string desiredCosmosName, string vnetName, CosmosDeploy form, bool useArm = false)
         {
             if (useArm)
-                await CreateCosmosARM(form, Environment.CurrentDirectory + @"\JSONS\CosmosDeploy.json", desiredCosmosName, form.SelectedSubscription.Data.SubscriptionId, vnetName, subnetID.Name);
+                await CreateCosmosARM(form, DBName, Environment.CurrentDirectory + @"\JSONS\CosmosDeploy.json", desiredCosmosName, form.SelectedSubscription.Data.SubscriptionId, vnetName, subnetID.Name);
             else
-                await CreateCosmosDB(subnetID, desiredCosmosName, form);
+                await CreateCosmosDB(subnetID, DBName, desiredCosmosName, form);
         }
 
-        static async Task CreateCosmosDB(ResourceIdentifier subnetID, string desiredCosmosName, CosmosDeploy form)
+        static async Task CreateCosmosDB(ResourceIdentifier subnetID, string DBName, string desiredCosmosName, CosmosDeploy form)
         {
             JSONDefaultCosmosLibrary cosmosLibrary = await Globals.LoadJSON<JSONDefaultCosmosLibrary>(Environment.CurrentDirectory + "/JSONS/defaultLibraryCosmos.json");
 
@@ -56,9 +56,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             try
             {
                 CosmosDBAccountResource dbAccountResponse = (await form.SelectedGroup.GetCosmosDBAccounts().CreateOrUpdateAsync(WaitUntil.Completed, desiredCosmosName, accountcontent)).Value;
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-                CosmosDBSqlDatabaseResource dbResponse = (await dbAccountResponse.GetCosmosDBSqlDatabases().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.accountsContainerName[..^1], new(form.SelectedRegion, new(cosmosLibrary.accountsContainerName[..^1])))).Value;
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
+                CosmosDBSqlDatabaseResource dbResponse = (await dbAccountResponse.GetCosmosDBSqlDatabases().CreateOrUpdateAsync(WaitUntil.Completed, DBName, new(form.SelectedRegion, new(DBName)))).Value;
                 CosmosDBContainerPartitionKey partKey = new() { Kind = CosmosDBPartitionKind.Hash };
                 partKey.Paths.Add(cosmosLibrary.accountsIDName);
                 _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.accountsContainerName, new(form.SelectedRegion, new(cosmosLibrary.accountsContainerName) { PartitionKey = partKey }))).Value;
@@ -89,7 +87,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
         }
 
-        static async Task CreateCosmosARM(CosmosDeploy form, string cosmosJSONPath, string desiredCosmosAccountName, string subId, string virtualNetworkName, string subnetName, string customDBName = "SMSAndWhatsApp", string customAccountsContainerName = "SMSAndWhatsAppA", string customCounterContainerName = "SMSAndWhatsAppC", string customSMSContainerName = "SMSM", string customWhatsAppContainerName = "WhatsAppM", string currentschema = "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#")
+        static async Task CreateCosmosARM(CosmosDeploy form, string DBName, string cosmosJSONPath, string desiredCosmosAccountName, string subId, string virtualNetworkName, string subnetName, string customAccountsContainerName = "SMSAndWhatsAppA", string customCounterContainerName = "SMSAndWhatsAppC", string customSMSContainerName = "SMSM", string customWhatsAppContainerName = "WhatsAppM", string currentschema = "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#")
         {
             var temp = new JsonSerializerOptions()
             {
@@ -160,7 +158,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             jsonString = jsonString.Replace("SUBIDGOESHERE", subId);
             jsonString = jsonString.Replace("ACCOUNTNAMEGOESHERE", desiredCosmosAccountName);
-            jsonString = jsonString.Replace("DATABASENAMEGOESHERE", customDBName);
+            jsonString = jsonString.Replace("DATABASENAMEGOESHERE", DBName);
             jsonString = jsonString.Replace("CUSTOMACCOUNTSCONTAINER", customAccountsContainerName);
             jsonString = jsonString.Replace("CUSTOMCOUNTERCONTAINER", customCounterContainerName);
             jsonString = jsonString.Replace("CUSTOMSMSCONTAINER", customSMSContainerName);

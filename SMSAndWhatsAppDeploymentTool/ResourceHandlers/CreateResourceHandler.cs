@@ -171,8 +171,10 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             ResourceIdentifier appPlan = await AppServicePlanResourceHandler.InitialCreation(form);
             (WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource) = await FunctionAppResourceHandler.InitialCreation(appPlan, vnetSubnetIdentity, desiredStorageName, desiredSMSFunctionAppName, desiredWhatsAppFunctionAppName, desiredRestSite, form);
 
-            await CosmosResourceHandler.InitialCreation(vnetSubnetIdentity, desiredCosmosName, vnetName, form);
             JSONSecretNames secretNames = await Globals.LoadJSON<JSONSecretNames>(Environment.CurrentDirectory + "/JSONS/SecretNames.json");
+#pragma warning disable CS8604
+            await CosmosResourceHandler.InitialCreation(vnetSubnetIdentity, secretNames.DbName, desiredCosmosName, vnetName, form);
+#pragma warning restore CS8604
             //dataverse creation and config updates happens during this phase as well, might try to split up at some point, complicated for security reasons
             await KeyVaultResourceHandler.InitialCreation(secretNames, desiredRestSite, smsSiteResource, whatsAppSiteResource, storageIdentity, key, desiredCosmosName, smsEndpoint, whatsappSystemAccessToken, whatsappCallbackToken, desiredPublicKeyVaultName, desiredInternalKeyVaultName, TenantId.Value, form);
         }
