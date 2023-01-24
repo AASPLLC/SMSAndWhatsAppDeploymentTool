@@ -1,7 +1,5 @@
 using Azure.Core;
 using Azure.ResourceManager.Resources;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 using AASPGlobalLibrary;
 using SMSAndWhatsAppDeploymentTool.ResourceHandlers;
 
@@ -15,6 +13,7 @@ namespace SMSAndWhatsAppDeploymentTool
 {
     public partial class DataverseDeploy : Form
     {
+        DataverseHandler dh = new();
         public MessageBox2 mb = new();
 
         public ArmClientHandler? Arm { get; set; }
@@ -113,14 +112,12 @@ namespace SMSAndWhatsAppDeploymentTool
             //try
             //{
             DialogResult results = new();
-            if (desiredPublicKeyvaultNameTB.Text.Length > 22)
-                results = MessageBox.Show("KeyVault name must be under 22 characters.");
+            if (desiredPublicKeyvaultNameTB.Text.Length > 24)
+                results = MessageBox.Show("KeyVault name must be under 24 characters.");
             if (results == DialogResult.OK) { }
             else
             {
                 DisableAll();
-                DataverseHandler dh = new();
-                await dh.InitAsync(SelectedEnvironment);
                 await CreateResourceHandler.CreateAllDataverseResources(dh,
                         whatsappSystemTokenTB.Text,
                         whatsappCallbackTokenTB.Text,
@@ -145,6 +142,8 @@ namespace SMSAndWhatsAppDeploymentTool
 
         public async Task Init()
         {
+            try { await dh.InitAsync(SelectedEnvironment, Environment.CurrentDirectory + "/JSONS/defaultLibraryDataverse.json"); }
+            catch { await dh.InitAsync(SelectedEnvironment); }
             if (!AutoAPI)
             {
                 apiRequiredWindow.ShowDialog();
@@ -213,20 +212,7 @@ namespace SMSAndWhatsAppDeploymentTool
         private void Button1_Click_1(object sender, EventArgs e)
         {
             string url = "https://digitalpocketdevelopment.sharepoint.com/:w:/s/DigitalPocketDeveloment-Test2/EcpyX6fGaPhFoBygYoe3unoBjHPnfKU2V8ykApG78MJH8w?e=rdwuwK";
-            // hack because of this: https://github.com/dotnet/corefx/issues/10361
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                url = url.Replace("&", "^&");
-                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                Process.Start("xdg-open", url);
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                Process.Start("open", url);
-            }
+            Globals.OpenLink(url);
         }
 
         private void AutoGenerateNamesBTN_Click(object sender, EventArgs e)
