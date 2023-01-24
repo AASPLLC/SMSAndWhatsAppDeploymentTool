@@ -13,7 +13,7 @@ namespace SMSAndWhatsAppDeploymentTool
 {
     public partial class DataverseDeploy : Form
     {
-        DataverseHandler dh = new();
+        readonly DataverseHandler dh = new();
         public MessageBox2 mb = new();
 
         public ArmClientHandler? Arm { get; set; }
