@@ -80,7 +80,11 @@ These values must be specific, but for reference, this is the format:
   "Type": "",
   "IoCosmos": "",
   "IoKey": "",
-  "RESTSite": ""
+  "RESTSite": "",
+  "DbName": "",
+  "DbName1": "",
+  "DbName2": "",
+  "DbName3": ""
 }
 ```
 
