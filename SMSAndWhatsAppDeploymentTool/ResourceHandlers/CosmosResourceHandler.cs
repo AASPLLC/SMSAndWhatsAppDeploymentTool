@@ -34,9 +34,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
         static async Task CreateCosmosDB(ResourceIdentifier subnetID, string desiredCosmosName, CosmosDeploy form)
         {
-            JSONDefaultCosmosLibrary? cosmosLibrary;
-            try { cosmosLibrary = JsonSerializer.Deserialize<JSONDefaultCosmosLibrary>(await File.ReadAllBytesAsync(Environment.CurrentDirectory + "/JSONS/defaultLibraryCosmos.json")); }
-            catch { cosmosLibrary = JsonSerializer.Deserialize<JSONDefaultCosmosLibrary>(await Globals.OpenJSONFileAsync()); }
+            JSONDefaultCosmosLibrary cosmosLibrary = await Globals.LoadJSON<JSONDefaultCosmosLibrary>(Environment.CurrentDirectory + "/JSONS/defaultLibraryCosmos.json");
 
             List<CosmosDBAccountLocation> Locations = new();
             CosmosDBAccountLocation locationstuff = new()

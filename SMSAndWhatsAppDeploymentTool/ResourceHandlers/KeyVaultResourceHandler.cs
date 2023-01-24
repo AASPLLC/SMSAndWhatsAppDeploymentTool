@@ -169,7 +169,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         }
         static async Task CreateKeyVaultSecretsDataverse(VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsObjectId, string whatsAppObjectId, string smsEndpoint, string storageName, string storageAccountPrimaryKey, List<string> package, string dynamicsOrgId, string[] databases, DataverseDeploy form)
         {
-            JSONSecretNames? secretNames = System.Text.Json.JsonSerializer.Deserialize<JSONSecretNames>(await File.ReadAllBytesAsync(Environment.NewLine + "/JSONS/SecretNames.json"));
+            JSONSecretNames secretNames = await Globals.LoadJSON<JSONSecretNames>(Environment.CurrentDirectory + "/JSONS/SecretNames.json");
             var name = await TokenHandler.JwtGetUsersInfo.GetUsersEmail(); // JwtGetUsersInfo jwtGetUsersInfo = new JwtGetUsersInfo();
 
 #pragma warning disable CS8604 // Possible null reference argument.                                                                       //var name = await jwtGetUsersInfo.GetUsersEmail(tokenCredential);
@@ -241,7 +241,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         }
         static async Task CreateKeyVaultSecretsCosmos(string desiredRestSite, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsObjectId, string whatsAppObjectId, string smsEndpoint, string storageName, string storageAccountPrimaryKey, string desiredCosmosName, CosmosDeploy form)
         {
-            JSONSecretNames? secretNames = System.Text.Json.JsonSerializer.Deserialize<JSONSecretNames>(await File.ReadAllBytesAsync(Environment.NewLine + "/JSONS/SecretNames.json"));
+            JSONSecretNames secretNames = await Globals.LoadJSON<JSONSecretNames>(Environment.CurrentDirectory + "/JSONS/SecretNames.json");
             var name = await TokenHandler.JwtGetUsersInfo.GetUsersEmail(); // JwtGetUsersInfo jwtGetUsersInfo = new JwtGetUsersInfo();
                                                                            //var name = await jwtGetUsersInfo.GetUsersEmail(tokenCredential);
 #pragma warning disable CS8604 // Possible null reference argument.                                                                       //var name = await jwtGetUsersInfo.GetUsersEmail(tokenCredential);
