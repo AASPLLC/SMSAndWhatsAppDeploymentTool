@@ -88,4 +88,4 @@ These values must be specific, but for reference, this is the format:
 }
 ```
 
-This application is dependent on the following library: [AASP Global Library](https://github.com/AASPWayne/AASPGlobalLibrary)
+This application is dependent on the following library: [AASP Global Library](https://github.com/wrharper/AASPGlobalLibrary)
