@@ -205,7 +205,7 @@
             this.button1.Location = new System.Drawing.Point(198, 188);
             this.button1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(21, 20);
+            this.button1.Size = new System.Drawing.Size(23, 23);
             this.button1.TabIndex = 29;
             this.button1.Text = "?";
             this.button1.UseVisualStyleBackColor = true;

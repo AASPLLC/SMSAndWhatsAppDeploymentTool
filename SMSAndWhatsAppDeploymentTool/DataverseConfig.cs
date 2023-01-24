@@ -80,11 +80,9 @@ namespace SMSAndWhatsAppDeploymentTool
             comboBox1.Items.AddRange(names.ToArray());
             comboBox1.SelectedIndex = 0;
 
-            var disco = "https://globaldisco.crm.dynamics.com/api/discovery/v1.0/Instances";
-
             var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await TokenHandler.GetGlobalDynamicsImpersonationToken());
-            HttpRequestMessage request = new(new HttpMethod("GET"), disco);
+            HttpRequestMessage request = new(new HttpMethod("GET"), Globals.Dynamics365Distro);
             var response = await httpClient.SendAsync(request);
 #pragma warning disable CS8601 // Converting null literal or possible null value to non-nullable type.
             info = await response.Content.ReadFromJsonAsync<JSONGetDataverseEnvironments>();
