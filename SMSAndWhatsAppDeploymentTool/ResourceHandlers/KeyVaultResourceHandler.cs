@@ -308,7 +308,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             try
             {
                 _ = await form.SelectedGroup.GetVaultAsync(desiredName);
-                form.OutputRT.Text += Environment.NewLine + desiredName + " and " + desiredName + "io already exists in your environment, skipping.";
+                form.OutputRT.Text += Environment.NewLine + desiredName + " already exists in your environment, skipping.";
                 return false;
             }
             catch (RequestFailedException ex) when (ex.Status == 404)

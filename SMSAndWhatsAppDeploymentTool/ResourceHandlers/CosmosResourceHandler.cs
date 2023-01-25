@@ -7,6 +7,7 @@ using Azure.ResourceManager.CosmosDB.Models;
 using Azure.ResourceManager.CosmosDB;
 using Azure.Core;
 using AASPGlobalLibrary;
+using System.Linq.Expressions;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
@@ -55,34 +56,68 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             });
             try
             {
-                CosmosDBAccountResource dbAccountResponse = (await form.SelectedGroup.GetCosmosDBAccounts().CreateOrUpdateAsync(WaitUntil.Completed, desiredCosmosName, accountcontent)).Value;
-                CosmosDBSqlDatabaseResource dbResponse = (await dbAccountResponse.GetCosmosDBSqlDatabases().CreateOrUpdateAsync(WaitUntil.Completed, DBName, new(form.SelectedRegion, new(DBName)))).Value;
-                CosmosDBContainerPartitionKey partKey = new() { Kind = CosmosDBPartitionKind.Hash };
-                partKey.Paths.Add(cosmosLibrary.accountsIDName);
-                _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.accountsContainerName, new(form.SelectedRegion, new(cosmosLibrary.accountsContainerName) { PartitionKey = partKey }))).Value;
-                partKey.Paths.Clear();
-                partKey.Paths.Add(cosmosLibrary.countersIDName);
-                _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.countersContainerName, new(form.SelectedRegion, new(cosmosLibrary.countersContainerName) { PartitionKey = partKey }))).Value;
-                partKey.Paths.Clear();
-                partKey.Paths.Add(cosmosLibrary.smsIDName);
-                _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.smsContainerName, new(form.SelectedRegion, new(cosmosLibrary.smsContainerName) { PartitionKey = partKey }))).Value;
-                partKey.Paths.Clear();
-                partKey.Paths.Add(cosmosLibrary.whatsappIDName);
-                _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.whatsappContainerName, new(form.SelectedRegion, new(cosmosLibrary.whatsappContainerName) { PartitionKey = partKey }))).Value;
-            }
-            catch (Exception ex)
-            {
-                if (ex.Message.Contains("Sorry, we are currently experiencing high demand in"))
+                foreach (var item in form.SelectedGroup.GetCosmosDBAccounts())
                 {
-                    Globals.OpenLink("https://aka.ms/cosmosdbquota");
-                    form.mb.label1.Text = "Error: Cosmos DB has not finished due to high demand.";
-                    form.mb.richTextBox1.Text = "Run this again after fixing quota error link."
-                        + Environment.NewLine + Environment.NewLine +
-                        "Be sure to mention your requested name: " + desiredCosmosName
-                        + Environment.NewLine + Environment.NewLine +
-                        "Full error in case Microsoft needs it: " + Environment.NewLine + ex.Message;
-                    form.mb.ShowDialog();
-                    form.Close();
+                    CosmosDBAccountResource dbAccountResponse = (await form.SelectedGroup.GetCosmosDBAccounts().CreateOrUpdateAsync(WaitUntil.Completed, desiredCosmosName, accountcontent)).Value;
+                    CosmosDBSqlDatabaseResource dbResponse = (await dbAccountResponse.GetCosmosDBSqlDatabases().CreateOrUpdateAsync(WaitUntil.Completed, DBName, new(form.SelectedRegion, new(DBName)))).Value;
+                    CosmosDBContainerPartitionKey partKey = new() { Kind = CosmosDBPartitionKind.Hash };
+                    partKey.Paths.Add(cosmosLibrary.accountsIDName);
+                    _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.accountsContainerName, new(form.SelectedRegion, new(cosmosLibrary.accountsContainerName) { PartitionKey = partKey }))).Value;
+                    partKey.Paths.Clear();
+                    partKey.Paths.Add(cosmosLibrary.countersIDName);
+                    _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.countersContainerName, new(form.SelectedRegion, new(cosmosLibrary.countersContainerName) { PartitionKey = partKey }))).Value;
+                    partKey.Paths.Clear();
+                    partKey.Paths.Add(cosmosLibrary.smsIDName);
+                    _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.smsContainerName, new(form.SelectedRegion, new(cosmosLibrary.smsContainerName) { PartitionKey = partKey }))).Value;
+                    partKey.Paths.Clear();
+                    partKey.Paths.Add(cosmosLibrary.whatsappIDName);
+                    _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.whatsappContainerName, new(form.SelectedRegion, new(cosmosLibrary.whatsappContainerName) { PartitionKey = partKey }))).Value;
+                    if (item.Data.ProvisioningState.Contains("Failed"))
+                    {
+                        Globals.OpenLink("https://aka.ms/cosmosdbquota");
+                        form.mb.label1.Text = "Error: Cosmos DB has not finished due to high demand.";
+                        form.mb.richTextBox1.Text = "Run this again after fixing quota error link."
+                            + Environment.NewLine + Environment.NewLine +
+                            "Be sure to mention your requested name: " + desiredCosmosName;
+                    }
+                    else
+                        form.OutputRT.Text += Environment.NewLine + item.Data.Name + "already exists in your environment, skipping.";
+                    break;
+                }
+            }
+            catch
+            {
+                try
+                {
+                    CosmosDBAccountResource dbAccountResponse = (await form.SelectedGroup.GetCosmosDBAccounts().CreateOrUpdateAsync(WaitUntil.Completed, desiredCosmosName, accountcontent)).Value;
+                    CosmosDBSqlDatabaseResource dbResponse = (await dbAccountResponse.GetCosmosDBSqlDatabases().CreateOrUpdateAsync(WaitUntil.Completed, DBName, new(form.SelectedRegion, new(DBName)))).Value;
+                    CosmosDBContainerPartitionKey partKey = new() { Kind = CosmosDBPartitionKind.Hash };
+                    partKey.Paths.Add(cosmosLibrary.accountsIDName);
+                    _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.accountsContainerName, new(form.SelectedRegion, new(cosmosLibrary.accountsContainerName) { PartitionKey = partKey }))).Value;
+                    partKey.Paths.Clear();
+                    partKey.Paths.Add(cosmosLibrary.countersIDName);
+                    _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.countersContainerName, new(form.SelectedRegion, new(cosmosLibrary.countersContainerName) { PartitionKey = partKey }))).Value;
+                    partKey.Paths.Clear();
+                    partKey.Paths.Add(cosmosLibrary.smsIDName);
+                    _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.smsContainerName, new(form.SelectedRegion, new(cosmosLibrary.smsContainerName) { PartitionKey = partKey }))).Value;
+                    partKey.Paths.Clear();
+                    partKey.Paths.Add(cosmosLibrary.whatsappIDName);
+                    _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.whatsappContainerName, new(form.SelectedRegion, new(cosmosLibrary.whatsappContainerName) { PartitionKey = partKey }))).Value;
+                }
+                catch (Exception ex)
+                {
+                    if (ex.Message.Contains("Sorry, we are currently experiencing high demand in"))
+                    {
+                        Globals.OpenLink("https://aka.ms/cosmosdbquota");
+                        form.mb.label1.Text = "Error: Cosmos DB has not finished due to high demand.";
+                        form.mb.richTextBox1.Text = "Run this again after fixing quota error link."
+                            + Environment.NewLine + Environment.NewLine +
+                            "Be sure to mention your requested name: " + desiredCosmosName
+                            + Environment.NewLine + Environment.NewLine +
+                            "Full error in case Microsoft needs it: " + Environment.NewLine + ex.Message;
+                        form.mb.ShowDialog();
+                        form.Close();
+                    }
                 }
             }
         }
