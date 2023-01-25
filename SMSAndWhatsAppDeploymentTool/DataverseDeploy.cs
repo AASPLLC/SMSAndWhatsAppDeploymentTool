@@ -2,7 +2,6 @@ using Azure.Core;
 using Azure.ResourceManager.Resources;
 using AASPGlobalLibrary;
 using SMSAndWhatsAppDeploymentTool.ResourceHandlers;
-using SMSAndWhatsAppDeploymentTool.JSONParsing;
 
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
 #pragma warning disable CS8618 // Possible null reference argument.
@@ -112,13 +111,13 @@ namespace SMSAndWhatsAppDeploymentTool
         {
             //try
             //{
+            DisableAll();
             DialogResult results = new();
             if (desiredPublicKeyvaultNameTB.Text.Length > 24)
                 results = MessageBox.Show("KeyVault name must be under 24 characters.");
             if (results == DialogResult.OK) { }
             else
             {
-                DisableAll();
                 await CreateResourceHandler.CreateAllDataverseResources(dh,
                         whatsappSystemTokenTB.Text,
                         whatsappCallbackTokenTB.Text,
@@ -130,14 +129,13 @@ namespace SMSAndWhatsAppDeploymentTool
                         desiredInternalKeyvaultNameTB.Text,
                         //true, //can add easily as a feature now, currently hardcoded as on
                         this);
-
-                EnableAll();
             }
+            EnableAll();
             //}
             //catch (Exception ex)
             //{
-                //OutputRT.Text += Environment.NewLine + ex.Message;
-                //EnableAll();
+            //OutputRT.Text += Environment.NewLine + ex.Message;
+            //EnableAll();
             //}
         }
 

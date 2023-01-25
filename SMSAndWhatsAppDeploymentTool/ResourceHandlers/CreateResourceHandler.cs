@@ -32,7 +32,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
             return desiredStorageName;
         }
-        static string GetDesiredKeyVaultName(string desiredKeyVaultName, ResourceGroupResource SelectedGroup)
+        static string GetDesiredKeyVaultName(int vault, string desiredKeyVaultName, ResourceGroupResource SelectedGroup)
         {
             List<string> vaultnames = new();
             foreach (var item in SelectedGroup.GetVaults())
@@ -41,10 +41,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
             if (vaultnames.Count == 2)
             {
-                if (vaultnames[0].Length > vaultnames[1].Length)
-                    desiredKeyVaultName = vaultnames[1];
-                else
-                    desiredKeyVaultName = vaultnames[0];
+                desiredKeyVaultName = vaultnames[vault];
             }
             return desiredKeyVaultName;
         }
@@ -136,8 +133,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         public static async Task CreateAllDataverseResources(DataverseHandler dh, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, DataverseDeploy form)
         {
             desiredStorageName = GetDesiredStorageName(desiredStorageName, form.SelectedGroup);
-            desiredPublicKeyVaultName = GetDesiredKeyVaultName(desiredPublicKeyVaultName, form.SelectedGroup);
-            desiredInternalKeyVaultName = GetDesiredKeyVaultName(desiredInternalKeyVaultName, form.SelectedGroup);
+            desiredPublicKeyVaultName = GetDesiredKeyVaultName(0, desiredPublicKeyVaultName, form.SelectedGroup);
+            desiredInternalKeyVaultName = GetDesiredKeyVaultName(1, desiredInternalKeyVaultName, form.SelectedGroup);
             desiredCommunicationsName = GetDesiredCommsName(desiredCommunicationsName, form.SelectedGroup);
 
             (var smsIdentityId, var smsEndpoint) = await CommunicationResourceHandler.InitialCreation(desiredCommunicationsName, form);
@@ -159,8 +156,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         public static async Task CreateAllCosmosResources(Guid? TenantId, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string desiredRestSite, string desiredCosmosName, CosmosDeploy form)
         {
             desiredStorageName = GetDesiredStorageName(desiredStorageName, form.SelectedGroup);
-            desiredPublicKeyVaultName = GetDesiredKeyVaultName(desiredPublicKeyVaultName, form.SelectedGroup);
-            desiredInternalKeyVaultName = GetDesiredKeyVaultName(desiredInternalKeyVaultName, form.SelectedGroup);
+            desiredPublicKeyVaultName = GetDesiredKeyVaultName(0, desiredPublicKeyVaultName, form.SelectedGroup);
+            desiredInternalKeyVaultName = GetDesiredKeyVaultName(1, desiredInternalKeyVaultName, form.SelectedGroup);
             desiredCommunicationsName = GetDesiredCommsName(desiredCommunicationsName, form.SelectedGroup);
             desiredCosmosName = GetDesiredCosmosName(desiredCosmosName, form.SelectedGroup);
 

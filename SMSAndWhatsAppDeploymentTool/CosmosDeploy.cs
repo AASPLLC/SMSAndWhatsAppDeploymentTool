@@ -120,8 +120,7 @@ namespace SMSAndWhatsAppDeploymentTool
         {
             //try
             //{
-                DisableAll();
-
+            DisableAll();
             DialogResult results = new();
             if (desiredPublicKeyvaultNameTB.Text.Length > 24)
                 results = MessageBox.Show("KeyVault name must be under 24 characters.");
@@ -141,14 +140,13 @@ namespace SMSAndWhatsAppDeploymentTool
                     desiredCosmosRESTAPIFunctionNameTB.Text,
                     desiredCosmosAccountNameFunctionNameTB.Text,
                     this);
-
-                EnableAll();
             }
+            EnableAll();
             //}
             //catch (Exception ex)
             //{
-                //OutputRT.Text += Environment.NewLine + ex.Message;
-                //EnableAll();
+            //OutputRT.Text += Environment.NewLine + ex.Message;
+            //EnableAll();
             //}
         }
 
@@ -223,8 +221,7 @@ namespace SMSAndWhatsAppDeploymentTool
 
         private void Button1_Click_1(object sender, EventArgs e)
         {
-            string url = "https://digitalpocketdevelopment.sharepoint.com/:w:/s/DigitalPocketDeveloment-Test2/EcpyX6fGaPhFoBygYoe3unoBjHPnfKU2V8ykApG78MJH8w?e=rdwuwK";
-            Globals.OpenLink(url);
+            Globals.OpenLink("https://digitalpocketdevelopment.sharepoint.com/:w:/s/DigitalPocketDeveloment-Test2/EcpyX6fGaPhFoBygYoe3unoBjHPnfKU2V8ykApG78MJH8w?e=rdwuwK");
         }
 
         private void AutoGenerateNamesBTN_Click(object sender, EventArgs e)
