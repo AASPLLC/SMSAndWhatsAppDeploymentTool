@@ -89,6 +89,7 @@ namespace SMSAndWhatsAppDeploymentTool
             whatsappCallbackTokenTB.Enabled = false;
             CallbackUniqueBTN.Enabled = false;
             desiredInternalKeyvaultNameTB.Enabled = false;
+            archiveEmailTB.Enabled = false;
         }
 
         public void EnableAll()
@@ -105,6 +106,7 @@ namespace SMSAndWhatsAppDeploymentTool
             whatsappCallbackTokenTB.Enabled = true;
             CallbackUniqueBTN.Enabled = true;
             desiredInternalKeyvaultNameTB.Enabled = true;
+            desiredStorageNameTB.Enabled = true;
         }
 
         public async Task FinishCreation()
@@ -119,6 +121,7 @@ namespace SMSAndWhatsAppDeploymentTool
             else
             {
                 await CreateResourceHandler.CreateAllDataverseResources(dh,
+                        archiveEmailTB.Text,
                         whatsappSystemTokenTB.Text,
                         whatsappCallbackTokenTB.Text,
                         desiredCommunicationsNameTB.Text,

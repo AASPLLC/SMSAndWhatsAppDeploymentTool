@@ -94,6 +94,8 @@ namespace SMSAndWhatsAppDeploymentTool
             CallbackUniqueBTN.Enabled = false;
             desiredCosmosAccountNameFunctionNameTB.Enabled = false;
             desiredInternalKeyvaultNameTB.Enabled = false;
+            archiveEmailTB.Enabled = false;
+            adminAccountCheck.Enabled = false;
         }
 
         public void EnableAll()
@@ -112,6 +114,8 @@ namespace SMSAndWhatsAppDeploymentTool
             CallbackUniqueBTN.Enabled = true;
             desiredCosmosAccountNameFunctionNameTB.Enabled = true;
             desiredInternalKeyvaultNameTB.Enabled = true;
+            archiveEmailTB.Enabled = true;
+            adminAccountCheck.Enabled = true;
         }
 
         public async Task FinishCreation()
@@ -126,7 +130,9 @@ namespace SMSAndWhatsAppDeploymentTool
             else
             {
                 await CreateResourceHandler.CreateAllCosmosResources(
+                    adminAccountCheck.Checked,
                     TenantID,
+                    archiveEmailTB.Text,
                     whatsappSystemTokenTB.Text,
                     whatsappCallbackTokenTB.Text,
                     desiredCommunicationsNameTB.Text,

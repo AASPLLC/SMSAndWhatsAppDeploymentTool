@@ -130,7 +130,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             return apipackage;
         }
-        public static async Task CreateAllDataverseResources(DataverseHandler dh, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, DataverseDeploy form)
+        public static async Task CreateAllDataverseResources(DataverseHandler dh, string archiveEmail, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, DataverseDeploy form)
         {
             desiredStorageName = GetDesiredStorageName(desiredStorageName, form.SelectedGroup);
             desiredPublicKeyVaultName = GetDesiredKeyVaultName(0, desiredPublicKeyVaultName, form.SelectedGroup);
@@ -150,10 +150,10 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 #pragma warning restore CS8601
             List<string> apipackage = await SetupDataverseEnvironment(databases, dh, form);
             //dataverse creation and config updates happens during this phase as well, might try to split up at some point, complicated for security reasons
-            await KeyVaultResourceHandler.InitialCreation(secretNames, smsSiteResource, whatsAppSiteResource, storageIdentity, databases, apipackage, connString, smsEndpoint, whatsappSystemAccessToken, whatsappCallbackToken, desiredPublicKeyVaultName, desiredInternalKeyVaultName, form);
+            await KeyVaultResourceHandler.InitialCreation(secretNames, smsSiteResource, whatsAppSiteResource, storageIdentity, archiveEmail, databases, apipackage, connString, smsEndpoint, whatsappSystemAccessToken, whatsappCallbackToken, desiredPublicKeyVaultName, desiredInternalKeyVaultName, form);
         }
 
-        public static async Task CreateAllCosmosResources(Guid? TenantId, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string desiredRestSite, string desiredCosmosName, CosmosDeploy form)
+        public static async Task CreateAllCosmosResources(bool createAdminAccount, Guid? TenantId, string archiveEmail, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string desiredRestSite, string desiredCosmosName, CosmosDeploy form)
         {
             desiredStorageName = GetDesiredStorageName(desiredStorageName, form.SelectedGroup);
             desiredPublicKeyVaultName = GetDesiredKeyVaultName(0, desiredPublicKeyVaultName, form.SelectedGroup);
@@ -173,7 +173,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             await CosmosResourceHandler.InitialCreation(vnetSubnetIdentity, secretNames.DbName, desiredCosmosName, vnetName, form);
 #pragma warning restore CS8604
             //dataverse creation and config updates happens during this phase as well, might try to split up at some point, complicated for security reasons
-            await KeyVaultResourceHandler.InitialCreation(secretNames, desiredRestSite, smsSiteResource, whatsAppSiteResource, storageIdentity, key, desiredCosmosName, smsEndpoint, whatsappSystemAccessToken, whatsappCallbackToken, desiredPublicKeyVaultName, desiredInternalKeyVaultName, TenantId.Value, form);
+            await KeyVaultResourceHandler.InitialCreation(createAdminAccount, secretNames, desiredRestSite, smsSiteResource, whatsAppSiteResource, storageIdentity, archiveEmail, key, desiredCosmosName, smsEndpoint, whatsappSystemAccessToken, whatsappCallbackToken, desiredPublicKeyVaultName, desiredInternalKeyVaultName, TenantId.Value, form);
         }
     }
 #pragma warning restore CS8629 // Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).

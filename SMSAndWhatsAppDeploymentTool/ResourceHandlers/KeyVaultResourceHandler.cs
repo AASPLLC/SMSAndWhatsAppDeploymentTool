@@ -14,7 +14,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
     public class KeyVaultResourceHandler
     {
-        public static async Task InitialCreation(JSONSecretNames secretNames, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, StorageAccountResource storageIdentity, string[] databases, List<string> apipackage, string connString, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, DataverseDeploy form)
+        public static async Task InitialCreation(JSONSecretNames secretNames, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, StorageAccountResource storageIdentity, string archiveEmail, string[] databases, List<string> apipackage, string connString, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, DataverseDeploy form)
         {
             //string prefix = "smsapp_";
             //must be lowercase or errors will occur
@@ -50,6 +50,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                     publicVault,
                     internalVault,
                     form.TenantID,
+                    archiveEmail,
                     whatsappSystemAccessToken,
                     whatsappCallbackToken,
                     smsSiteResource.Data.Identity.PrincipalId.Value.ToString(),
@@ -68,7 +69,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             await UpdateFunctionConfigs(desiredInternalKeyVaultName, smsSiteResource, whatsAppSiteResource);
             form.OutputRT.Text += Environment.NewLine + "Finished updating function app configs";
         }
-        public static async Task InitialCreation(JSONSecretNames secretNames, string desiredRestSite, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, StorageAccountResource storageIdentity, string key, string desiredCosmosName, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, Guid TenantId, CosmosDeploy form)
+        public static async Task InitialCreation(bool createAdminAccount, JSONSecretNames secretNames, string desiredRestSite, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, StorageAccountResource storageIdentity, string archiveEmail, string key, string desiredCosmosName, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, Guid TenantId, CosmosDeploy form)
         {
             VaultResource publicVault;
             VaultResource internalVault;
@@ -93,9 +94,11 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 internalVault = await SkipKeyVault(form.SelectedGroup, desiredInternalKeyVaultName);
             }
 
+            await AutomationAccountsHandler.InitialCreation(desiredCosmosName, desiredInternalKeyVaultName, form);
+
             if (smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
             //if (!skip && smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
-                await CreateKeyVaultSecretsCosmos(secretNames, desiredRestSite, publicVault, internalVault, TenantId, whatsappSystemAccessToken, whatsappCallbackToken, smsSiteResource.Data.Identity.PrincipalId.Value.ToString(), whatsAppSiteResource.Data.Identity.PrincipalId.Value.ToString(), smsEndpoint, storageIdentity.Id.Name, key, desiredCosmosName, form);
+                await CreateKeyVaultSecretsCosmos(createAdminAccount, secretNames, archiveEmail, desiredRestSite, publicVault, internalVault, TenantId, whatsappSystemAccessToken, whatsappCallbackToken, smsSiteResource.Data.Identity.PrincipalId.Value.ToString(), whatsAppSiteResource.Data.Identity.PrincipalId.Value.ToString(), smsEndpoint, storageIdentity.Id.Name, key, desiredCosmosName, form);
 
             form.OutputRT.Text += Environment.NewLine + "Updating function app configs";
             await UpdateFunctionConfigs(desiredInternalKeyVaultName, smsSiteResource, whatsAppSiteResource);
@@ -151,9 +154,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return keyVaultResponse;
         }
 
-        static async Task CreateKeyVaultSecretsDataverse(JSONSecretNames secretNames, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsObjectId, string whatsAppObjectId, string smsEndpoint, string storageName, string storageAccountPrimaryKey, List<string> package, string dynamicsOrgId, string[] databases, DataverseDeploy form)
+        static async Task CreateKeyVaultSecretsDataverse(JSONSecretNames secretNames, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string archiveEmail, string whatsappSystemAccessToken, string verifyHTTPToken, string smsObjectId, string whatsAppObjectId, string smsEndpoint, string storageName, string storageAccountPrimaryKey, List<string> package, string dynamicsOrgId, string[] databases, DataverseDeploy form)
         {
-            var name = await TokenHandler.JwtGetUsersInfo.GetUsersEmail();
 #pragma warning disable CS8604 // Possible null reference argument.                                                                       //var name = await jwtGetUsersInfo.GetUsersEmail(tokenCredential);
             if (secretNames != null)
             {
@@ -190,12 +192,13 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 }
 
                 string urlPrimary = "DefaultEndpointsProtocol=https;AccountName=" + storageName + ";AccountKey=" + storageAccountPrimaryKey + ";EndpointSuffix=core.windows.net";
+                CreateSecret(internalVault, secretNames.IoJobs, urlPrimary);
                 //string urlQueuePrimary = "https://" + storageName + ".queue.core.windows.net/";
 
                 CreateSecret(internalVault, secretNames.PTenantID, TenantID.ToString());
-                CreateSecret(internalVault, secretNames.IoEmail, name);
+                if (archiveEmail != "")
+                    CreateSecret(internalVault, secretNames.IoEmail, archiveEmail);
                 //CreateSecret(internalVault, "StorageKey", storageAccountPrimaryKey);
-                CreateSecret(internalVault, secretNames.IoJobs, urlPrimary);
                 if (verifyHTTPToken != "")
                     CreateSecret(internalVault, secretNames.IoCallback, verifyHTTPToken);
 
@@ -221,33 +224,47 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created and locked by RBAC access.";
         }
-        static async Task CreateKeyVaultSecretsCosmos(JSONSecretNames secretNames, string desiredRestSite, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsObjectId, string whatsAppObjectId, string smsEndpoint, string storageName, string storageAccountPrimaryKey, string desiredCosmosName, CosmosDeploy form)
+        static async Task CreateKeyVaultSecretsCosmos(bool createAdminAccount, JSONSecretNames secretNames, string archiveEmail, string desiredRestSite, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsObjectId, string whatsAppObjectId, string smsEndpoint, string storageName, string storageAccountPrimaryKey, string desiredCosmosName, CosmosDeploy form)
         {
-            var name = await TokenHandler.JwtGetUsersInfo.GetUsersEmail();
+            if (createAdminAccount)
+            {
+                var name = await TokenHandler.JwtGetUsersInfo.GetUsersEmail();
+                form.OutputRT.Text += Environment.NewLine + "First account creation attempt: " + await CosmosDBHandler.AddOrUpdateAccount(desiredRestSite, name, name, "+1", "1", "1");
+            }
+
 #pragma warning disable CS8604 // Possible null reference argument.
             if (secretNames != null)
             {
                 CreateSecret(publicVault, secretNames.PCommsEndpoint, smsEndpoint);
-                if (whatsappSystemAccessToken.StartsWith("Bearer "))
-                    CreateSecret(publicVault, secretNames.PWhatsAppAccess, whatsappSystemAccessToken);
-                else
-                    CreateSecret(publicVault, secretNames.PWhatsAppAccess, "Bearer " + whatsappSystemAccessToken);
-                CreateSecret(publicVault, secretNames.RESTSite, desiredRestSite);
+                if (whatsappSystemAccessToken != "")
+                {
+                    if (whatsappSystemAccessToken.StartsWith("Bearer "))
+                        CreateSecret(publicVault, secretNames.PWhatsAppAccess, whatsappSystemAccessToken);
+                    else
+                        CreateSecret(publicVault, secretNames.PWhatsAppAccess, "Bearer " + whatsappSystemAccessToken);
+                }
+                if (desiredRestSite != "")
+                    CreateSecret(publicVault, secretNames.RESTSite, desiredRestSite);
                 CreateSecret(publicVault, secretNames.Type, "1");
 
                 string urlPrimary = "DefaultEndpointsProtocol=https;AccountName=" + storageName + ";AccountKey=" + storageAccountPrimaryKey + ";EndpointSuffix=core.windows.net";
+                CreateSecret(internalVault, secretNames.IoJobs, urlPrimary);
                 //string urlQueuePrimary = "https://" + storageName + ".queue.core.windows.net/";
 
                 CreateSecret(internalVault, secretNames.PTenantID, TenantID.ToString());
-                CreateSecret(internalVault, secretNames.IoEmail, name);
+                if (archiveEmail != "")
+                    CreateSecret(internalVault, secretNames.IoEmail, archiveEmail);
                 //CreateSecret(internalVault, "StorageKey", storageAccountPrimaryKey);
-                CreateSecret(internalVault, secretNames.IoJobs, urlPrimary);
-                CreateSecret(internalVault, secretNames.IoCallback, verifyHTTPToken);
+                if (verifyHTTPToken != "")
+                    CreateSecret(internalVault, secretNames.IoCallback, verifyHTTPToken);
                 CreateSecret(internalVault, secretNames.Type, "1");
 
-                CosmosDBAccountResource cosmosDB = (await form.SelectedGroup.GetCosmosDBAccountAsync(desiredCosmosName)).Value;
-                CreateSecret(internalVault, secretNames.IoCosmos, desiredCosmosName);
-                CreateSecret(internalVault, secretNames.IoKey, (await cosmosDB.GetKeysAsync()).Value.PrimaryReadonlyMasterKey);
+                if (desiredCosmosName != "")
+                {
+                    CosmosDBAccountResource cosmosDB = (await form.SelectedGroup.GetCosmosDBAccountAsync(desiredCosmosName)).Value;
+                    CreateSecret(internalVault, secretNames.IoCosmos, desiredCosmosName);
+                    CreateSecret(internalVault, secretNames.IoKey, (await cosmosDB.GetKeysAsync()).Value.PrimaryReadonlyMasterKey);
+                }
             }
 #pragma warning restore CS8604 // Possible null reference argument.
 

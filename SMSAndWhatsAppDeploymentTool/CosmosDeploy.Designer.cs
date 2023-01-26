@@ -55,6 +55,9 @@
             this.CallbackUniqueBTN = new System.Windows.Forms.Button();
             this.desiredInternalKeyvaultNameTB = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
+            this.archiveEmailTB = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.adminAccountCheck = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // desiredPublicKeyvaultNameTB
@@ -76,17 +79,17 @@
             // 
             // OutputRT
             // 
-            this.OutputRT.Location = new System.Drawing.Point(12, 322);
+            this.OutputRT.Location = new System.Drawing.Point(12, 358);
             this.OutputRT.Name = "OutputRT";
             this.OutputRT.ReadOnly = true;
-            this.OutputRT.Size = new System.Drawing.Size(864, 317);
+            this.OutputRT.Size = new System.Drawing.Size(864, 281);
             this.OutputRT.TabIndex = 2;
             this.OutputRT.Text = "";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 304);
+            this.label2.Location = new System.Drawing.Point(12, 337);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(48, 15);
             this.label2.TabIndex = 3;
@@ -292,9 +295,39 @@
             this.label5.TabIndex = 38;
             this.label5.Text = "Desired Internal Key Vault Name:";
             // 
+            // archiveEmailTB
+            // 
+            this.archiveEmailTB.Location = new System.Drawing.Point(277, 304);
+            this.archiveEmailTB.Name = "archiveEmailTB";
+            this.archiveEmailTB.PlaceholderText = "Email address to archive data";
+            this.archiveEmailTB.Size = new System.Drawing.Size(458, 23);
+            this.archiveEmailTB.TabIndex = 39;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(12, 307);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(82, 15);
+            this.label6.TabIndex = 40;
+            this.label6.Text = "Archive Email:";
+            // 
+            // adminAccountCheck
+            // 
+            this.adminAccountCheck.AutoSize = true;
+            this.adminAccountCheck.Location = new System.Drawing.Point(677, 333);
+            this.adminAccountCheck.Name = "adminAccountCheck";
+            this.adminAccountCheck.Size = new System.Drawing.Size(201, 19);
+            this.adminAccountCheck.TabIndex = 41;
+            this.adminAccountCheck.Text = "Create First Time Admin Account";
+            this.adminAccountCheck.UseVisualStyleBackColor = true;
+            // 
             // CosmosDeploy
             // 
             this.ClientSize = new System.Drawing.Size(890, 651);
+            this.Controls.Add(this.adminAccountCheck);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.archiveEmailTB);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.desiredInternalKeyvaultNameTB);
             this.Controls.Add(this.CallbackUniqueBTN);
@@ -362,5 +395,8 @@
         private Button CallbackUniqueBTN;
         private TextBox desiredInternalKeyvaultNameTB;
         private Label label5;
+        private TextBox archiveEmailTB;
+        private Label label6;
+        private CheckBox adminAccountCheck;
     }
 }
