@@ -13,6 +13,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
     //keep ARM plus Management way for security team
     public class CosmosResourceHandler
     {
+        public static bool found = false;
         class JSONDefaultCosmosLibrary
         {
             public string? smsIDName { get; set; }
@@ -53,14 +54,13 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 Id = subnetID,
                 IgnoreMissingVnetServiceEndpoint = true
             });
-            bool found = false;
             foreach (var item in form.SelectedGroup.GetCosmosDBAccounts())
             {
-                CosmosDBAccountResource dbAccountResponse = (await form.SelectedGroup.GetCosmosDBAccounts().CreateOrUpdateAsync(WaitUntil.Completed, desiredCosmosName, accountcontent)).Value;
-                CosmosDBSqlDatabaseResource dbResponse = (await dbAccountResponse.GetCosmosDBSqlDatabases().CreateOrUpdateAsync(WaitUntil.Completed, DBName, new(form.SelectedRegion, new(DBName)))).Value;
+                CosmosDBSqlDatabaseResource dbResponse = (await item.GetCosmosDBSqlDatabases().CreateOrUpdateAsync(WaitUntil.Completed, DBName, new(form.SelectedRegion, new(DBName)))).Value;
                 CosmosDBContainerPartitionKey partKey = new() { Kind = CosmosDBPartitionKind.Hash };
                 partKey.Paths.Add(cosmosLibrary.accountsIDName);
                 _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.accountsContainerName, new(form.SelectedRegion, new(cosmosLibrary.accountsContainerName) { PartitionKey = partKey }))).Value;
+                //CosmosDBSqlContainerResource sql = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.accountsContainerName, new(form.SelectedRegion, new(cosmosLibrary.accountsContainerName) { PartitionKey = partKey }))).Value;
                 partKey.Paths.Clear();
                 partKey.Paths.Add(cosmosLibrary.countersIDName);
                 _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.countersContainerName, new(form.SelectedRegion, new(cosmosLibrary.countersContainerName) { PartitionKey = partKey }))).Value;
@@ -73,10 +73,13 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 if (item.Data.ProvisioningState.Contains("Failed"))
                 {
                     Globals.OpenLink("https://aka.ms/cosmosdbquota");
-                    form.mb.label1.Text = "Error: Cosmos DB has not finished due to high demand.";
-                    form.mb.richTextBox1.Text = "Run this again after fixing quota error link."
+                    MessageBox2 mb = new();
+                    mb.label1.Text = "Error: Cosmos DB has not finished due to high demand.";
+                    mb.richTextBox1.Text = "Run this again after fixing quota error link."
                         + Environment.NewLine + Environment.NewLine +
                         "Be sure to mention your requested name: " + desiredCosmosName;
+                    mb.ShowDialog();
+                    mb.Close();
                 }
                 else
                     form.OutputRT.Text += Environment.NewLine + item.Data.Name + "already exists in your environment, skipping.";
@@ -107,14 +110,23 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                     if (ex.Message.Contains("Sorry, we are currently experiencing high demand in"))
                     {
                         Globals.OpenLink("https://aka.ms/cosmosdbquota");
-                        form.mb.label1.Text = "Error: Cosmos DB has not finished due to high demand.";
-                        form.mb.richTextBox1.Text = "Run this again after fixing quota error link."
+                        MessageBox2 mb = new();
+                        mb.label1.Text = "Error: Cosmos DB has not finished due to high demand.";
+                        mb.richTextBox1.Text = "Run this again after fixing quota error link."
                             + Environment.NewLine + Environment.NewLine +
                             "Be sure to mention your requested name: " + desiredCosmosName
                             + Environment.NewLine + Environment.NewLine +
                             "Full error in case Microsoft needs it: " + Environment.NewLine + ex.Message;
-                        form.mb.ShowDialog();
-                        form.Close();
+                        mb.ShowDialog();
+                        mb.Close();
+                    }
+                    else
+                    {
+                        MessageBox2 mb = new();
+                        mb.label1.Text = "Error: Cosmos DB has an unknown error.";
+                        mb.richTextBox1.Text = ex.Message;
+                        mb.ShowDialog();
+                        mb.Close();
                     }
                 }
             }

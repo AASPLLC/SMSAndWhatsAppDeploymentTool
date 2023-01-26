@@ -22,14 +22,14 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             //might change depending on what happens with system account creation, needs to be re-assigned
             VaultResource publicVault;
             VaultResource internalVault;
-            bool skip = false;
+            //bool skip = false;
             if (await CheckKeyVaultName(desiredPublicKeyVaultName, form))
             {
                 publicVault = await CreateKeyVaultResource(desiredPublicKeyVaultName, form.TenantID, form);
             }
             else
             {
-                skip = true;
+                //skip = true;
                 publicVault = await SkipKeyVault(form.SelectedGroup, desiredPublicKeyVaultName);
             }
             if (await CheckKeyVaultName(desiredInternalKeyVaultName, form))
@@ -38,11 +38,12 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
             else
             {
-                skip = true;
+                //skip = true;
                 internalVault = await SkipKeyVault(form.SelectedGroup, desiredInternalKeyVaultName);
             }
 
-            if (!skip && smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
+            if (smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
+            //if (!skip && smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
             {
                 await CreateKeyVaultSecretsDataverse(
                     secretNames,
@@ -71,7 +72,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         {
             VaultResource publicVault;
             VaultResource internalVault;
-            bool skip = false;
+            //bool skip = false;
             //must be lowercase or errors will occur
             if (await CheckKeyVaultName(desiredPublicKeyVaultName, form))
             {
@@ -79,7 +80,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
             else
             {
-                skip = true;
+                //skip = true;
                 publicVault = await SkipKeyVault(form.SelectedGroup, desiredPublicKeyVaultName);
             }
             if (await CheckKeyVaultName(desiredInternalKeyVaultName, form))
@@ -88,11 +89,12 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
             else
             {
-                skip = true;
+                //skip = true;
                 internalVault = await SkipKeyVault(form.SelectedGroup, desiredInternalKeyVaultName);
             }
 
-            if (!skip && smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
+            if (smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
+            //if (!skip && smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
                 await CreateKeyVaultSecretsCosmos(secretNames, desiredRestSite, publicVault, internalVault, TenantId, whatsappSystemAccessToken, whatsappCallbackToken, smsSiteResource.Data.Identity.PrincipalId.Value.ToString(), whatsAppSiteResource.Data.Identity.PrincipalId.Value.ToString(), smsEndpoint, storageIdentity.Id.Name, key, desiredCosmosName, form);
 
             form.OutputRT.Text += Environment.NewLine + "Updating function app configs";
@@ -151,8 +153,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
         static async Task CreateKeyVaultSecretsDataverse(JSONSecretNames secretNames, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsObjectId, string whatsAppObjectId, string smsEndpoint, string storageName, string storageAccountPrimaryKey, List<string> package, string dynamicsOrgId, string[] databases, DataverseDeploy form)
         {
-            var name = await TokenHandler.JwtGetUsersInfo.GetUsersEmail(); // JwtGetUsersInfo jwtGetUsersInfo = new JwtGetUsersInfo();
-
+            var name = await TokenHandler.JwtGetUsersInfo.GetUsersEmail();
 #pragma warning disable CS8604 // Possible null reference argument.                                                                       //var name = await jwtGetUsersInfo.GetUsersEmail(tokenCredential);
             if (secretNames != null)
             {
@@ -222,9 +223,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         }
         static async Task CreateKeyVaultSecretsCosmos(JSONSecretNames secretNames, string desiredRestSite, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsObjectId, string whatsAppObjectId, string smsEndpoint, string storageName, string storageAccountPrimaryKey, string desiredCosmosName, CosmosDeploy form)
         {
-            var name = await TokenHandler.JwtGetUsersInfo.GetUsersEmail(); // JwtGetUsersInfo jwtGetUsersInfo = new JwtGetUsersInfo();
-                                                                           //var name = await jwtGetUsersInfo.GetUsersEmail(tokenCredential);
-#pragma warning disable CS8604 // Possible null reference argument.                                                                       //var name = await jwtGetUsersInfo.GetUsersEmail(tokenCredential);
+            var name = await TokenHandler.JwtGetUsersInfo.GetUsersEmail();
+#pragma warning disable CS8604 // Possible null reference argument.
             if (secretNames != null)
             {
                 CreateSecret(publicVault, secretNames.PCommsEndpoint, smsEndpoint);

@@ -13,8 +13,6 @@ namespace SMSAndWhatsAppDeploymentTool
 {
     public partial class CosmosDeploy : Form
     {
-        public MessageBox2 mb = new();
-
         public ArmClientHandler? Arm { get; set; }
 
         public SubscriptionResource SelectedSubscription;
