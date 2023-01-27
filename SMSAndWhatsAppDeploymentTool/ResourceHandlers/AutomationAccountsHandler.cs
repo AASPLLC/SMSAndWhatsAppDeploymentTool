@@ -45,9 +45,11 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             string runbookstring = "try\r\n{\r\n    \"Logging in to Azure...\"\r\n    Connect-AzAccount -Identity\r\n}\r\ncatch {\r\n    Write-Error -Message $_.Exception\r\n    throw $_.Exception\r\n}\r\n\r\n$resourceGroupName = Get-AutomationVariable -Name 'ResourceGroupName' # Resource Group must already exist\r\n$accountName = Get-AutomationVariable -Name 'CosmosAccountName' # Must be all lower case\r\n$keyKind = \"primary\" # Other key kinds: secondary, primaryReadonly, secondaryReadonly\r\n$vault = Get-AutomationVariable -Name 'CosmosVault'\r\n$secretname = Get-AutomationVariable -Name 'SecretName'\r\n\r\n$newkey = New-AzCosmosDBAccountKey `\r\n    -ResourceGroupName $resourceGroupName `\r\n    -Name $accountName `\r\n    -KeyKind $keyKind\r\n$Secret = ConvertTo-SecureString -String $newkey -AsPlainText -Force\r\n$newkey = \"\"\r\n\r\nGet-AzKeyVaultSecret $vault | Where-Object {$_.Name -like $secretname} | Update-AzKeyVaultSecret -Enable $False\r\n\r\nSet-AzKeyVaultSecret -VaultName $vault -Name $secretname -SecretValue $Secret";
             RunbookResource runbook = (await response.GetRunbooks().CreateOrUpdateAsync(WaitUntil.Completed, "AutoRotation", new(RunbookTypeEnum.PowerShell) { Location = form.SelectedRegion })).Value;
+            //using (MemoryStream stream = Globals.GenerateStreamFromString(runbookstring))
+            //{ _ = await runbook.ReplaceContentRunbookDraftAsync(WaitUntil.Completed, stream); }
             try { _ = await runbook.ReplaceContentRunbookDraftAsync(WaitUntil.Completed, Globals.GenerateStreamFromString(runbookstring)); } catch { }
-            if (runbook.Data.State == RunbookState.Edit)
-                _ = await runbook.PublishAsync(WaitUntil.Completed);
+            //if (runbook.Data.State == RunbookState.Edit)
+            try { _ = await runbook.PublishAsync(WaitUntil.Completed); } catch { }
 
             string cosmosDBDailyrotation = "CosmosDBDailyrotation";
             ScheduleCreateOrUpdateContent schedulecontent = new(cosmosDBDailyrotation, new(DateTime.Now.AddMinutes(10)), ScheduleFrequency.Day) { Interval = BinaryData.FromString("1") };
