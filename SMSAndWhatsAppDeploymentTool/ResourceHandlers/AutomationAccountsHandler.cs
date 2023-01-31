@@ -5,6 +5,7 @@ using Azure.ResourceManager.Models;
 using Azure.ResourceManager.Resources;
 using Azure.Core;
 using SMSAndWhatsAppDeploymentTool.JSONParsing;
+using Microsoft.Azure.Cosmos;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
@@ -52,38 +53,21 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 IsLocalAuthDisabled = false
             };
             AutomationAccountResource response = (await SelectedGroup.GetAutomationAccounts().CreateOrUpdateAsync(WaitUntil.Completed, AutomationAccountName, content)).Value;
-            Console.WriteLine("Adding Microsoft.Graph.Authentication");
-            try
-            {
-                _ = response.GetAutomationAccountModule("Microsoft.Graph.Authentication").Value;
-                Console.WriteLine("Microsoft.Graph.Authentication already exists, skipping.");
-            }
-            catch
-            {
-                _ = (await response.GetAutomationAccountModules().CreateOrUpdateAsync(WaitUntil.Completed, "Microsoft.Graph.Authentication", new(new()
-                {
-                    Uri = new Uri("https://psg-prod-eastus.azureedge.net/packages/microsoft.graph.authentication.1.21.0.nupkg"),
-                    Version = "1.21.0"
-                }))).Value;
-                Console.WriteLine("Microsoft.Graph.Authentication Created.");
-            }
+            
+            await CreateOrSkipModule(
+                response,
+                "Microsoft.Graph.Authentication",
+                "https://psg-prod-eastus.azureedge.net/packages/microsoft.graph.authentication.1.21.0.nupkg",
+                "1.21.0"
+                );
 
-            try
-            {
-                _ = response.GetAutomationAccountModule("Adding Microsoft.Graph.Users.Actions").Value;
-                Console.WriteLine("Adding Microsoft.Graph.Users.Actions already exists, skipping.");
-            }
-            catch
-            {
-                //while (response.GetAutomationAccountModule(module1.Data.Name).Value.Data.ProvisioningState != ModuleProvisioningState.Succeeded) { }
-                Console.WriteLine("Adding Microsoft.Graph.Users.Actions");
-                _ = (await response.GetAutomationAccountModules().CreateOrUpdateAsync(WaitUntil.Completed, "Microsoft.Graph.Users.Actions", new(new()
-                {
-                    Uri = new Uri("https://psg-prod-eastus.azureedge.net/packages/microsoft.graph.users.actions.1.21.0.nupkg"),
-                    Version = "1.21.0"
-                }))).Value;
-                Console.WriteLine("Microsoft.Graph.Users.Actions Created.");
-            }
+            await CreateOrSkipModule(
+                response,
+                "Microsoft.Graph.Users.Actions",
+                "https://psg-prod-eastus.azureedge.net/packages/microsoft.graph.users.actions.1.21.0.nupkg",
+                "1.21.0"
+                );
+
             await SetupVariable(response, "InternalVault", internalVaultName);
             await SetupVariable(response, "ResourceGroupName", "SMSAndWhatsAppResourceGroup");
 
@@ -216,6 +200,35 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 Value = "\"" + value + "\""
             };
             try { _ = await response.GetAutomationVariables().CreateOrUpdateAsync(WaitUntil.Completed, name, cosmosvarContent); } catch { }
+        }
+        static async Task CreateOrSkipModule(AutomationAccountResource response, string name, string url, string version)
+        {
+            try
+            {
+                var module = response.GetAutomationAccountModule(name).Value;
+                if (module.Data.Version != version)
+                {
+                    Console.Write(Environment.NewLine + "Version mismatch, updating: " + name);
+                    _ = (await response.GetAutomationAccountModules().CreateOrUpdateAsync(WaitUntil.Completed, name, new(new()
+                    {
+                        Uri = new Uri(url),
+                        Version = version
+                    }))).Value;
+                }
+                else
+                    Console.Write(Environment.NewLine + name + " already exists, skipping.");
+            }
+            catch
+            {
+                //while (response.GetAutomationAccountModule(module1.Data.Name).Value.Data.ProvisioningState != ModuleProvisioningState.Succeeded) { }
+                Console.Write(Environment.NewLine + "Adding " + name);
+                _ = (await response.GetAutomationAccountModules().CreateOrUpdateAsync(WaitUntil.Completed, name, new(new()
+                {
+                    Uri = new Uri(url),
+                    Version = version
+                }))).Value;
+                Console.Write(Environment.NewLine + name + " Created.");
+            }
         }
     }
 }
