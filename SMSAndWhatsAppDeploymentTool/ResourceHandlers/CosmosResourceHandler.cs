@@ -72,12 +72,13 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.whatsappContainerName, new(form.SelectedRegion, new(cosmosLibrary.whatsappContainerName) { PartitionKey = partKey }))).Value;
                 if (item.Data.ProvisioningState.Contains("Failed"))
                 {
-                    Globals.OpenLink("https://aka.ms/cosmosdbquota");
                     MessageBox2 mb = new();
-                    mb.label1.Text = "Error: Cosmos DB has not finished due to high demand.";
-                    mb.richTextBox1.Text = "Run this again after fixing quota error link."
+                    mb.label1.Text = "Error: Unknown";
+                    mb.richTextBox1.Text = "Provisioning state is in failed status, but there is no description for the error."
+                        + Environment.NewLine +
+                        "The most likely cause is due to quota limits. Please see https://aka.ms/cosmosdbquota"
                         + Environment.NewLine + Environment.NewLine +
-                        "Be sure to mention your requested name: " + desiredCosmosName;
+                        "Desired Cosmos Name: " + desiredCosmosName;
                     mb.ShowDialog();
                     mb.Close();
                 }

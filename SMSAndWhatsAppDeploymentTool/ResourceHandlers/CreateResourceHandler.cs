@@ -174,6 +174,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 #pragma warning restore CS8604
             //dataverse creation and config updates happens during this phase as well, might try to split up at some point, complicated for security reasons
             await KeyVaultResourceHandler.InitialCreation(createAdminAccount, secretNames, desiredRestSite, smsSiteResource, whatsAppSiteResource, storageIdentity, archiveEmail, key, desiredCosmosName, smsEndpoint, whatsappSystemAccessToken, whatsappCallbackToken, desiredPublicKeyVaultName, desiredInternalKeyVaultName, TenantId.Value, form);
+
+            await AutomationAccountsHandler.InitialCreation(desiredCosmosName, desiredInternalKeyVaultName, form);
         }
     }
 #pragma warning restore CS8629 // Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).

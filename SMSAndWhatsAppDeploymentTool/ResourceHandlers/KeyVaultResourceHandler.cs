@@ -94,8 +94,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 internalVault = await SkipKeyVault(form.SelectedGroup, desiredInternalKeyVaultName);
             }
 
-            await AutomationAccountsHandler.InitialCreation(desiredCosmosName, desiredInternalKeyVaultName, form);
-
             if (smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
             //if (!skip && smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
                 await CreateKeyVaultSecretsCosmos(createAdminAccount, secretNames, archiveEmail, desiredRestSite, publicVault, internalVault, TenantId, whatsappSystemAccessToken, whatsappCallbackToken, smsSiteResource.Data.Identity.PrincipalId.Value.ToString(), whatsAppSiteResource.Data.Identity.PrincipalId.Value.ToString(), smsEndpoint, storageIdentity.Id.Name, key, desiredCosmosName, form);
