@@ -5,7 +5,6 @@ using Azure.ResourceManager.Models;
 using Azure.ResourceManager.Resources;
 using Azure.Core;
 using SMSAndWhatsAppDeploymentTool.JSONParsing;
-using Microsoft.Azure.Cosmos;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {

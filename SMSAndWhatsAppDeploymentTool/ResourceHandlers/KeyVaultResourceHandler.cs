@@ -208,7 +208,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 //string urlQueuePrimary = "https://" + storageName + ".queue.core.windows.net/";
 
                 await CreateSecret(internalVault, secretNames.PTenantID, TenantID.ToString());
-                form.OutputRT.Text += Environment.NewLine + "Archive Email should be: " + archiveEmail;
+
                 if (archiveEmail != "")
                     await CreateSecret(internalVault, secretNames.IoEmail, archiveEmail);
                 //CreateSecret(internalVault, "StorageKey", storageAccountPrimaryKey);
