@@ -9,6 +9,7 @@ using Azure.ResourceManager.AppService.Models;
 using static AASPGlobalLibrary.CreateAzureAPIHandler;
 using Azure.ResourceManager.CosmosDB;
 using SMSAndWhatsAppDeploymentTool.JSONParsing;
+using Azure.Security.KeyVault.Secrets;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
@@ -103,12 +104,25 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             form.OutputRT.Text += Environment.NewLine + "Finished updating function app configs";
         }
 
-        static void CreateSecret(VaultResource vr, string key, string value)
+        static async Task CreateSecret(VaultResource vr, string key, string value)
         {
-            vr.GetSecrets().CreateOrUpdate(WaitUntil.Completed, key, new SecretCreateOrUpdateContent(new SecretProperties()
-            {
-                Value = value
-            }));
+            try {
+                SecretClient sc = TokenHandler.GetFunctionAppKeyVaultClient(vr.Data.Name);
+                if ((await sc.GetSecretAsync(key)).Value.Value != value)
+                {
+                    await sc.UpdateSecretPropertiesAsync(new(key) { Enabled = false });
+                    await vr.GetSecrets().CreateOrUpdateAsync(WaitUntil.Completed, key, new SecretCreateOrUpdateContent(new()
+                    {
+                        Value = value
+                    }));
+                }
+            }
+            catch {
+                await vr.GetSecrets().CreateOrUpdateAsync(WaitUntil.Completed, key, new SecretCreateOrUpdateContent(new()
+                {
+                    Value = value
+                }));
+            }
         }
 
         static async Task<VaultResource> CreateKeyVaultResource(string desiredName, Guid TenantID, DataverseDeploy form)
@@ -154,54 +168,55 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
         static async Task CreateKeyVaultSecretsDataverse(JSONSecretNames secretNames, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string archiveEmail, string whatsappSystemAccessToken, string verifyHTTPToken, string smsObjectId, string whatsAppObjectId, string smsEndpoint, string storageName, string storageAccountPrimaryKey, List<string> package, string dynamicsOrgId, string[] databases, DataverseDeploy form)
         {
-#pragma warning disable CS8604 // Possible null reference argument.                                                                       //var name = await jwtGetUsersInfo.GetUsersEmail(tokenCredential);
+#pragma warning disable CS8604 // Possible null reference argument.
             if (secretNames != null)
             {
-                CreateSecret(publicVault, secretNames.PDynamicsEnvironment, form.SelectedEnvironment);
-                CreateSecret(publicVault, secretNames.PAccountsDBPrefix, databases[0].ToLower() + "eses");
-                CreateSecret(publicVault, secretNames.PSMSDBPrefix, databases[1].ToLower() + "eses");
-                CreateSecret(publicVault, secretNames.PWhatsAppDBPrefix, databases[2].ToLower() + "eses");
-                CreateSecret(internalVault, secretNames.PDynamicsEnvironment, form.SelectedEnvironment);
-                CreateSecret(internalVault, secretNames.PAccountsDBPrefix, databases[0].ToLower() + "eses");
-                CreateSecret(internalVault, secretNames.PSMSDBPrefix, databases[1].ToLower() + "eses");
-                CreateSecret(internalVault, secretNames.PWhatsAppDBPrefix, databases[2].ToLower() + "eses");
-                CreateSecret(internalVault, secretNames.IoOrgID, dynamicsOrgId);
-                CreateSecret(internalVault, secretNames.IoClientID, package[1]);
+                await CreateSecret(publicVault, secretNames.PDynamicsEnvironment, form.SelectedEnvironment);
+                await CreateSecret(publicVault, secretNames.PAccountsDBPrefix, databases[0].ToLower() + "eses");
+                await CreateSecret(publicVault, secretNames.PSMSDBPrefix, databases[1].ToLower() + "eses");
+                await CreateSecret(publicVault, secretNames.PWhatsAppDBPrefix, databases[2].ToLower() + "eses");
+                await CreateSecret(internalVault, secretNames.PDynamicsEnvironment, form.SelectedEnvironment);
+                await CreateSecret(internalVault, secretNames.PAccountsDBPrefix, databases[0].ToLower() + "eses");
+                await CreateSecret(internalVault, secretNames.PSMSDBPrefix, databases[1].ToLower() + "eses");
+                await CreateSecret(internalVault, secretNames.PWhatsAppDBPrefix, databases[2].ToLower() + "eses");
+                await CreateSecret(internalVault, secretNames.IoOrgID, dynamicsOrgId);
+                await CreateSecret(internalVault, secretNames.IoClientID, package[1]);
                 if (package[2] == "0")
                 {
                     var gs = GraphHandler.GetServiceClientWithoutAPI();
-                    CreateSecret(internalVault, secretNames.IoSecret, await AddSecretClientPasswordAsync(gs, package[3], package[1], "ArchiveAccess"));
+                    await CreateSecret(internalVault, secretNames.IoSecret, await AddSecretClientPasswordAsync(gs, package[3], package[1], "ArchiveAccess"));
                 }
                 else
                 {
                     SecuredExistingSecret securedExistingSecret = new();
                     securedExistingSecret.ShowDialog();
-                    CreateSecret(internalVault, secretNames.IoSecret, securedExistingSecret.GetSecuredString());
+                    await CreateSecret(internalVault, secretNames.IoSecret, securedExistingSecret.GetSecuredString());
                     securedExistingSecret.Dispose();
                 }
 
-                CreateSecret(publicVault, secretNames.PCommsEndpoint, smsEndpoint);
+                await CreateSecret(publicVault, secretNames.PCommsEndpoint, smsEndpoint);
                 if (whatsappSystemAccessToken != "")
                 {
                     if (whatsappSystemAccessToken.StartsWith("Bearer "))
-                        CreateSecret(publicVault, secretNames.PWhatsAppAccess, whatsappSystemAccessToken);
+                        await CreateSecret(publicVault, secretNames.PWhatsAppAccess, whatsappSystemAccessToken);
                     else
-                        CreateSecret(publicVault, secretNames.PWhatsAppAccess, "Bearer " + whatsappSystemAccessToken);
+                        await CreateSecret(publicVault, secretNames.PWhatsAppAccess, "Bearer " + whatsappSystemAccessToken);
                 }
 
                 string urlPrimary = "DefaultEndpointsProtocol=https;AccountName=" + storageName + ";AccountKey=" + storageAccountPrimaryKey + ";EndpointSuffix=core.windows.net";
-                CreateSecret(internalVault, secretNames.IoJobs, urlPrimary);
+                await CreateSecret(internalVault, secretNames.IoJobs, urlPrimary);
                 //string urlQueuePrimary = "https://" + storageName + ".queue.core.windows.net/";
 
-                CreateSecret(internalVault, secretNames.PTenantID, TenantID.ToString());
+                await CreateSecret(internalVault, secretNames.PTenantID, TenantID.ToString());
+                form.OutputRT.Text += Environment.NewLine + "Archive Email should be: " + archiveEmail;
                 if (archiveEmail != "")
-                    CreateSecret(internalVault, secretNames.IoEmail, archiveEmail);
+                    await CreateSecret(internalVault, secretNames.IoEmail, archiveEmail);
                 //CreateSecret(internalVault, "StorageKey", storageAccountPrimaryKey);
                 if (verifyHTTPToken != "")
-                    CreateSecret(internalVault, secretNames.IoCallback, verifyHTTPToken);
+                    await CreateSecret(internalVault, secretNames.IoCallback, verifyHTTPToken);
 
-                CreateSecret(publicVault, secretNames.Type, "0");
-                CreateSecret(internalVault, secretNames.Type, "0");
+                await CreateSecret(publicVault, secretNames.Type, "0");
+                await CreateSecret(internalVault, secretNames.Type, "0");
             }
 #pragma warning restore CS8604 // Possible null reference argument.
 
@@ -233,35 +248,35 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 #pragma warning disable CS8604 // Possible null reference argument.
             if (secretNames != null)
             {
-                CreateSecret(publicVault, secretNames.PCommsEndpoint, smsEndpoint);
+                await CreateSecret(publicVault, secretNames.PCommsEndpoint, smsEndpoint);
                 if (whatsappSystemAccessToken != "")
                 {
                     if (whatsappSystemAccessToken.StartsWith("Bearer "))
-                        CreateSecret(publicVault, secretNames.PWhatsAppAccess, whatsappSystemAccessToken);
+                        await CreateSecret(publicVault, secretNames.PWhatsAppAccess, whatsappSystemAccessToken);
                     else
-                        CreateSecret(publicVault, secretNames.PWhatsAppAccess, "Bearer " + whatsappSystemAccessToken);
+                        await CreateSecret(publicVault, secretNames.PWhatsAppAccess, "Bearer " + whatsappSystemAccessToken);
                 }
                 if (desiredRestSite != "")
-                    CreateSecret(publicVault, secretNames.RESTSite, desiredRestSite);
-                CreateSecret(publicVault, secretNames.Type, "1");
+                    await CreateSecret(publicVault, secretNames.RESTSite, desiredRestSite);
+                await CreateSecret(publicVault, secretNames.Type, "1");
 
                 string urlPrimary = "DefaultEndpointsProtocol=https;AccountName=" + storageName + ";AccountKey=" + storageAccountPrimaryKey + ";EndpointSuffix=core.windows.net";
-                CreateSecret(internalVault, secretNames.IoJobs, urlPrimary);
+                await CreateSecret(internalVault, secretNames.IoJobs, urlPrimary);
                 //string urlQueuePrimary = "https://" + storageName + ".queue.core.windows.net/";
 
-                CreateSecret(internalVault, secretNames.PTenantID, TenantID.ToString());
+                await CreateSecret(internalVault, secretNames.PTenantID, TenantID.ToString());
                 if (archiveEmail != "")
-                    CreateSecret(internalVault, secretNames.IoEmail, archiveEmail);
+                    await CreateSecret(internalVault, secretNames.IoEmail, archiveEmail);
                 //CreateSecret(internalVault, "StorageKey", storageAccountPrimaryKey);
                 if (verifyHTTPToken != "")
-                    CreateSecret(internalVault, secretNames.IoCallback, verifyHTTPToken);
-                CreateSecret(internalVault, secretNames.Type, "1");
+                    await CreateSecret(internalVault, secretNames.IoCallback, verifyHTTPToken);
+                await CreateSecret(internalVault, secretNames.Type, "1");
 
                 if (desiredCosmosName != "")
                 {
                     CosmosDBAccountResource cosmosDB = (await form.SelectedGroup.GetCosmosDBAccountAsync(desiredCosmosName)).Value;
-                    CreateSecret(internalVault, secretNames.IoCosmos, desiredCosmosName);
-                    CreateSecret(internalVault, secretNames.IoKey, (await cosmosDB.GetKeysAsync()).Value.PrimaryReadonlyMasterKey);
+                    await CreateSecret(internalVault, secretNames.IoCosmos, desiredCosmosName);
+                    await CreateSecret(internalVault, secretNames.IoKey, (await cosmosDB.GetKeysAsync()).Value.PrimaryReadonlyMasterKey);
                 }
             }
 #pragma warning restore CS8604 // Possible null reference argument.

@@ -14,29 +14,16 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
     public class CosmosResourceHandler
     {
         public static bool found = false;
-        class JSONDefaultCosmosLibrary
-        {
-            public string? smsIDName { get; set; }
-            public string? whatsappIDName { get; set; }
-            public string? accountsIDName { get; set; }
-            public string? countersIDName { get; set; }
-            public string? smsContainerName { get; set; }
-            public string? whatsappContainerName { get; set; }
-            public string? accountsContainerName { get; set; }
-            public string? countersContainerName { get; set; }
-        }
-        public static async Task InitialCreation(ResourceIdentifier subnetID, string DBName, string desiredCosmosName, string vnetName, CosmosDeploy form, bool useArm = false)
+        public static async Task InitialCreation(JSONDefaultCosmosLibrary cosmosLibrary, ResourceIdentifier subnetID, string DBName, string desiredCosmosName, string vnetName, CosmosDeploy form, bool useArm = false)
         {
             if (useArm)
                 await CreateCosmosARM(form, DBName, Environment.CurrentDirectory + @"\JSONS\CosmosDeploy.json", desiredCosmosName, form.SelectedSubscription.Data.SubscriptionId, vnetName, subnetID.Name);
             else
-                await CreateCosmosDB(subnetID, DBName, desiredCosmosName, form);
+                await CreateCosmosDB(cosmosLibrary, subnetID, DBName, desiredCosmosName, form);
         }
 
-        static async Task CreateCosmosDB(ResourceIdentifier subnetID, string DBName, string desiredCosmosName, CosmosDeploy form)
+        static async Task CreateCosmosDB(JSONDefaultCosmosLibrary cosmosLibrary, ResourceIdentifier subnetID, string DBName, string desiredCosmosName, CosmosDeploy form)
         {
-            JSONDefaultCosmosLibrary cosmosLibrary = await Globals.LoadJSON<JSONDefaultCosmosLibrary>(Environment.CurrentDirectory + "/JSONS/defaultLibraryCosmos.json");
-
             List<CosmosDBAccountLocation> Locations = new();
             CosmosDBAccountLocation locationstuff = new()
             {

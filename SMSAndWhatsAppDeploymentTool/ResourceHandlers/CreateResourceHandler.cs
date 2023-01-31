@@ -151,6 +151,9 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             List<string> apipackage = await SetupDataverseEnvironment(databases, dh, form);
             //dataverse creation and config updates happens during this phase as well, might try to split up at some point, complicated for security reasons
             await KeyVaultResourceHandler.InitialCreation(secretNames, smsSiteResource, whatsAppSiteResource, storageIdentity, archiveEmail, databases, apipackage, connString, smsEndpoint, whatsappSystemAccessToken, whatsappCallbackToken, desiredPublicKeyVaultName, desiredInternalKeyVaultName, form);
+
+            JSONDefaultDataverseLibrary dataverseLibrary = await Globals.LoadJSON<JSONDefaultDataverseLibrary>(form.DataverseLibraryPath);
+            await AutomationAccountsHandler.InitialCreation(dataverseLibrary, secretNames, desiredInternalKeyVaultName, form);
         }
 
         public static async Task CreateAllCosmosResources(bool createAdminAccount, Guid? TenantId, string archiveEmail, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string desiredRestSite, string desiredCosmosName, CosmosDeploy form)
@@ -169,13 +172,14 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             (WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource) = await FunctionAppResourceHandler.InitialCreation(appPlan, vnetSubnetIdentity, desiredStorageName, desiredSMSFunctionAppName, desiredWhatsAppFunctionAppName, desiredRestSite, form);
 
             JSONSecretNames secretNames = await Globals.LoadJSON<JSONSecretNames>(Environment.CurrentDirectory + "/JSONS/SecretNames.json");
+            JSONDefaultCosmosLibrary cosmosLibrary = await Globals.LoadJSON<JSONDefaultCosmosLibrary>(Environment.CurrentDirectory + "/JSONS/defaultLibraryCosmos.json");
 #pragma warning disable CS8604
-            await CosmosResourceHandler.InitialCreation(vnetSubnetIdentity, secretNames.DbName, desiredCosmosName, vnetName, form);
+            await CosmosResourceHandler.InitialCreation(cosmosLibrary, vnetSubnetIdentity, secretNames.DbName, desiredCosmosName, vnetName, form);
 #pragma warning restore CS8604
             //dataverse creation and config updates happens during this phase as well, might try to split up at some point, complicated for security reasons
             await KeyVaultResourceHandler.InitialCreation(createAdminAccount, secretNames, desiredRestSite, smsSiteResource, whatsAppSiteResource, storageIdentity, archiveEmail, key, desiredCosmosName, smsEndpoint, whatsappSystemAccessToken, whatsappCallbackToken, desiredPublicKeyVaultName, desiredInternalKeyVaultName, TenantId.Value, form);
 
-            await AutomationAccountsHandler.InitialCreation(desiredCosmosName, desiredInternalKeyVaultName, form);
+            await AutomationAccountsHandler.InitialCreation(cosmosLibrary, desiredCosmosName, desiredInternalKeyVaultName, form);
         }
     }
 #pragma warning restore CS8629 // Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).

@@ -13,6 +13,8 @@ namespace SMSAndWhatsAppDeploymentTool
 {
     public partial class DataverseDeploy : Form
     {
+        readonly public string DataverseLibraryPath = Environment.CurrentDirectory + "/JSONS/defaultLibraryDataverse.json";
+
         readonly DataverseHandler dh = new();
         public MessageBox2 mb = new();
 
@@ -107,6 +109,7 @@ namespace SMSAndWhatsAppDeploymentTool
             CallbackUniqueBTN.Enabled = true;
             desiredInternalKeyvaultNameTB.Enabled = true;
             desiredStorageNameTB.Enabled = true;
+            archiveEmailTB.Enabled = true;
         }
 
         public async Task FinishCreation()
@@ -120,18 +123,19 @@ namespace SMSAndWhatsAppDeploymentTool
             if (results == DialogResult.OK) { }
             else
             {
-                await CreateResourceHandler.CreateAllDataverseResources(dh,
-                        archiveEmailTB.Text,
-                        whatsappSystemTokenTB.Text,
-                        whatsappCallbackTokenTB.Text,
-                        desiredCommunicationsNameTB.Text,
-                        desiredStorageNameTB.Text,
-                        desiredSMSFunctionAppNameTB.Text,
-                        desiredWhatsAppFunctionNameTB.Text,
-                        desiredPublicKeyvaultNameTB.Text,
-                        desiredInternalKeyvaultNameTB.Text,
-                        //true, //can add easily as a feature now, currently hardcoded as on
-                        this);
+                await CreateResourceHandler.CreateAllDataverseResources(
+                    dh,
+                    archiveEmailTB.Text,
+                    whatsappSystemTokenTB.Text,
+                    whatsappCallbackTokenTB.Text,
+                    desiredCommunicationsNameTB.Text,
+                    desiredStorageNameTB.Text,
+                    desiredSMSFunctionAppNameTB.Text,
+                    desiredWhatsAppFunctionNameTB.Text,
+                    desiredPublicKeyvaultNameTB.Text,
+                    desiredInternalKeyvaultNameTB.Text,
+                    //true, //can add easily as a feature now, currently hardcoded as on
+                    this);
             }
             EnableAll();
             //}
@@ -144,7 +148,7 @@ namespace SMSAndWhatsAppDeploymentTool
 
         public async Task Init()
         {
-            try { await dh.InitAsync(SelectedEnvironment, Environment.CurrentDirectory + "/JSONS/defaultLibraryDataverse.json"); }
+            try { await dh.InitAsync(SelectedEnvironment, DataverseLibraryPath); }
             catch { await dh.InitAsync(SelectedEnvironment); }
             if (!AutoAPI)
             {
