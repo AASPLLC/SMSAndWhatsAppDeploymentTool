@@ -125,6 +125,7 @@ namespace SMSAndWhatsAppDeploymentTool
             {
                 await CreateResourceHandler.CreateAllDataverseResources(
                     dh,
+                    TenantID,
                     archiveEmailTB.Text,
                     whatsappSystemTokenTB.Text,
                     whatsappCallbackTokenTB.Text,
