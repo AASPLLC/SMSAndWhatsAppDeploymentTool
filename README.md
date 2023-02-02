@@ -39,6 +39,7 @@ These values must be specific, but for reference, this is the format:
     "metadataTimestamp": "",
     "metadataPicPath": "",
     "metadataEmailNonAccount":"",
+    "metadataPhoneNumber": "",
     "metadataPhoneNumberID": "",
     "metadataEmailAccount": ""
 }
