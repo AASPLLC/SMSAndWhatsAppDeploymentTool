@@ -94,7 +94,6 @@ namespace SMSAndWhatsAppDeploymentTool
             desiredInternalKeyvaultNameTB.Enabled = false;
             archiveEmailTB.Enabled = false;
         }
-
         internal void EnableAll()
         {
             deployBTN.Enabled = true;

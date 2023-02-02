@@ -95,7 +95,6 @@ namespace SMSAndWhatsAppDeploymentTool
             archiveEmailTB.Enabled = false;
             adminAccountCheck.Enabled = false;
         }
-
         internal void EnableAll()
         {
             deployBTN.Enabled = true;

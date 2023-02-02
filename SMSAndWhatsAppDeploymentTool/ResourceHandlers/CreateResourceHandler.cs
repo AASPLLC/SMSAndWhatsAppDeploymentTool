@@ -34,20 +34,19 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         }
         static async Task<(string, string)> GetDesiredKeyVaultName(string desiredPublicVault, string desiredInternalVault, ResourceGroupResource SelectedGroup)
         {
-
             foreach (var item in SelectedGroup.GetVaults())
             {
                 try
                 {
                     var test = (await item.GetSecretAsync("TenantID")).Value;
-                    Console.Write(Environment.NewLine + "Internal Vault Found: " + test.Data.Name);
                     desiredInternalVault = item.Data.Name;
+                    //Console.Write(Environment.NewLine + "Internal Vault Found: " + desiredInternalVault);
                 }
                 catch
                 {
                     var test = (await item.GetSecretAsync("SmsEndpoint")).Value;
-                    Console.Write(Environment.NewLine + "Public Vault Found: " + test.Data.Name);
                     desiredPublicVault = item.Data.Name;
+                    //Console.Write(Environment.NewLine + "Public Vault Found: " + desiredPublicVault);
                 }
             }
             return (desiredPublicVault, desiredInternalVault);
