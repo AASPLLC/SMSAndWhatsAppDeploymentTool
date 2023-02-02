@@ -82,7 +82,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             await SetupVariable(response, "WhatsAppMessagesDBName", secretNames.DbName3.ToLower() + "eses");
 
             //column data
-            await SetupVariable(response, "PhoneNumberDBColumn", dataverseLibrary.metadataPhoneNumberID[..^2].ToLower() + "es");
+            await SetupVariable(response, "PhoneNumberDBColumn", dataverseLibrary.metadataPhoneNumber.ToLower() + "es");
             await SetupVariable(response, "PhoneNumberIDDBColumn", dataverseLibrary.metadataPhoneNumberID.ToLower() + "es");
             await SetupVariable(response, "AssignedToDBColumn", dataverseLibrary.metadataEmailAccount.ToLower() + "es");
             await SetupVariable(response, "AssiedUserDBColumn", dataverseLibrary.metadataEmailNonAccount.ToLower() + "es");
