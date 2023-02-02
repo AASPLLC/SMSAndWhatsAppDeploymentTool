@@ -139,23 +139,58 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             desiredInternalKeyVaultName = await GetDesiredKeyVaultName(1, desiredInternalKeyVaultName, form.SelectedGroup);
             desiredCommunicationsName = GetDesiredCommsName(desiredCommunicationsName, form.SelectedGroup);
 
-            (var smsIdentityId, var smsEndpoint) = await CommunicationResourceHandler.InitialCreation(desiredCommunicationsName, form);
-            ResourceIdentifier vnetSubnetIdentity = await VirtualNetworkResourceHandler.InitialCreation(form);
+            (var smsIdentityId, var smsEndpoint) = await CommunicationResourceHandler.InitialCreation(
+                desiredCommunicationsName,
+                form);
+            ResourceIdentifier vnetSubnetIdentity = await VirtualNetworkResourceHandler.InitialCreation(
+                form);
             (StorageAccountResource storageIdentity, string connString) = await StorageAccountResourceHandler.InitialCreation(desiredStorageName, form);
-            await EventGridResourceHandler.InitialCreation(desiredCommunicationsName, smsIdentityId, storageIdentity.Id, form);
-            ResourceIdentifier appPlan = await AppServicePlanResourceHandler.InitialCreation(form);
-            (WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource) = await FunctionAppResourceHandler.InitialCreation(appPlan, vnetSubnetIdentity, desiredStorageName, desiredSMSFunctionAppName, desiredWhatsAppFunctionAppName, form);
+            await EventGridResourceHandler.InitialCreation(
+                desiredCommunicationsName,
+                smsIdentityId,
+                storageIdentity.Id,
+                form);
+            ResourceIdentifier appPlan = await AppServicePlanResourceHandler.InitialCreation(
+                form);
+            (WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource) = await FunctionAppResourceHandler.InitialCreation(
+                appPlan,
+                vnetSubnetIdentity,
+                desiredStorageName,
+                desiredSMSFunctionAppName,
+                desiredWhatsAppFunctionAppName,
+                form);
 
             JSONSecretNames secretNames = await Globals.LoadJSON<JSONSecretNames>(Environment.CurrentDirectory + "/JSONS/SecretNames.json");
 #pragma warning disable CS8601
             string[] databases = { secretNames.DbName1, secretNames.DbName2, secretNames.DbName3 };
 #pragma warning restore CS8601
-            List<string> apipackage = await SetupDataverseEnvironment(databases, dh, form);
+            List<string> apipackage = await SetupDataverseEnvironment(
+                databases,
+                dh,
+                form);
             //dataverse creation and config updates happens during this phase as well, might try to split up at some point, complicated for security reasons
-            VaultResource internalVault = await KeyVaultResourceHandler.InitialCreation(secretNames, smsSiteResource, whatsAppSiteResource, storageIdentity, archiveEmail, databases, apipackage, connString, smsEndpoint, whatsappSystemAccessToken, whatsappCallbackToken, desiredPublicKeyVaultName, desiredInternalKeyVaultName, form);
+            VaultResource internalVault = await KeyVaultResourceHandler.InitialCreation(
+                secretNames,
+                smsSiteResource,
+                whatsAppSiteResource,
+                storageIdentity,
+                archiveEmail,
+                databases,
+                apipackage,
+                connString,
+                smsEndpoint,
+                whatsappSystemAccessToken,
+                whatsappCallbackToken,
+                desiredPublicKeyVaultName,
+                desiredInternalKeyVaultName,
+                form);
 
             JSONDefaultDataverseLibrary dataverseLibrary = await Globals.LoadJSON<JSONDefaultDataverseLibrary>(form.DataverseLibraryPath);
-            string automationaccountid = await AutomationAccountsHandler.InitialCreation(dataverseLibrary, secretNames, desiredInternalKeyVaultName, form);
+            string automationaccountid = await AutomationAccountsHandler.InitialCreation(
+                dataverseLibrary,
+                secretNames,
+                desiredInternalKeyVaultName,
+                form);
 
             await KeyVaultResourceHandler.UpdateInternalVaultProperties(
                 smsSiteResource.Data.Identity.PrincipalId.Value.ToString(),
