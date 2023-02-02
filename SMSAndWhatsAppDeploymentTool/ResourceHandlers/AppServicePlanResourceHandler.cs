@@ -5,9 +5,9 @@ using Azure.ResourceManager.AppService.Models;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
-    public class AppServicePlanResourceHandler
+    internal class AppServicePlanResourceHandler
     {
-        public static async Task<ResourceIdentifier> InitialCreation(DataverseDeploy form)
+        internal virtual async Task<ResourceIdentifier> InitialCreation(DataverseDeploy form)
         {
             foreach (var item in form.SelectedGroup.GetAppServicePlans())
             {
@@ -22,7 +22,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 return await SkipMinimumAppPlan(form);
             }
         }
-        public static async Task<ResourceIdentifier> InitialCreation(CosmosDeploy form)
+        internal virtual async Task<ResourceIdentifier> InitialCreation(CosmosDeploy form)
         {
             foreach (var item in form.SelectedGroup.GetAppServicePlans())
             {
@@ -38,7 +38,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
         }
 
-        public static async Task<ResourceIdentifier> InitialCreationFree(DataverseDeploy form)
+        internal virtual async Task<ResourceIdentifier> InitialCreationFree(DataverseDeploy form)
         {
             foreach (var item in form.SelectedGroup.GetAppServicePlans())
             {
@@ -53,7 +53,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 return await SkipFreeAppPlan(form);
             }
         }
-        public static async Task<ResourceIdentifier> InitialCreationFree(CosmosDeploy form)
+        internal virtual async Task<ResourceIdentifier> InitialCreationFree(CosmosDeploy form)
         {
             foreach (var item in form.SelectedGroup.GetAppServicePlans())
             {

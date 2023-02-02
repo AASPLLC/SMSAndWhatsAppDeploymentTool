@@ -7,9 +7,9 @@ using AASPGlobalLibrary;
 
 namespace SMSAndWhatsAppDeploymentTool
 {
-    public partial class DataverseConfig : Form
+    internal partial class DataverseConfig : Form
     {
-        public DataverseConfig()
+        internal DataverseConfig()
         {
             InitializeComponent();
 

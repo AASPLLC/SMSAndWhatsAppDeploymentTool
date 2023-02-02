@@ -11,26 +11,24 @@ using SMSAndWhatsAppDeploymentTool.ResourceHandlers;
 //it is best not to async the button itself in this case so it can be disabled immediately
 namespace SMSAndWhatsAppDeploymentTool
 {
-    public partial class CosmosDeploy : Form
+    internal partial class CosmosDeploy : Form
     {
-        public ArmClientHandler? Arm { get; set; }
+        internal ArmClientHandler? Arm { get; set; }
 
-        public SubscriptionResource SelectedSubscription;
-        public ResourceGroupResource SelectedGroup;
-        public string SelectedEnvironment;
-        public string SelectedOrgId;
-        public Guid? TenantID;
-        public AzureLocation SelectedRegion;
+        internal SubscriptionResource SelectedSubscription;
+        internal ResourceGroupResource SelectedGroup;
+        internal Guid? TenantID;
+        internal AzureLocation SelectedRegion;
 
-        public APIRequiredWindow apiRequiredWindow = new();
-        public string apiClientId = "";
-        public string apiSecret = "";
-        public string apiObjectId = "";
-        public bool dataverseCreateAccount = true;
+        internal APIRequiredWindow apiRequiredWindow = new();
+        internal string apiClientId = "";
+        internal string apiSecret = "";
+        internal string apiObjectId = "";
+        internal bool dataverseCreateAccount = true;
 
-        public bool AutoAPI = false;
+        internal bool AutoAPI = false;
 
-        public CosmosDeploy()
+        internal CosmosDeploy()
         {
             InitializeComponent();
             //this.button1.Click += new EventHandler(async (s, e) => { await button1_Click(s, e); });
@@ -78,7 +76,7 @@ namespace SMSAndWhatsAppDeploymentTool
             //await ArmClientHandler.Init(tokenCredential);
         }
 
-        public void DisableAll()
+        internal void DisableAll()
         {
             deployBTN.Enabled = false;
             desiredWhatsAppFunctionNameTB.Enabled = false;
@@ -98,7 +96,7 @@ namespace SMSAndWhatsAppDeploymentTool
             adminAccountCheck.Enabled = false;
         }
 
-        public void EnableAll()
+        internal void EnableAll()
         {
             deployBTN.Enabled = true;
             desiredWhatsAppFunctionNameTB.Enabled = true;
@@ -118,7 +116,7 @@ namespace SMSAndWhatsAppDeploymentTool
             adminAccountCheck.Enabled = true;
         }
 
-        public async Task FinishCreation()
+        internal async Task FinishCreation()
         {
             //try
             //{
@@ -129,7 +127,8 @@ namespace SMSAndWhatsAppDeploymentTool
             if (results == DialogResult.OK) { }
             else
             {
-                await CreateResourceHandler.CreateAllCosmosResources(
+                CreateResourceHandler crh = new();
+                await crh.CreateAllCosmosResources(
                     adminAccountCheck.Checked,
                     TenantID,
                     archiveEmailTB.Text,
@@ -154,7 +153,7 @@ namespace SMSAndWhatsAppDeploymentTool
             //}
         }
 
-        public async Task Init()
+        internal async Task Init()
         {
             try
             {
@@ -164,7 +163,8 @@ namespace SMSAndWhatsAppDeploymentTool
 
                 OutputRT.Text += "Creating Initial Resource Group";
 
-                SelectedGroup = await ResourceGroupResourceHandler.FullResourceGroupCheck(this);
+                ResourceGroupResourceHandler rgrh = new();
+                SelectedGroup = await rgrh.FullResourceGroupCheck(this);
 
                 OutputRT.Text += Environment.NewLine + "Group Name: " + SelectedGroup.Data.Name;
                 EnableAll();

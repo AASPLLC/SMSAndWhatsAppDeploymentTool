@@ -6,9 +6,9 @@ using Azure.ResourceManager.Resources;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
-    public class StorageAccountResourceHandler
+    internal class StorageAccountResourceHandler
     {
-        public static async Task<(StorageAccountResource, string)> InitialCreation(string desiredStorageName, DataverseDeploy form)
+        internal virtual async Task<(StorageAccountResource, string)> InitialCreation(string desiredStorageName, DataverseDeploy form)
         {
             if (await CheckStorageAccountName(desiredStorageName, form))
             {
@@ -19,7 +19,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 return await SkipStorageAccount(desiredStorageName, form);
             }
         }
-        public static async Task<(StorageAccountResource, string)> InitialCreation(string desiredStorageName, CosmosDeploy form)
+        internal virtual async Task<(StorageAccountResource, string)> InitialCreation(string desiredStorageName, CosmosDeploy form)
         {
             if (await CheckStorageAccountName(desiredStorageName, form))
             {
@@ -31,7 +31,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
         }
 
-        public static async Task CreateStorageAccountNetworkRuleSet(ResourceGroupResource SelectedGroup, AzureLocation SelectedRegion, ResourceIdentifier vnetId, string[] outboundips, string desiredName)
+        internal virtual async Task CreateStorageAccountNetworkRuleSet(ResourceGroupResource SelectedGroup, AzureLocation SelectedRegion, ResourceIdentifier vnetId, string[] outboundips, string desiredName)
         {
             StorageAccountNetworkRuleSet networkRules = new(StorageNetworkDefaultAction.Deny)
             {

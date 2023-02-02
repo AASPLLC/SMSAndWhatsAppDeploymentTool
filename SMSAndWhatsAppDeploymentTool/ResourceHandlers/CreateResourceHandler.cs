@@ -12,7 +12,7 @@ using SMSAndWhatsAppDeploymentTool.JSONParsing;
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
 #pragma warning disable CS8629 // Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).
-    public class CreateResourceHandler
+    internal class CreateResourceHandler
     {
         static string GetDesiredCommsName(string desiredCommsname, ResourceGroupResource SelectedGroup)
         {
@@ -32,20 +32,25 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
             return desiredStorageName;
         }
-        static async Task<string> GetDesiredKeyVaultName(int vault, string desiredKeyVaultName, ResourceGroupResource SelectedGroup)
+        static async Task<(string, string)> GetDesiredKeyVaultName(string desiredPublicVault, string desiredInternalVault, ResourceGroupResource SelectedGroup)
         {
-            List<string> vaultnames = new();
+
             foreach (var item in SelectedGroup.GetVaults())
             {
-                var test = (await item.GetSecretAsync("PKey")).Value;
-                Console.Write(Environment.NewLine + "PKey Name Found In: " + test.Data.Name);
-                vaultnames.Add(item.Data.Name);
+                try
+                {
+                    var test = (await item.GetSecretAsync("TenantID")).Value;
+                    Console.Write(Environment.NewLine + "Internal Vault Found: " + test.Data.Name);
+                    desiredInternalVault = item.Data.Name;
+                }
+                catch
+                {
+                    var test = (await item.GetSecretAsync("SmsEndpoint")).Value;
+                    Console.Write(Environment.NewLine + "Public Vault Found: " + test.Data.Name);
+                    desiredPublicVault = item.Data.Name;
+                }
             }
-            if (vaultnames.Count == 2)
-            {
-                desiredKeyVaultName = vaultnames[vault];
-            }
-            return desiredKeyVaultName;
+            return (desiredPublicVault, desiredInternalVault);
         }
         static string GetDesiredCosmosName(string desiredCosmosName, ResourceGroupResource SelectedGroup)
         {
@@ -132,27 +137,40 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             return apipackage;
         }
-        public static async Task CreateAllDataverseResources(DataverseHandler dh, Guid? TenantId, string archiveEmail, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, DataverseDeploy form)
+        internal virtual async Task CreateAllDataverseResources(DataverseHandler dh, Guid? TenantId, string archiveEmail, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, DataverseDeploy form)
         {
             desiredStorageName = GetDesiredStorageName(desiredStorageName, form.SelectedGroup);
-            desiredPublicKeyVaultName = await GetDesiredKeyVaultName(0, desiredPublicKeyVaultName, form.SelectedGroup);
-            desiredInternalKeyVaultName = await GetDesiredKeyVaultName(1, desiredInternalKeyVaultName, form.SelectedGroup);
+            (desiredPublicKeyVaultName, desiredInternalKeyVaultName) = await GetDesiredKeyVaultName(
+                desiredPublicKeyVaultName,
+                desiredInternalKeyVaultName,
+                form.SelectedGroup);
             desiredCommunicationsName = GetDesiredCommsName(desiredCommunicationsName, form.SelectedGroup);
 
-            (var smsIdentityId, var smsEndpoint) = await CommunicationResourceHandler.InitialCreation(
+            CommunicationResourceHandler crh = new();
+            (var smsIdentityId, var smsEndpoint) = await crh.InitialCreation(
                 desiredCommunicationsName,
                 form);
-            ResourceIdentifier vnetSubnetIdentity = await VirtualNetworkResourceHandler.InitialCreation(
+
+            VirtualNetworkResourceHandler vnrh = new();
+            ResourceIdentifier vnetSubnetIdentity = await vnrh.InitialCreation(
                 form);
-            (StorageAccountResource storageIdentity, string connString) = await StorageAccountResourceHandler.InitialCreation(desiredStorageName, form);
-            await EventGridResourceHandler.InitialCreation(
+
+            StorageAccountResourceHandler sarh = new();
+            (StorageAccountResource storageIdentity, string connString) = await sarh.InitialCreation(desiredStorageName, form);
+
+            EventGridResourceHandler egrh = new();
+            await egrh.InitialCreation(
                 desiredCommunicationsName,
                 smsIdentityId,
                 storageIdentity.Id,
                 form);
-            ResourceIdentifier appPlan = await AppServicePlanResourceHandler.InitialCreation(
+
+            AppServicePlanResourceHandler asprh = new();
+            ResourceIdentifier appPlan = await asprh.InitialCreation(
                 form);
-            (WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource) = await FunctionAppResourceHandler.InitialCreation(
+
+            FunctionAppResourceHandler farh = new();
+            (WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource) = await farh.InitialCreation(
                 appPlan,
                 vnetSubnetIdentity,
                 desiredStorageName,
@@ -168,8 +186,10 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 databases,
                 dh,
                 form);
+
             //dataverse creation and config updates happens during this phase as well, might try to split up at some point, complicated for security reasons
-            VaultResource internalVault = await KeyVaultResourceHandler.InitialCreation(
+            KeyVaultResourceHandler kvrh = new();
+            VaultResource internalVault = await kvrh.InitialCreation(
                 secretNames,
                 smsSiteResource,
                 whatsAppSiteResource,
@@ -186,13 +206,15 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 form);
 
             JSONDefaultDataverseLibrary dataverseLibrary = await Globals.LoadJSON<JSONDefaultDataverseLibrary>(form.DataverseLibraryPath);
-            string automationaccountid = await AutomationAccountsHandler.InitialCreation(
+            AutomationAccountsHandler aah = new();
+            string automationaccountid = await aah.InitialCreation(
                 dataverseLibrary,
                 secretNames,
                 desiredInternalKeyVaultName,
                 form);
 
-            await KeyVaultResourceHandler.UpdateInternalVaultProperties(
+            KeyVaultResourceHandler kvrh2 = new();
+            await kvrh2.UpdateInternalVaultProperties(
                 smsSiteResource.Data.Identity.PrincipalId.Value.ToString(),
                 whatsAppSiteResource.Data.Identity.PrincipalId.Value.ToString(),
                 automationaccountid,
@@ -202,29 +224,42 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 form.SelectedGroup);
         }
 
-        public static async Task CreateAllCosmosResources(bool createAdminAccount, Guid? TenantId, string archiveEmail, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string desiredRestSite, string desiredCosmosName, CosmosDeploy form)
+        internal virtual async Task CreateAllCosmosResources(bool createAdminAccount, Guid? TenantId, string archiveEmail, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string desiredRestSite, string desiredCosmosName, CosmosDeploy form)
         {
             desiredStorageName = GetDesiredStorageName(desiredStorageName, form.SelectedGroup);
-            desiredPublicKeyVaultName = await GetDesiredKeyVaultName(0, desiredPublicKeyVaultName, form.SelectedGroup);
-            desiredInternalKeyVaultName = await GetDesiredKeyVaultName(1, desiredInternalKeyVaultName, form.SelectedGroup);
+            (desiredPublicKeyVaultName, desiredInternalKeyVaultName) = await GetDesiredKeyVaultName(
+                desiredPublicKeyVaultName,
+                desiredInternalKeyVaultName,
+                form.SelectedGroup);
             desiredCommunicationsName = GetDesiredCommsName(desiredCommunicationsName, form.SelectedGroup);
             desiredCosmosName = GetDesiredCosmosName(desiredCosmosName, form.SelectedGroup);
 
-            (var smsIdentityId, var smsEndpoint) = await CommunicationResourceHandler.InitialCreation(
+            CommunicationResourceHandler crh = new();
+            (var smsIdentityId, var smsEndpoint) = await crh.InitialCreation(
                 desiredCommunicationsName,
                 form);
-            (ResourceIdentifier vnetSubnetIdentity, string vnetName) = await VirtualNetworkResourceHandler.InitialCreation(
+
+            VirtualNetworkResourceHandler vnrh = new();
+            (ResourceIdentifier vnetSubnetIdentity, string vnetName) = await vnrh.InitialCreation(
                 form);
-            (StorageAccountResource storageIdentity, string key) = await StorageAccountResourceHandler.InitialCreation(
+
+            StorageAccountResourceHandler sarh = new();
+            (StorageAccountResource storageIdentity, string key) = await sarh.InitialCreation(
                 desiredStorageName,
                 form);
-            await EventGridResourceHandler.InitialCreation(
+
+            EventGridResourceHandler egrh = new();
+            await egrh.InitialCreation(
                 desiredCommunicationsName,
                 smsIdentityId,
                 storageIdentity.Id,
                 form);
-            ResourceIdentifier appPlan = await AppServicePlanResourceHandler.InitialCreation(form);
-            (WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource) = await FunctionAppResourceHandler.InitialCreation(
+
+            AppServicePlanResourceHandler asprh = new();
+            ResourceIdentifier appPlan = await asprh.InitialCreation(form);
+
+            FunctionAppResourceHandler farh = new();
+            (WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource) = await farh.InitialCreation(
                 appPlan,
                 vnetSubnetIdentity,
                 desiredStorageName,
@@ -236,7 +271,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             JSONSecretNames secretNames = await Globals.LoadJSON<JSONSecretNames>(Environment.CurrentDirectory + "/JSONS/SecretNames.json");
             JSONDefaultCosmosLibrary cosmosLibrary = await Globals.LoadJSON<JSONDefaultCosmosLibrary>(Environment.CurrentDirectory + "/JSONS/defaultLibraryCosmos.json");
 #pragma warning disable CS8604
-            await CosmosResourceHandler.InitialCreation(
+            CosmosResourceHandler cosmosrh = new();
+            await cosmosrh.InitialCreation(
                 cosmosLibrary,
                 vnetSubnetIdentity,
                 secretNames.DbName,
@@ -245,7 +281,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 form);
 #pragma warning restore CS8604
             //dataverse creation and config updates happens during this phase as well, might try to split up at some point, complicated for security reasons
-            VaultResource internalVault = await KeyVaultResourceHandler.InitialCreation(
+            KeyVaultResourceHandler kvrh = new();
+            VaultResource internalVault = await kvrh.InitialCreation(
                 createAdminAccount,
                 secretNames,
                 desiredRestSite,
@@ -263,13 +300,15 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 TenantId.Value,
                 form);
 
-            string automationaccountid = await AutomationAccountsHandler.InitialCreation(
+            AutomationAccountsHandler aah = new();
+            string automationaccountid = await aah.InitialCreation(
                 cosmosLibrary,
                 desiredCosmosName,
                 desiredInternalKeyVaultName,
                 form);
 
-            await KeyVaultResourceHandler.UpdateInternalVaultProperties(
+            KeyVaultResourceHandler kvrh2 = new();
+            await kvrh2.UpdateInternalVaultProperties(
                 smsSiteResource.Data.Identity.PrincipalId.Value.ToString(),
                 whatsAppSiteResource.Data.Identity.PrincipalId.Value.ToString(),
                 automationaccountid,

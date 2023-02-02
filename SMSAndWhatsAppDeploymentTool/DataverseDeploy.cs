@@ -2,6 +2,7 @@ using Azure.Core;
 using Azure.ResourceManager.Resources;
 using AASPGlobalLibrary;
 using SMSAndWhatsAppDeploymentTool.ResourceHandlers;
+using Microsoft.Azure.Cosmos.Spatial;
 
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
 #pragma warning disable CS8618 // Possible null reference argument.
@@ -11,30 +12,30 @@ using SMSAndWhatsAppDeploymentTool.ResourceHandlers;
 //it is best not to async the button itself in this case so it can be disabled immediately
 namespace SMSAndWhatsAppDeploymentTool
 {
-    public partial class DataverseDeploy : Form
+    internal partial class DataverseDeploy : Form
     {
-        readonly public string DataverseLibraryPath = Environment.CurrentDirectory + "/JSONS/defaultLibraryDataverse.json";
+        readonly internal string DataverseLibraryPath = Environment.CurrentDirectory + "/JSONS/defaultLibraryDataverse.json";
 
         readonly DataverseHandler dh = new();
-        public MessageBox2 mb = new();
+        internal MessageBox2 mb = new();
 
-        public ArmClientHandler? Arm { get; set; }
+        internal ArmClientHandler? Arm { get; set; }
 
-        public SubscriptionResource SelectedSubscription;
-        public ResourceGroupResource SelectedGroup;
-        public string SelectedEnvironment;
-        public string SelectedOrgId;
-        public Guid TenantID;
-        public AzureLocation SelectedRegion;
+        internal SubscriptionResource SelectedSubscription;
+        internal ResourceGroupResource SelectedGroup;
+        internal string SelectedEnvironment;
+        internal string SelectedOrgId;
+        internal Guid TenantID;
+        internal AzureLocation SelectedRegion;
 
-        public APIRequiredWindow apiRequiredWindow = new();
-        public string apiClientId = "";
-        public string apiObjectId = "";
-        public bool dataverseCreateAccount = true;
+        internal APIRequiredWindow apiRequiredWindow = new();
+        internal string apiClientId = "";
+        internal string apiObjectId = "";
+        internal bool dataverseCreateAccount = true;
 
-        public bool AutoAPI = false;
+        internal bool AutoAPI = false;
 
-        public DataverseDeploy()
+        internal DataverseDeploy()
         {
             InitializeComponent();
             //this.button1.Click += new EventHandler(async (s, e) => { await button1_Click(s, e); });
@@ -77,7 +78,7 @@ namespace SMSAndWhatsAppDeploymentTool
             //await ArmClientHandler.Init(tokenCredential);
         }
 
-        public void DisableAll()
+        internal void DisableAll()
         {
             deployBTN.Enabled = false;
             desiredWhatsAppFunctionNameTB.Enabled = false;
@@ -94,7 +95,7 @@ namespace SMSAndWhatsAppDeploymentTool
             archiveEmailTB.Enabled = false;
         }
 
-        public void EnableAll()
+        internal void EnableAll()
         {
             deployBTN.Enabled = true;
             desiredWhatsAppFunctionNameTB.Enabled = true;
@@ -112,7 +113,7 @@ namespace SMSAndWhatsAppDeploymentTool
             archiveEmailTB.Enabled = true;
         }
 
-        public async Task FinishCreation()
+        internal async Task FinishCreation()
         {
             //try
             //{
@@ -123,7 +124,8 @@ namespace SMSAndWhatsAppDeploymentTool
             if (results == DialogResult.OK) { }
             else
             {
-                await CreateResourceHandler.CreateAllDataverseResources(
+                CreateResourceHandler crh = new();
+                await crh.CreateAllDataverseResources(
                     dh,
                     TenantID,
                     archiveEmailTB.Text,
@@ -147,7 +149,7 @@ namespace SMSAndWhatsAppDeploymentTool
             //}
         }
 
-        public async Task Init()
+        internal async Task Init()
         {
             try { await dh.InitAsync(SelectedEnvironment, DataverseLibraryPath); }
             catch { await dh.InitAsync(SelectedEnvironment); }
@@ -165,7 +167,8 @@ namespace SMSAndWhatsAppDeploymentTool
 
                 OutputRT.Text += "Creating Initial Resource Group";
 
-                SelectedGroup = await ResourceGroupResourceHandler.FullResourceGroupCheck(this);
+                ResourceGroupResourceHandler rgrh = new();
+                SelectedGroup = await rgrh.FullResourceGroupCheck(this);
 
                 OutputRT.Text += Environment.NewLine + "Group Name: " + SelectedGroup.Data.Name;
                 EnableAll();

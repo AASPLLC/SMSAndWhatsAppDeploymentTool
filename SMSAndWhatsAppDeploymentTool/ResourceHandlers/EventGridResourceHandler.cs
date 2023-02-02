@@ -6,14 +6,14 @@ using Azure.ResourceManager.Models;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
-    public class EventGridResourceHandler
+    internal class EventGridResourceHandler
     {
-        public static async Task InitialCreation(string desiredCommunicationsName, ResourceIdentifier smsIdentityId, ResourceIdentifier storageIdentityId, DataverseDeploy form)
+        internal virtual async Task InitialCreation(string desiredCommunicationsName, ResourceIdentifier smsIdentityId, ResourceIdentifier storageIdentityId, DataverseDeploy form)
         {
             if (await CheckEventGridTopicName(desiredCommunicationsName, form))
                 await CreateEventGridTopic(desiredCommunicationsName, smsIdentityId, storageIdentityId, form);
         }
-        public static async Task InitialCreation(string desiredCommunicationsName, ResourceIdentifier smsIdentityId, ResourceIdentifier storageIdentityId, CosmosDeploy form)
+        internal virtual async Task InitialCreation(string desiredCommunicationsName, ResourceIdentifier smsIdentityId, ResourceIdentifier storageIdentityId, CosmosDeploy form)
         {
             if (await CheckEventGridTopicName(desiredCommunicationsName, form))
                 await CreateEventGridTopic(desiredCommunicationsName, smsIdentityId, storageIdentityId, form);

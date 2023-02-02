@@ -11,15 +11,15 @@ using Azure.ResourceManager.Resources;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
-    public class FunctionAppResourceHandler
+    internal class FunctionAppResourceHandler
     {
-        public static async Task<(WebSiteResource, WebSiteResource)> InitialCreation(ResourceIdentifier appPlan, ResourceIdentifier vnetIdentity, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, DataverseDeploy form)
+        internal virtual async Task<(WebSiteResource, WebSiteResource)> InitialCreation(ResourceIdentifier appPlan, ResourceIdentifier vnetIdentity, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, DataverseDeploy form)
         {
             WebSiteResource smsSiteResource = await DeepCheckSMS(appPlan, vnetIdentity, desiredStorageName, desiredSMSFunctionAppName, form);
             WebSiteResource whatsAppSiteResource = await DeepCheckWhatsApp(appPlan, vnetIdentity, desiredWhatsAppFunctionAppName, form);
             return (smsSiteResource, whatsAppSiteResource);
         }
-        public static async Task<(WebSiteResource, WebSiteResource)> InitialCreation(ResourceIdentifier appPlan, ResourceIdentifier vnetIdentity, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredRestAppName, CosmosDeploy form)
+        internal virtual async Task<(WebSiteResource, WebSiteResource)> InitialCreation(ResourceIdentifier appPlan, ResourceIdentifier vnetIdentity, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredRestAppName, CosmosDeploy form)
         {
             WebSiteResource smsSiteResource = await DeepCheckSMS(appPlan, vnetIdentity, desiredStorageName, desiredSMSFunctionAppName, form);
             WebSiteResource whatsAppSiteResource = await DeepCheckWhatsApp(appPlan, vnetIdentity, desiredWhatsAppFunctionAppName, form);
@@ -135,7 +135,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             _ = await functionAppResource.GetSiteVirtualNetworkConnections().CreateOrUpdateAsync(WaitUntil.Completed, vnetId.Name, appServiceVirtualNetworkData);
 
-            await StorageAccountResourceHandler.CreateStorageAccountNetworkRuleSet(form.SelectedGroup, form.SelectedRegion, vnetId, functionAppResponse.Value.Data.OutboundIPAddresses.Split(","), storagedesiredname);
+            StorageAccountResourceHandler sarh = new();
+            await sarh.CreateStorageAccountNetworkRuleSet(form.SelectedGroup, form.SelectedRegion, vnetId, functionAppResponse.Value.Data.OutboundIPAddresses.Split(","), storagedesiredname);
 
             form.OutputRT.Text += Environment.NewLine + "Funcation app for SMS created";
 
@@ -188,7 +189,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             _ = await functionAppResource.GetSiteVirtualNetworkConnections().CreateOrUpdateAsync(WaitUntil.Completed, vnetId.Name, appServiceVirtualNetworkData);
 
-            await StorageAccountResourceHandler.CreateStorageAccountNetworkRuleSet(form.SelectedGroup, form.SelectedRegion, vnetId, functionAppResponse.Value.Data.OutboundIPAddresses.Split(","), storagedesiredname);
+            StorageAccountResourceHandler sarh = new();
+            await sarh.CreateStorageAccountNetworkRuleSet(form.SelectedGroup, form.SelectedRegion, vnetId, functionAppResponse.Value.Data.OutboundIPAddresses.Split(","), storagedesiredname);
 
             form.OutputRT.Text += Environment.NewLine + "Funcation app for SMS created";
 

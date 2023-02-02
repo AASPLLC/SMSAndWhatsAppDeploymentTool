@@ -5,9 +5,9 @@ using Azure;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
-    public class VirtualNetworkResourceHandler
+    internal class VirtualNetworkResourceHandler
     {
-        public static async Task<ResourceIdentifier> InitialCreation(DataverseDeploy form)
+        internal virtual async Task<ResourceIdentifier> InitialCreation(DataverseDeploy form)
         {
             if (await CheckVirtualNetworkName(form))
             {
@@ -19,7 +19,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 return await SkipVirtualNetwork(form);
             }
         }
-        public static async Task<(ResourceIdentifier, string)> InitialCreation(CosmosDeploy form)
+        internal virtual async Task<(ResourceIdentifier, string)> InitialCreation(CosmosDeploy form)
         {
             if (await CheckVirtualNetworkName(form))
             {

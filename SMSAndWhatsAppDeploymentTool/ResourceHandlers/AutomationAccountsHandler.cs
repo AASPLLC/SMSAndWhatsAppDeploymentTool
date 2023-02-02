@@ -8,20 +8,20 @@ using SMSAndWhatsAppDeploymentTool.JSONParsing;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
-    public class AutomationAccountsHandler
+    internal class AutomationAccountsHandler
     {
-        readonly static string AutomationAccountName = "Automation-SMS-And-WhatsApp";
+        readonly string AutomationAccountName = "Automation-SMS-And-WhatsApp";
 
-        public static async Task<string> InitialCreation(JSONDefaultCosmosLibrary cosmosLibrary, string desiredCosmosAccountName, string internalVaultName, CosmosDeploy form)
+        internal virtual async Task<string> InitialCreation(JSONDefaultCosmosLibrary cosmosLibrary, string desiredCosmosAccountName, string internalVaultName, CosmosDeploy form)
         {
             return await CreateAutomationAccount(cosmosLibrary, desiredCosmosAccountName, internalVaultName, form);
         }
-        public static async Task<string> InitialCreation(JSONDefaultDataverseLibrary dataverseLibrary, JSONSecretNames SecretNames, string internalVaultName, DataverseDeploy form)
+        internal virtual async Task<string> InitialCreation(JSONDefaultDataverseLibrary dataverseLibrary, JSONSecretNames SecretNames, string internalVaultName, DataverseDeploy form)
         {
             return await CreateAutomationAccount(dataverseLibrary, SecretNames, internalVaultName, form);
         }
 
-        static async Task<AutomationAccountResource> CreateVariables(JSONDefaultCosmosLibrary cosmosLibrary, ResourceGroupResource SelectedGroup, AzureLocation SelectedRegion, string desiredCosmosAccountName, string internalVaultName)
+        async Task<AutomationAccountResource> CreateVariables(JSONDefaultCosmosLibrary cosmosLibrary, ResourceGroupResource SelectedGroup, AzureLocation SelectedRegion, string desiredCosmosAccountName, string internalVaultName)
         {
             AutomationAccountCreateOrUpdateContent content = new()
             {
@@ -40,7 +40,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             return response;
         }
-        static async Task<AutomationAccountResource> CreateVariables(JSONDefaultDataverseLibrary dataverseLibrary, ResourceGroupResource SelectedGroup, AzureLocation SelectedRegion, JSONSecretNames secretNames, string internalVaultName)
+        async Task<AutomationAccountResource> CreateVariables(JSONDefaultDataverseLibrary dataverseLibrary, ResourceGroupResource SelectedGroup, AzureLocation SelectedRegion, JSONSecretNames secretNames, string internalVaultName)
         {
             AutomationAccountCreateOrUpdateContent content = new()
             {
@@ -422,7 +422,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 "\r\n}";
         }
 
-        static async Task<string> CreateAutomationAccount(JSONDefaultCosmosLibrary cosmosLibrary, string desiredCosmosAccountName, string internalVaultName, CosmosDeploy form)
+        async Task<string> CreateAutomationAccount(JSONDefaultCosmosLibrary cosmosLibrary, string desiredCosmosAccountName, string internalVaultName, CosmosDeploy form)
         {
             AutomationAccountResource response = await CreateVariables(cosmosLibrary, form.SelectedGroup, form.SelectedRegion, desiredCosmosAccountName, internalVaultName);
 
@@ -462,7 +462,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return response.Data.Identity.PrincipalId.Value.ToString();
 #pragma warning restore CS8629 // Nullable value type may be null.
         }
-        static async Task<string> CreateAutomationAccount(JSONDefaultDataverseLibrary dataverseLibrary, JSONSecretNames secretNames, string internalVaultName, DataverseDeploy form)
+        async Task<string> CreateAutomationAccount(JSONDefaultDataverseLibrary dataverseLibrary, JSONSecretNames secretNames, string internalVaultName, DataverseDeploy form)
         {
             AutomationAccountResource response = await CreateVariables(dataverseLibrary, form.SelectedGroup, form.SelectedRegion, secretNames, internalVaultName);
 

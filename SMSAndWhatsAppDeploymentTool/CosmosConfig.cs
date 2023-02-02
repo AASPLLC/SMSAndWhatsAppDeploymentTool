@@ -3,9 +3,9 @@ using Azure.ResourceManager.Resources;
 
 namespace SMSAndWhatsAppDeploymentTool
 {
-    public partial class CosmosConfig : Form
+    internal partial class CosmosConfig : Form
     {
-        public CosmosConfig()
+        internal CosmosConfig()
         {
             InitializeComponent();
 

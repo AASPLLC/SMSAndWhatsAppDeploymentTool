@@ -4,16 +4,16 @@ using AASPGlobalLibrary;
 
 namespace SMSAndWhatsAppDeploymentTool
 {
-    public class ArmClientHandler
+    internal class ArmClientHandler
     {
-        public ArmClient? client;
+        internal ArmClient? client;
 
-        public ArmClientHandler()
+        internal ArmClientHandler()
         {
             client = TokenHandler.CreateArmClient();
         }
 
-        public (List<string>, List<SubscriptionResource>) SetupSubscriptionName()
+        internal (List<string>, List<SubscriptionResource>) SetupSubscriptionName()
         {
             List<string> names = new();
             List<SubscriptionResource> ids = new();
@@ -37,7 +37,7 @@ namespace SMSAndWhatsAppDeploymentTool
 
         }
 
-        public static (List<string>, List<ResourceGroupResource>) SetupResourceName(SubscriptionResource sr)
+        internal virtual (List<string>, List<ResourceGroupResource>) SetupResourceName(SubscriptionResource sr)
         {
             List<string> names = new();
             List<ResourceGroupResource> ids = new();
@@ -50,7 +50,7 @@ namespace SMSAndWhatsAppDeploymentTool
             return (names, ids);
         }
 
-        public ArmClient GetArmClient()
+        internal ArmClient GetArmClient()
         {
 #pragma warning disable CS8603 // Possible null reference return.
             return client;

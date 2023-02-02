@@ -11,10 +11,10 @@ using AASPGlobalLibrary;
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
     //keep ARM plus Management way for security team
-    public class CosmosResourceHandler
+    internal class CosmosResourceHandler
     {
-        public static bool found = false;
-        public static async Task InitialCreation(JSONDefaultCosmosLibrary cosmosLibrary, ResourceIdentifier subnetID, string DBName, string desiredCosmosName, string vnetName, CosmosDeploy form, bool useArm = false)
+        internal static bool found = false;
+        internal virtual async Task InitialCreation(JSONDefaultCosmosLibrary cosmosLibrary, ResourceIdentifier subnetID, string DBName, string desiredCosmosName, string vnetName, CosmosDeploy form, bool useArm = false)
         {
             if (useArm)
                 await CreateCosmosARM(form, DBName, Environment.CurrentDirectory + @"\JSONS\CosmosDeploy.json", desiredCosmosName, form.SelectedSubscription.Data.SubscriptionId, vnetName, subnetID.Name);

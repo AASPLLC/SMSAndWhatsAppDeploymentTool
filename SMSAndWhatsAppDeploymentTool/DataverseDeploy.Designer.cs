@@ -319,7 +319,7 @@
         private TextBox desiredPublicKeyvaultNameTB;
         private Label keyvaultLBL;
         private Label label2;
-        public RichTextBox OutputRT;
+        internal RichTextBox OutputRT;
         private Button deployBTN;
         private Label label3;
         private TextBox desiredCommunicationsNameTB;

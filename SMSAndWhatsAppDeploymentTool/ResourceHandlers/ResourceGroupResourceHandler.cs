@@ -1,16 +1,11 @@
 ﻿using Azure.ResourceManager.Resources;
 using Azure;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
-    public class ResourceGroupResourceHandler
+    internal class ResourceGroupResourceHandler
     {
-        public static async Task<ResourceGroupResource> FullResourceGroupCheck(DataverseDeploy form)
+        internal async Task<ResourceGroupResource> FullResourceGroupCheck(DataverseDeploy form)
         {
             string groupname = "SMSAndWhatsAppResourceGroup";
             if (await CheckResourceGroupName(groupname, form))
@@ -28,7 +23,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 return form.SelectedGroup;
             }
         }
-        public static async Task<bool> CheckResourceGroupName(string desiredName, DataverseDeploy form)
+        internal async Task<bool> CheckResourceGroupName(string desiredName, DataverseDeploy form)
         {
             desiredName = desiredName.Trim();
             try
@@ -42,7 +37,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 return true;
             }
         }
-        public static async Task<ResourceGroupResource> FullResourceGroupCheck(CosmosDeploy form)
+        internal async Task<ResourceGroupResource> FullResourceGroupCheck(CosmosDeploy form)
         {
             string groupname = "SMSAndWhatsAppResourceGroup";
             if (await CheckResourceGroupName(groupname, form))
@@ -60,7 +55,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 return form.SelectedGroup;
             }
         }
-        public static async Task<bool> CheckResourceGroupName(string desiredName, CosmosDeploy form)
+        internal async Task<bool> CheckResourceGroupName(string desiredName, CosmosDeploy form)
         {
             desiredName = desiredName.Trim();
             try

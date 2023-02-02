@@ -4,13 +4,12 @@ using Azure.ResourceManager;
 using Azure;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Communication.Models;
-using System.Net;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
-    public class CommunicationResourceHandler
+    internal class CommunicationResourceHandler
     {
-        public static async Task<(ResourceIdentifier, string)> InitialCreation(string desiredCommunicationsName, DataverseDeploy form)
+        internal virtual async Task<(ResourceIdentifier, string)> InitialCreation(string desiredCommunicationsName, DataverseDeploy form)
         {
             ResourceIdentifier smsIdentity = new("1");
             string smsEndpoint = "";
@@ -35,7 +34,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             } //this else should be impossible
             return (smsIdentity, smsEndpoint);
         }
-        public static async Task<(ResourceIdentifier, string)> InitialCreation(string desiredCommunicationsName, CosmosDeploy form)
+        internal virtual async Task<(ResourceIdentifier, string)> InitialCreation(string desiredCommunicationsName, CosmosDeploy form)
         {
             ResourceIdentifier smsIdentity = new("1");
             string smsEndpoint = "";
@@ -175,7 +174,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             var keys = await temp.Value.GetKeysAsync();
             return (temp.Value.Data.Id, keys.Value.PrimaryConnectionString);
         }
-
         static async Task<(ResourceIdentifier, string)> SkipComms(CommunicationServiceResource temp)
         {
             var keys = await temp.GetKeysAsync();

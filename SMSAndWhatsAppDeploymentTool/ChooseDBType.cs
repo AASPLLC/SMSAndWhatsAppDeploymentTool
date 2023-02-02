@@ -3,17 +3,17 @@ using AASPGlobalLibrary;
 
 namespace SMSAndWhatsAppDeploymentTool
 {
-    public partial class ChooseDBType : Form
+    internal partial class ChooseDBType : Form
     {
 #pragma warning disable CA2211 // Non-constant fields should not be visible
-        public static DataverseDeploy dataverseForm = new();
-        public static CosmosDeploy cosmosForm = new();
-        public static ChooseDBType chooseDBForm = new();
+        internal static DataverseDeploy dataverseForm = new();
+        internal static CosmosDeploy cosmosForm = new();
+        internal static ChooseDBType chooseDBForm = new();
 #pragma warning restore CA2211 // Non-constant fields should not be visible
 
-        public int DBType = 0;
+        internal int DBType = 0;
 
-        public ChooseDBType()
+        internal ChooseDBType()
         {
             InitializeComponent();
             chooseDBForm = this;
@@ -38,7 +38,7 @@ namespace SMSAndWhatsAppDeploymentTool
             installconfig.ShowDialog();
         }
 
-        public IntPtr windowHandle;
+        internal IntPtr windowHandle;
         private void ChooseDBType_Load(object sender, EventArgs e)
         {
             windowHandle = Handle;
@@ -46,7 +46,7 @@ namespace SMSAndWhatsAppDeploymentTool
             nativeWindow.AssignHandle(windowHandle);
         }
 
-        public static string GenerateUniqueString(string value)
+        internal static string GenerateUniqueString(string value)
         {
             var funcs = ExpressionBuiltInFunctions.Functions;
             var jt = new JTokenExpression(value);
