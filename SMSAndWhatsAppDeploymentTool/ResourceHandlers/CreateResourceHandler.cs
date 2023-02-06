@@ -8,6 +8,9 @@ using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using SMSAndWhatsAppDeploymentTool.JSONParsing;
+using Azure.ResourceManager.Authorization;
+using Azure.ResourceManager.Authorization.Models;
+using Microsoft.Extensions.Azure;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
@@ -206,17 +209,24 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             JSONDefaultDataverseLibrary dataverseLibrary = await Globals.LoadJSON<JSONDefaultDataverseLibrary>(form.DataverseLibraryPath);
             AutomationAccountsHandler aah = new();
-            string automationaccountid = await aah.InitialCreation(
+            Guid automationaccountid = await aah.InitialCreation(
                 dataverseLibrary,
                 secretNames,
                 desiredInternalKeyVaultName,
                 form);
 
+            ResourceIdentifier contributor = ResourceIdentifier.Parse("/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c");
+            RoleAssignmentCreateOrUpdateContent authorizationroledefinition = new(contributor, automationaccountid)
+            {
+                PrincipalType = RoleManagementPrincipalType.ServicePrincipal
+            };
+            await form.SelectedGroup.GetRoleAssignments().CreateOrUpdateAsync(Azure.WaitUntil.Completed, Guid.NewGuid().ToString(), authorizationroledefinition);
+
             KeyVaultResourceHandler kvrh2 = new();
             await kvrh2.UpdateInternalVaultProperties(
                 smsSiteResource.Data.Identity.PrincipalId.Value.ToString(),
                 whatsAppSiteResource.Data.Identity.PrincipalId.Value.ToString(),
-                automationaccountid,
+                automationaccountid.ToString(),
                 internalVault,
                 TenantId.Value,
                 form.SelectedRegion,
@@ -300,17 +310,24 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 form);
 
             AutomationAccountsHandler aah = new();
-            string automationaccountid = await aah.InitialCreation(
+            Guid automationaccountid = await aah.InitialCreation(
                 cosmosLibrary,
                 desiredCosmosName,
                 desiredInternalKeyVaultName,
                 form);
 
+            ResourceIdentifier contributor = ResourceIdentifier.Parse("/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c");
+            RoleAssignmentCreateOrUpdateContent authorizationroledefinition = new(contributor, automationaccountid)
+            {
+                PrincipalType = RoleManagementPrincipalType.ServicePrincipal
+            };
+            await form.SelectedGroup.GetRoleAssignments().CreateOrUpdateAsync(Azure.WaitUntil.Completed, Guid.NewGuid().ToString(), authorizationroledefinition);
+
             KeyVaultResourceHandler kvrh2 = new();
             await kvrh2.UpdateInternalVaultProperties(
                 smsSiteResource.Data.Identity.PrincipalId.Value.ToString(),
                 whatsAppSiteResource.Data.Identity.PrincipalId.Value.ToString(),
-                automationaccountid,
+                automationaccountid.ToString(),
                 internalVault,
                 TenantId.Value,
                 form.SelectedRegion,

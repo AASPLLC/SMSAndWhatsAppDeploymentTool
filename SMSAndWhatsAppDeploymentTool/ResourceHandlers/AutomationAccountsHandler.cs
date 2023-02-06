@@ -10,13 +10,13 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
     internal class AutomationAccountsHandler
     {
-        readonly string AutomationAccountName = "Automation-SMS-And-WhatsApp";
+        readonly public string AutomationAccountName = "Automation-SMS-And-WhatsApp";
 
-        internal virtual async Task<string> InitialCreation(JSONDefaultCosmosLibrary cosmosLibrary, string desiredCosmosAccountName, string internalVaultName, CosmosDeploy form)
+        internal virtual async Task<(Guid, ResourceIdentifier)> InitialCreation(JSONDefaultCosmosLibrary cosmosLibrary, string desiredCosmosAccountName, string internalVaultName, CosmosDeploy form)
         {
             return await CreateAutomationAccount(cosmosLibrary, desiredCosmosAccountName, internalVaultName, form);
         }
-        internal virtual async Task<string> InitialCreation(JSONDefaultDataverseLibrary dataverseLibrary, JSONSecretNames SecretNames, string internalVaultName, DataverseDeploy form)
+        internal virtual async Task<Guid> InitialCreation(JSONDefaultDataverseLibrary dataverseLibrary, JSONSecretNames SecretNames, string internalVaultName, DataverseDeploy form)
         {
             return await CreateAutomationAccount(dataverseLibrary, SecretNames, internalVaultName, form);
         }
@@ -584,7 +584,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 "\r\n}";
         }
 
-        async Task<string> CreateAutomationAccount(JSONDefaultCosmosLibrary cosmosLibrary, string desiredCosmosAccountName, string internalVaultName, CosmosDeploy form)
+        async Task<(Guid, ResourceIdentifier)> CreateAutomationAccount(JSONDefaultCosmosLibrary cosmosLibrary, string desiredCosmosAccountName, string internalVaultName, CosmosDeploy form)
         {
             AutomationAccountResource response = await CreateVariables(cosmosLibrary, form.SelectedGroup, form.SelectedRegion, desiredCosmosAccountName, internalVaultName);
 
@@ -621,10 +621,16 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
             catch { }
 #pragma warning disable CS8629 // Nullable value type may be null.
-            return response.Data.Identity.PrincipalId.Value.ToString();
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
+            form.OutputRT.Text += Environment.NewLine + response.Data.Name;
+            form.OutputRT.Text += Environment.NewLine + response.Id.ToString();
+            form.OutputRT.Text += Environment.NewLine + response.Data.Id.ToString();
+            form.OutputRT.Text += Environment.NewLine + response.Data.Identity.PrincipalId.Value.ToString();
+            return (response.Data.Identity.PrincipalId.Value, response.Data.Id);
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 #pragma warning restore CS8629 // Nullable value type may be null.
         }
-        async Task<string> CreateAutomationAccount(JSONDefaultDataverseLibrary dataverseLibrary, JSONSecretNames secretNames, string internalVaultName, DataverseDeploy form)
+        async Task<Guid> CreateAutomationAccount(JSONDefaultDataverseLibrary dataverseLibrary, JSONSecretNames secretNames, string internalVaultName, DataverseDeploy form)
         {
             AutomationAccountResource response = await CreateVariables(dataverseLibrary, form.SelectedGroup, form.SelectedRegion, secretNames, internalVaultName);
 
@@ -662,7 +668,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
             catch { }
 #pragma warning disable CS8629 // Nullable value type may be null.
-            return response.Data.Identity.PrincipalId.Value.ToString();
+            return response.Data.Identity.PrincipalId.Value;
 #pragma warning restore CS8629 // Nullable value type may be null.
         }
 
