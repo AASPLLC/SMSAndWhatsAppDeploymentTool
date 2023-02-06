@@ -258,7 +258,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             ResourceIdentifier appPlan = await asprh.InitialCreation(form);
 
             FunctionAppResourceHandler farh = new();
-            (WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource) = await farh.InitialCreation(
+            (WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, desiredRestSite) = await farh.InitialCreation(
                 appPlan,
                 vnetSubnetIdentity,
                 desiredStorageName,
