@@ -2,6 +2,7 @@
 using Azure.ResourceManager.Network.Models;
 using Azure.ResourceManager.Network;
 using Azure;
+using System.Drawing;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
@@ -16,6 +17,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
             else
             {
+                SubnetResource subnet = await form.SelectedGroup.GetVirtualNetwork("StorageConnection").Value.GetSubnetAsync("RestAPIToCosmos");
+                await subnet.UpdateAsync(WaitUntil.Completed, CreateSubnetData("RestAPIToCosmos", "10.1.0.32/27", form.SelectedRegion, false));
                 return await SkipVirtualNetwork(form);
             }
         }
@@ -28,6 +31,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
             else
             {
+                SubnetResource subnet = await form.SelectedGroup.GetVirtualNetwork("StorageConnection").Value.GetSubnetAsync("RestAPIToCosmos");
+                await subnet.UpdateAsync(WaitUntil.Completed, CreateSubnetData("RestAPIToCosmos", "10.1.0.32/27", form.SelectedRegion, true));
                 return await SkipVirtualNetwork(form);
             }
         }

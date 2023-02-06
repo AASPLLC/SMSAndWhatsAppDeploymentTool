@@ -678,7 +678,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             {
                 PrincipalType = RoleManagementPrincipalType.ServicePrincipal
             };
-            await form.SelectedGroup.GetRoleAssignments().CreateOrUpdateAsync(Azure.WaitUntil.Completed, Guid.NewGuid().ToString(), authorizationroledefinition);
+            try { await form.SelectedGroup.GetRoleAssignments().CreateOrUpdateAsync(Azure.WaitUntil.Completed, Guid.NewGuid().ToString(), authorizationroledefinition); } catch { }
 
             return response.Data.Identity.PrincipalId.Value;
 #pragma warning restore CS8629 // Nullable value type may be null.
