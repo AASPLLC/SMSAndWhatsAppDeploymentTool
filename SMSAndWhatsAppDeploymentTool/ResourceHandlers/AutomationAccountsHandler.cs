@@ -361,7 +361,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 "\r\n            $enduser = $false" +
                 "\r\n            if ($phonenumber -eq $results[$i].$_from) { $enduser = $false; }" +
                 "\r\n            else { $enduser = $true; }" +
-                "\r\n            Write-Debug $results[$i].$_timestamp" +
                 "\r\n            if ($i -ge $global:messagecount)" +
                 "\r\n            {" +
                 "\r\n                $withincountcounter++" +
