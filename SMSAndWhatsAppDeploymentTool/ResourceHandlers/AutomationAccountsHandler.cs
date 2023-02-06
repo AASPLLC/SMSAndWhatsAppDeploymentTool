@@ -106,48 +106,63 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 "\r\n    Write-Error -Message $_.Exception" +
                 "\r\n    throw $_.Exception" +
                 "\r\n}" +
-                "\r\n\r\n$resourceGroupName = Get-AutomationVariable -Name 'ResourceGroupName' # Resource Group must already exist" +
+                "\r\n" +
+                "\r\n$resourceGroupName = Get-AutomationVariable -Name 'ResourceGroupName' # Resource Group must already exist" +
                 "\r\n$accountName = Get-AutomationVariable -Name 'CosmosAccountName' # Must be all lower case" +
                 "\r\n$keyKind = \"primary\" # Other key kinds: secondary, primaryReadonly, secondaryReadonly" +
                 "\r\n$vault = Get-AutomationVariable -Name 'InternalVault'" +
                 "\r\n$secretname = Get-AutomationVariable -Name 'SecretName'" +
-                "\r\n\r\n$newkey = New-AzCosmosDBAccountKey `" +
+                "\r\n" +
+                "\r\n$newkey = New-AzCosmosDBAccountKey `" +
                 "\r\n    -ResourceGroupName $resourceGroupName `" +
                 "\r\n    -Name $accountName `" +
                 "\r\n    -KeyKind $keyKind" +
                 "\r\n$Secret = ConvertTo-SecureString -String $newkey -AsPlainText -Force" +
                 "\r\n$newkey = \"\"" +
-                "\r\n\r\nGet-AzKeyVaultSecret $vault | Where-Object {$_.Name -like $secretname} | Update-AzKeyVaultSecret -Enable $False" +
-                "\r\n\r\nSet-AzKeyVaultSecret -VaultName $vault -Name $secretname -SecretValue $Secret";
+                "\r\n" +
+                "\r\nGet-AzKeyVaultSecret $vault | Where-Object {$_.Name -like $secretname} | Update-AzKeyVaultSecret -Enable $False" +
+                "\r\n" +
+                "\r\nSet-AzKeyVaultSecret -VaultName $vault -Name $secretname -SecretValue $Secret";
         }
         static string AutoPowerShellDataverseArchiver()
         {
-            return "try" +
+            return "#0 = time 1 = count" +
+                "\r\n$global:basedon = 1" +
+                "\r\n$global:messagecount = 100" +
+                "\r\n$global:TimeOffset = (Get-Date).AddMonths(-1)" +
+                "\r\n" +
+                "\r\ntry" +
                 "\r\n{" +
-                "\r\n    \"Logging in to Azure...\"" +
-                "\r\n    Connect-AzAccount -Identity" +
+                "\r\n    Connect-AzAccount -Identity | Out-Null" +
                 "\r\n}" +
                 "\r\ncatch {" +
                 "\r\n    Write-Error -Message $_.Exception" +
                 "\r\n    throw $_.Exception" +
                 "\r\n}" +
-                "\r\n\r\n$vault = Get-AutomationVariable -Name 'InternalVault'" +
-                "\r\n\r\n$AppId = (Get-AzKeyVaultSecret -VaultName $vault -Name \"DataverseAPIClientID\").SecretValue" +
+                "\r\n" +
+                "\r\n$vault = Get-AutomationVariable -Name 'InternalVault'" +
+                "\r\n" +
+                "\r\n$AppId = (Get-AzKeyVaultSecret -VaultName $vault -Name \"DataverseAPIClientID\").SecretValue" +
                 "\r\n$AppId = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($AppId)" +
                 "\r\n$AppId = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($AppId)" +
-                "\r\n\r\n$client_secret = (Get-AzKeyVaultSecret -VaultName $vault -Name \"DataverseAPIClientSecret\").SecretValue" +
+                "\r\n" +
+                "\r\n$client_secret = (Get-AzKeyVaultSecret -VaultName $vault -Name \"DataverseAPIClientSecret\").SecretValue" +
                 "\r\n$client_secret = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($client_secret)" +
                 "\r\n$client_secret = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($client_secret)" +
-                "\r\n\r\n$TenantId = (Get-AzKeyVaultSecret -VaultName $vault -Name \"TenantID\").SecretValue" +
+                "\r\n" +
+                "\r\n$TenantId = (Get-AzKeyVaultSecret -VaultName $vault -Name \"TenantID\").SecretValue" +
                 "\r\n$TenantId = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($TenantId)" +
                 "\r\n$TenantId = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($TenantId)" +
-                "\r\n\r\n$archiveEmail = (Get-AzKeyVaultSecret -VaultName $vault -Name \"PrimarySystemAccountEmail\").SecretValue" +
+                "\r\n" +
+                "\r\n$archiveEmail = (Get-AzKeyVaultSecret -VaultName $vault -Name \"PrimarySystemAccountEmail\").SecretValue" +
                 "\r\n$archiveEmail = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($archiveEmail)" +
                 "\r\n$archiveEmail = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($archiveEmail)" +
-                "\r\n\r\n$global:environmentName = (Get-AzKeyVaultSecret -VaultName $vault -Name \"DynamicsEnvironmentName\").SecretValue" +
+                "\r\n" +
+                "\r\n$global:environmentName = (Get-AzKeyVaultSecret -VaultName $vault -Name \"DynamicsEnvironmentName\").SecretValue" +
                 "\r\n$global:environmentName = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($global:environmentName)" +
                 "\r\n$global:environmentName = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($global:environmentName)" +
-                "\r\n\r\n$AccountsDBName = Get-AutomationVariable -Name 'AccountsDBName'" +
+                "\r\n" +
+                "\r\n$AccountsDBName = Get-AutomationVariable -Name 'AccountsDBName'" +
                 "\r\n$SMSMessagesDBName = Get-AutomationVariable -Name 'SMSMessagesDBName'" +
                 "\r\n$WhatsAppMessagesDBName = Get-AutomationVariable -Name 'WhatsAppMessagesDBName'" +
                 "\r\n$startingprefix = Get-AutomationVariable -Name 'StartingPrefix'" +
@@ -159,26 +174,32 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 "\r\n$fromDBColumn = Get-AutomationVariable -Name 'FromDBColumn'" +
                 "\r\n$timestampDBColumn = Get-AutomationVariable -Name 'TimestampDBColumn'" +
                 "\r\n$messageDBColumn = Get-AutomationVariable -Name 'MessagesDBColumn'" +
-                "\r\n\r\n$AllSMSMessages = \"\";\r\n$AllWhatsAppMessages = \"\";" +
-                "\r\n\r\n#get graph token" +
+                "\r\n" +
+                "\r\n$AllSMSMessages = \"\";" +
+                "\r\n$AllWhatsAppMessages = \"\";" +
+                "\r\n" +
+                "\r\n#get graph token" +
                 "\r\n$tokenbody = @{" +
                 "\r\n    client_id     = $AppId" +
                 "\r\n    scope         = \"https://graph.microsoft.com/.default\"" +
                 "\r\n    client_secret = $client_secret" +
                 "\r\n    grant_type    = \"client_credentials\"" +
                 "\r\n}" +
-                "\r\n\r\ntry { $tokenRequest = Invoke-WebRequest -Method Post -Uri \"https://login.microsoftonline.com/$TenantId/oauth2/v2.0/token\" -ContentType \"application/x-www-form-urlencoded\" -Body $tokenbody -UseBasicParsing -ErrorAction Stop }" +
+                "\r\n" +
+                "\r\ntry { $tokenRequest = Invoke-WebRequest -Method Post -Uri \"https://login.microsoftonline.com/$TenantId/oauth2/v2.0/token\" -ContentType \"application/x-www-form-urlencoded\" -Body $tokenbody -UseBasicParsing -ErrorAction Stop }" +
                 "\r\ncatch { Write-Host \"Unable to obtain access token, aborting...\"; return }" +
                 "\r\n$token = ($tokenRequest.Content | ConvertFrom-Json).access_token" +
                 "\r\nConnect-MgGraph -AccessToken $token" +
-                "\r\n\r\n<#$AuthHeader1 = @{" +
+                "\r\n" +
+                "\r\n<#$AuthHeader1 = @{" +
                 "\r\n    'Authorization'=\"Bearer $token\"" +
                 "\r\n }" +
                 "\r\n $URL = \"https://graph.microsoft.com/v1.0/users('$archiveEmail')\"" +
                 "\r\n $Users = Invoke-WebRequest -ContentType \"application/json\" -Headers $AuthHeader1 -Uri $URL" +
                 "\r\n $result = ($Users.Content | ConvertFrom-Json).Value" +
                 "\r\n $result#>" +
-                "\r\n\r\nfunction CreateSMSMessagesList" +
+                "\r\n" +
+                "\r\nfunction CreateSMSMessagesList" +
                 "\r\n{" +
                 "\r\n    Param" +
                 "\r\n    (" +
@@ -194,31 +215,69 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 "\r\n    $_from = $startingprefix + $fromDBColumn" +
                 "\r\n    $_timestamp = $startingprefix + $timestampDBColumn" +
                 "\r\n    $_message = $startingprefix + $messageDBColumn" +
-                "\r\n\r\n    $select = \"?`$select=\" + $_assigneduser + \",\" + $_timestamp + \",\" + $_to + \",\" + $_from + \",\" + $_message" +
+                "\r\n    $_id = $startingprefix + $SMSMessagesDBName.Substring(0, $SMSMessagesDBName.Length-2) + \"id\"" +
+                "\r\n" +
+                "\r\n    $select = \"?`$select=\" + $_assigneduser + \",\" + $_timestamp + \",\" + $_to + \",\" + $_from + \",\" + $_message" +
                 "\r\n    $filter = \"&`$filter=\" + $_assigneduser + \"%20eq%20%27\" + $email + \"%27\"" +
                 "\r\n    $query = $startingprefix + $SMSMessagesDBName + $select + $filter" +
                 "\r\n    $serviceUrl = \"https://\" + $global:environmentName + \".crm.dynamics.com/\"" +
                 "\r\n    $URL = $serviceUrl + \"api/data/v9.2/\" + $query" +
-                "\r\n\r\n    $headers = @{}" +
+                "\r\n" +
+                "\r\n    $headers = @{}" +
                 "\r\n    $headers.Add(\"Authorization\", \"Bearer \" + $token)" +
                 "\r\n    $headers.Add(\"OData-MaxVersion\", \"4.0\")" +
                 "\r\n    $headers.Add(\"OData-Version\", \"4.0\")" +
-                "\r\n\r\n    $response = Invoke-WebRequest -ContentType \"application/json\" -Headers $headers -Uri $URL -UseBasicParsing" +
+                "\r\n" +
+                "\r\n    $response = Invoke-WebRequest -ContentType \"application/json\" -Headers $headers -Uri $URL -UseBasicParsing" +
                 "\r\n    $results = ($response.Content | ConvertFrom-Json).Value" +
                 "\r\n    $messages = @()" +
-                "\r\n    For ($i = 0; $i -lt $results.Length; $i++) {" +
-                "\r\n        $enduser = $false" +
-                "\r\n        if ($phonenumber -eq $results[$i].$_from) { $enduser = $false; }" +
-                "\r\n        else { $enduser = $true; }" +
-                "\r\n        $messages += @{" +
-                "\r\n            fromenduser = $enduser" +
-                "\r\n            message = $results[$i].$_message" +
-                "\r\n            timestamp = $results[$i].$_timestamp" +
-                "\r\n            from = $results[$i].$_from" +
-                "\r\n            to = $results[$i].$_to" +
+                "\r\n    if ($global:basedon -eq 0)" +
+                "\r\n    {" +
+                "\r\n        #$DebugPreference = 'Continue'" +
+                "\r\n        $withintimecounter = 0" +
+                "\r\n        For ($i = 0; $i -lt $results.Length; $i++) {" +
+                "\r\n            $enduser = $false" +
+                "\r\n            if ($phonenumber -eq $results[$i].$_from) { $enduser = $false; }" +
+                "\r\n            else { $enduser = $true; }" +
+                "\r\n            if ([DateTime]$results[$i].$_timestamp -lt $global:TimeOffset)" +
+                "\r\n            {" +
+                "\r\n                $withintimecounter++" +
+                "\r\n                $messages += @{" +
+                "\r\n                    fromenduser = $enduser" +
+                "\r\n                    message = $results[$i].$_message" +
+                "\r\n                    timestamp = $results[$i].$_timestamp" +
+                "\r\n                    from = $results[$i].$_from" +
+                "\r\n                    to = $results[$i].$_to" +
+                "\r\n                    id = $results[$i].$_id" +
+                "\r\n                }" +
+                "\r\n            }" +
                 "\r\n        }" +
+                "\r\n        if ($withintimecounter -gt 0) { return $messages }" +
+                "\r\n        else { return \"\" }" +
                 "\r\n    }" +
-                "\r\n    return $messages" +
+                "\r\n    else" +
+                "\r\n    {" +
+                "\r\n        $withincountcounter = 0" +
+                "\r\n        For ($i = 0; $i -lt $results.Length; $i++) {" +
+                "\r\n            $enduser = $false" +
+                "\r\n            if ($phonenumber -eq $results[$i].$_from) { $enduser = $false; }" +
+                "\r\n            else { $enduser = $true; }" +
+                "\r\n            if ($i -ge $global:messagecount)" +
+                "\r\n            {" +
+                "\r\n                $withincountcounter++" +
+                "\r\n                $messages += @{" +
+                "\r\n                    fromenduser = $enduser" +
+                "\r\n                    message = $results[$i].$_message" +
+                "\r\n                    timestamp = $results[$i].$_timestamp" +
+                "\r\n                    from = $results[$i].$_from" +
+                "\r\n                    to = $results[$i].$_to" +
+                "\r\n                    id = $results[$i].$_id" +
+                "\r\n                }" +
+                "\r\n            }" +
+                "\r\n        }" +
+                "\r\n        if ($withincountcounter -gt 0) { return $messages }" +
+                "\r\n        else { return \"\" }" +
+                "\r\n    }" +
                 "\r\n}" +
                 "\r\nfunction CreateWhatsAppMessagesList" +
                 "\r\n{" +
@@ -236,47 +295,110 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 "\r\n    $_from = $startingprefix + $fromDBColumn" +
                 "\r\n    $_timestamp = $startingprefix + $timestampDBColumn" +
                 "\r\n    $_message = $startingprefix + $messageDBColumn" +
-                "\r\n\r\n    $select = \"?`$select=\" + $_assigneduser + \",\" + $_timestamp + \",\" + $_to + \",\" + $_from + \",\" + $_message" +
+                "\r\n    $_id = $startingprefix + $WhatsAppMessagesDBName.Substring(0, $WhatsAppMessagesDBName.Length-2) + \"id\"" +
+                "\r\n" +
+                "\r\n    $select = \"?`$select=\" + $_assigneduser + \",\" + $_timestamp + \",\" + $_to + \",\" + $_from + \",\" + $_message" +
                 "\r\n    $filter = \"&`$filter=\" + $_assigneduser + \"%20eq%20%27\" + $email + \"%27\"" +
                 "\r\n    $query = $startingprefix + $WhatsAppMessagesDBName + $select + $filter" +
                 "\r\n    $serviceUrl = \"https://\" + $global:environmentName + \".crm.dynamics.com/\"" +
                 "\r\n    $URL = $serviceUrl + \"api/data/v9.2/\" + $query" +
-                "\r\n\r\n    $headers = @{}" +
+                "\r\n" +
+                "\r\n    $headers = @{}" +
                 "\r\n    $headers.Add(\"Authorization\", \"Bearer \" + $token)" +
                 "\r\n    $headers.Add(\"OData-MaxVersion\", \"4.0\")" +
                 "\r\n    $headers.Add(\"OData-Version\", \"4.0\")" +
-                "\r\n\r\n    $response = Invoke-WebRequest -ContentType \"application/json\" -Headers $headers -Uri $URL -UseBasicParsing" +
+                "\r\n" +
+                "\r\n    $response = Invoke-WebRequest -ContentType \"application/json\" -Headers $headers -Uri $URL -UseBasicParsing" +
                 "\r\n    $results = ($response.Content | ConvertFrom-Json).Value" +
-                "\r\n\r\n    $messages = @()" +
-                "\r\n    For ($i = 0; $i -lt $results.Length; $i++) {" +
-                "\r\n        $enduser = $false" +
-                "\r\n        if ($phonenumber -eq $results[$i].$_from) { $enduser = $false; }" +
-                "\r\n        else { $enduser = $true; }" +
-                "\r\n        $messages += @{" +
-                "\r\n            fromenduser = $enduser" +
-                "\r\n            message = $results[$i].$_message" +
-                "\r\n            timestamp = $results[$i].$_timestamp" +
-                "\r\n            from = $results[$i].$_from" +
-                "\r\n            to = $results[$i].$_to" +
+                "\r\n" +
+                "\r\n    $messages = @()" +
+                "\r\n    if ($global:basedon -eq 0)" +
+                "\r\n    {" +
+                "\r\n        $withintimecounter = 0" +
+                "\r\n        #$DebugPreference = 'Continue'" +
+                "\r\n        For ($i = 0; $i -lt $results.Length; $i++) {" +
+                "\r\n            $enduser = $false" +
+                "\r\n            if ($phonenumber -eq $results[$i].$_from) { $enduser = $false; }" +
+                "\r\n            else { $enduser = $true; }" +
+                "\r\n            try{" +
+                "\r\n                if ([DateTime]$results[$i].$_timestamp -lt $global:TimeOffset)" +
+                "\r\n                {" +
+                "\r\n                    $withintimecounter++" +
+                "\r\n                    $messages += @{" +
+                "\r\n                        fromenduser = $enduser" +
+                "\r\n                        message = $results[$i].$_message" +
+                "\r\n                        timestamp = $results[$i].$_timestamp" +
+                "\r\n                        from = $results[$i].$_from" +
+                "\r\n                        to = $results[$i].$_to" +
+                "\r\n                        id = $results[$i].$_id" +
+                "\r\n                    }" +
+                "\r\n                }" +
+                "\r\n            }" +
+                "\r\n            catch{" +
+                "\r\n                $timee = (Get-Date 01.01.1970) + ([System.TimeSpan]::fromseconds($results[$i].$_timestamp))" +
+                "\r\n                if ($timee -lt $global:TimeOffset)" +
+                "\r\n                {" +
+                "\r\n                    $withintimecounter++" +
+                "\r\n                    $messages += @{" +
+                "\r\n                        fromenduser = $enduser" +
+                "\r\n                        message = $results[$i].$_message" +
+                "\r\n                        timestamp = $results[$i].$_timestamp" +
+                "\r\n                        from = $results[$i].$_from" +
+                "\r\n                        to = $results[$i].$_to" +
+                "\r\n                        id = $results[$i].$_id" +
+                "\r\n                    }" +
+                "\r\n                }" +
+                "\r\n            }" +
                 "\r\n        }" +
+                "\r\n        if ($withintimecounter -gt 0) { return $messages }" +
+                "\r\n        else { return \"\" }" +
                 "\r\n    }" +
-                "\r\n    return $messages" +
+                "\r\n    else" +
+                "\r\n    {" +
+                "\r\n        $withincountcounter = 0" +
+                "\r\n        $DebugPreference = 'Continue'" +
+                "\r\n        For ($i = 0; $i -lt $results.Length; $i++) {" +
+                "\r\n            $enduser = $false" +
+                "\r\n            if ($phonenumber -eq $results[$i].$_from) { $enduser = $false; }" +
+                "\r\n            else { $enduser = $true; }" +
+                "\r\n            Write-Debug $results[$i].$_timestamp" +
+                "\r\n            if ($i -ge $global:messagecount)" +
+                "\r\n            {" +
+                "\r\n                $withincountcounter++" +
+                "\r\n                $messages += @{" +
+                "\r\n                    fromenduser = $enduser" +
+                "\r\n                    message = $results[$i].$_message" +
+                "\r\n                    timestamp = $results[$i].$_timestamp" +
+                "\r\n                    from = $results[$i].$_from" +
+                "\r\n                    to = $results[$i].$_to" +
+                "\r\n                    id = $results[$i].$_id" +
+                "\r\n                }" +
+                "\r\n            }" +
+                "\r\n        }" +
+                "\r\n        if ($withincountcounter -gt 0) { return $messages }" +
+                "\r\n        else { return \"\" }" +
+                "\r\n    }" +
                 "\r\n}" +
                 "\r\nFunction CreateAccountsList($token) {" +
-                "\r\n    $DebugPreference = 'Continue'" +
+                "\r\n    #$DebugPreference = 'Continue'" +
                 "\r\n    $_assignedto = $startingprefix + $assignedtoDBColumn" +
                 "\r\n    $_phonenumber = $startingprefix + $phonenumberDBColumn" +
                 "\r\n    $_phonenumberid = $startingprefix + $phonenumberidDBColumn" +
-                "\r\n\r\n    $select = \"?`$select=\" + $_assignedto + \",\" + $_phonenumber + \",\" + $_phonenumberid" +
+                "\r\n" +
+                "\r\n    $select = \"?`$select=\" + $_assignedto + \",\" + $_phonenumber + \",\" + $_phonenumberid" +
                 "\r\n    $query = $startingprefix + $AccountsDBName + $select" +
                 "\r\n    $serviceUrl = \"https://\" + $global:environmentName + \".crm.dynamics.com/\"" +
-                "\r\n\r\n    $URL = $serviceUrl + \"api/data/v9.2/\" + $query" +
+                "\r\n" +
+                "\r\n    $URL = $serviceUrl + \"api/data/v9.2/\" + $query" +
                 "\r\n    $headers = @{}" +
                 "\r\n    $headers.Add(\"Authorization\", \"Bearer \" + $token)" +
-                "\r\n    $headers.Add(\"OData-MaxVersion\", \"4.0\")\r\n    $headers.Add(\"OData-Version\", \"4.0\")" +
-                "\r\n\r\n    $response = Invoke-WebRequest -ContentType \"application/json\" -Headers $headers -Uri $URL -UseBasicParsing" +
+                "\r\n    $headers.Add(\"OData-MaxVersion\", \"4.0\")" +
+                "\r\n    $headers.Add(\"OData-Version\", \"4.0\")" +
+                "\r\n" +
+                "\r\n    $response = Invoke-WebRequest -ContentType \"application/json\" -Headers $headers -Uri $URL -UseBasicParsing" +
                 "\r\n    $results = ($response.Content | ConvertFrom-Json).Value" +
-                "\r\n\r\n    $accounts = @()    " +
+                "\r\n" +
+                "\r\n    $accounts = @()" +
                 "\r\n    For ($i = 0; $i -lt $results.Length; $i++) {" +
                 "\r\n        $accounts += @{" +
                 "\r\n            AssignedTo = $results[$i].$_assignedto" +
@@ -299,7 +421,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 "\r\n    [Parameter(Mandatory=$true)]" +
                 "\r\n    [string]$email" +
                 "\r\n    )" +
-                "\r\n\r\n    $messagesBuilder = \"\"" +
+                "\r\n" +
+                "\r\n    $messagesBuilder = \"\"" +
                 "\r\n    $messagesBuilder += \"Date: $(Get-Date -Format \"M/d/yyyy\")`n\"" +
                 "\r\n    $messagesBuilder += \"From: $email`n\"" +
                 "\r\n    $messagesBuilder += \"To: $email`n\"" +
@@ -309,7 +432,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 "\r\n    $messagesBuilder += \"<br>Phone Number: $phoneNumber\"" +
                 "\r\n    $messagesBuilder += \"<br>Phone Number ID: $phoneNumberID\"" +
                 "\r\n    $messagesBuilder += \"<br>Archived Messages:<br>\"" +
-                "\r\n\r\n    foreach ($message in $messages) {" +
+                "\r\n" +
+                "\r\n    foreach ($message in $messages) {" +
                 "\r\n        $message.fromenduser" +
                 "\r\n        try{$time = [datetime]::Parse($message.timestamp)}" +
                 "\r\n        catch{" +
@@ -319,7 +443,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 "\r\n        if (-not $message.fromenduser) {" +
                 "\r\n            $messagesBuilder += \"<div align=right>\"" +
                 "\r\n            $messagesBuilder += \"<div style='font-size: 13px; background-color: #eeeefa; border-width: 3px; border-color :#F5F5F5; display: inline-block; border-radius: 15px; padding: 10px'>\"" +
-                "\r\n\r\n            $messagesBuilder += \"To:\" + $message.to" +
+                "\r\n" +
+                "\r\n            $messagesBuilder += \"To:\" + $message.to" +
                 "\r\n            $messagesBuilder += \"<br>\"" +
                 "\r\n            $messagesBuilder += \"From: \" + $message.from" +
                 "\r\n            $messagesBuilder += \"<br>\"" +
@@ -330,7 +455,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 "\r\n        else {" +
                 "\r\n            $messagesBuilder += \"<div align=left>\"" +
                 "\r\n            $messagesBuilder += \"<div style='font-size: 13px; background-color: #ffffff; border-width: 3px; border-color: #F5F5F5; display: inline-block; border-radius: 15px; padding: 10px'>\"" +
-                "\r\n\r\n            $messagesBuilder += \"To:\" + $message.to" +
+                "\r\n" +
+                "\r\n            $messagesBuilder += \"To:\" + $message.to" +
                 "\r\n            $messagesBuilder += \"<br>\"" +
                 "\r\n            $messagesBuilder += \"From: \" + $message.from" +
                 "\r\n            $messagesBuilder += \"<br>\"" +
@@ -341,10 +467,12 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 "\r\n        $messagesBuilder += \"</div>\"" +
                 "\r\n        $messagesBuilder += \"</div>\"" +
                 "\r\n    }" +
-                "\r\n\r\n    $messagesBuilder += \"</html></body>\"" +
+                "\r\n" +
+                "\r\n    $messagesBuilder += \"</html></body>\"" +
                 "\r\n    return $messagesBuilder" +
                 "\r\n}" +
-                "\r\n\r\n$tokenbody = @{" +
+                "\r\n" +
+                "\r\n$tokenbody = @{" +
                 "\r\n    client_id     = $AppId" +
                 "\r\n    scope         = \"https://\" + $global:environmentName + \".crm.dynamics.com/.default\"" +
                 "\r\n    client_secret = $client_secret" +
@@ -354,71 +482,106 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 "\r\n$responsedata = $tokenRequest.Content" +
                 "\r\n$responsedata = ConvertFrom-Json -InputObject $responsedata" +
                 "\r\n$token = $responsedata.access_token" +
-                "\r\n\r\n$Accounts = CreateAccountsList($token)" +
-                "\r\n\r\nforeach($o in $Accounts)" +
+                "\r\n" +
+                "\r\n$Accounts = CreateAccountsList($token)" +
+                "\r\n" +
+                "\r\nforeach($o in $Accounts)" +
                 "\r\n{" +
                 "\r\n    $_email = $o[\"AssignedTo\"];" +
                 "\r\n    $_phonenumber = $o[\"PhoneNumber\"];" +
                 "\r\n    $_phonenumberid = $o[\"PhoneNumberID\"];" +
-                "\r\n\r\n    $sms = CreateSMSMessagesList -token $token -email $_email -phonenumber $_phonenumber;" +
-                "\r\n    $AllSMSMessages = CreateHTMLEmlString -messages $sms -assignedUser $_email -phoneNumber $_phonenumber -phoneNumberID $_phonenumberid -email $archiveEmail" +
+                "\r\n" +
+                "\r\n    $sms = CreateSMSMessagesList -token $token -email $_email -phonenumber $_phonenumber;" +
+                "\r\n    if ($sms -ne \"\")" +
+                "\r\n    {" +
+                "\r\n        $AllSMSMessages = CreateHTMLEmlString -messages $sms -assignedUser $_email -phoneNumber $_phonenumber -phoneNumberID $_phonenumberid -email $archiveEmail" +
+                "\r\n" +
+                "\r\n        $emailsubject = \"Nightly SMS Report At: \" + (Get-Date).GetDateTimeFormats()[9]" +
+                "\r\n        $emailbody = \"Source: Automated Powershell`nType: SMS\";" +
+                "\r\n        $params = @{" +
+                "\r\n            Message = @{" +
+                "\r\n                Subject = $emailsubject" +
+                "\r\n                Body = @{" +
+                "\r\n                    ContentType = \"Text\"" +
+                "\r\n                    Content = $emailbody" +
+                "\r\n                }" +
+                "\r\n                ToRecipients = @(" +
+                "\r\n                    @{" +
+                "\r\n                        EmailAddress = @{" +
+                "\r\n                            Address = $archiveEmail" +
+                "\r\n                        }" +
+                "\r\n                    }" +
+                "\r\n                )" +
+                "\r\n                Attachments = @(" +
+                "\r\n                    @{" +
+                "\r\n                        \"@odata.type\" = \"#microsoft.graph.fileAttachment\"" +
+                "\r\n                        Name = \"Archive.eml\"" +
+                "\r\n                        ContentType = \"text/plain\"" +
+                "\r\n                        ContentBytes = [System.Text.Encoding]::Default.GetBytes($AllSMSMessages)" +
+                "\r\n                    }" +
+                "\r\n                )" +
+                "\r\n            }" +
+                "\r\n        }" +
+                "\r\n        Send-MgUserMail -UserId $archiveEmail -BodyParameter $params" +
+                "\r\n" +
+                "\r\n        $headers = @{}" +
+                "\r\n        $headers.Add(\"Authorization\", \"Bearer \" + $token)" +
+                "\r\n        $headers.Add(\"OData-MaxVersion\", \"4.0\")" +
+                "\r\n        $headers.Add(\"OData-Version\", \"4.0\")" +
+                "\r\n" +
+                "\r\n        foreach($item in $sms)" +
+                "\r\n        {" +
+                "\r\n            $URL = \"https://\" + $global:environmentName + \".crm.dynamics.com/api/data/v9.2/\" + $startingprefix + $SMSMessagesDBName + \"(\" + $item.id + \")\"" +
+                "\r\n            $response = Invoke-RestMethod -Method Delete -ContentType \"application/json\" -Headers $headers -Uri $URL" +
+                "\r\n            $results = ($response.Content | ConvertFrom-Json).Value" +
+                "\r\n        }" +
+                "\r\n    }" +
+                "\r\n" +
                 "\r\n    $whatsapp = CreateWhatsAppMessagesList -token $token -email $_email -phonenumber $_phonenumberid;" +
-                "\r\n    $AllWhatsAppMessages = CreateHTMLEmlString -messages $whatsapp -assignedUser $_email -phoneNumber $_phonenumber -phoneNumberID $_phonenumberid -email $archiveEmail" +
-                "\r\n\r\n    # Code to send email" +
-                "\r\n    $emailsubject = \"Nightly SMS Report At: \" + (Get-Date).GetDateTimeFormats()[9]" +
-                "\r\n    $emailbody = \"Source: Automated Powershell`nType: SMS\";" +
-                "\r\n    $params = @{" +
-                "\r\n        Message = @{" +
-                "\r\n            Subject = $emailsubject" +
-                "\r\n            Body = @{" +
-                "\r\n                ContentType = \"Text\"" +
-                "\r\n                Content = $emailbody" +
-                "\r\n            }" +
-                "\r\n            ToRecipients = @(" +
-                "\r\n                @{" +
-                "\r\n                    EmailAddress = @{" +
-                "\r\n                        Address = $archiveEmail" +
+                "\r\n    if ($whatsapp -ne \"\")" +
+                "\r\n    {" +
+                "\r\n        $AllWhatsAppMessages = CreateHTMLEmlString -messages $whatsapp -assignedUser $_email -phoneNumber $_phonenumber -phoneNumberID $_phonenumberid -email $archiveEmail" +
+                "\r\n" +
+                "\r\n        $emailsubject = \"Nightly WhatsApp Report At: \" + (Get-Date).GetDateTimeFormats()[9]" +
+                "\r\n        $emailbody = \"Source: Automated PowerShell`nType: WhatsApp\";" +
+                "\r\n        $params = @{" +
+                "\r\n            Message = @{" +
+                "\r\n                Subject = $emailsubject" +
+                "\r\n                Body = @{" +
+                "\r\n                    ContentType = \"Text\"" +
+                "\r\n                    Content = $emailbody" +
+                "\r\n                }" +
+                "\r\n                ToRecipients = @(" +
+                "\r\n                    @{" +
+                "\r\n                        EmailAddress = @{" +
+                "\r\n                            Address = $archiveEmail" +
+                "\r\n                        }" +
                 "\r\n                    }" +
-                "\r\n                }" +
-                "\r\n            )" +
-                "\r\n            Attachments = @(" +
-                "\r\n                @{" +
-                "\r\n                    \"@odata.type\" = \"#microsoft.graph.fileAttachment\"" +
-                "\r\n                    Name = \"Archive.eml\"" +
-                "\r\n                    ContentType = \"text/plain\"" +
-                "\r\n                    ContentBytes = [System.Text.Encoding]::Default.GetBytes($AllSMSMessages)" +
-                "\r\n                }" +
-                "\r\n            )" +
+                "\r\n                )" +
+                "\r\n                Attachments = @(" +
+                "\r\n                    @{" +
+                "\r\n                        \"@odata.type\" = \"#microsoft.graph.fileAttachment\"" +
+                "\r\n                        Name = \"Archive.eml\"" +
+                "\r\n                        ContentType = \"text/plain\"" +
+                "\r\n                        ContentBytes = [System.Text.Encoding]::Default.GetBytes($AllWhatsAppMessages)" +
+                "\r\n                    }" +
+                "\r\n                )" +
+                "\r\n            }" +
+                "\r\n        }" +
+                "\r\n        Send-MgUserMail -UserId $archiveEmail -BodyParameter $params" +
+                "\r\n" +
+                "\r\n        $headers = @{}" +
+                "\r\n        $headers.Add(\"Authorization\", \"Bearer \" + $token)" +
+                "\r\n        $headers.Add(\"OData-MaxVersion\", \"4.0\")" +
+                "\r\n        $headers.Add(\"OData-Version\", \"4.0\")" +
+                "\r\n" +
+                "\r\n        foreach($item in $whatsapp)" +
+                "\r\n        {" +
+                "\r\n            $URL = \"https://\" + $global:environmentName + \".crm.dynamics.com/api/data/v9.2/\" + $startingprefix + $WhatsAppMessagesDBName + \"(\" + $item.id + \")\"" +
+                "\r\n            $response = Invoke-RestMethod -Method Delete -ContentType \"application/json\" -Headers $headers -Uri $URL" +
+                "\r\n            $results = ($response.Content | ConvertFrom-Json).Value" +
                 "\r\n        }" +
                 "\r\n    }" +
-                "\r\n\r\n    Send-MgUserMail -UserId $archiveEmail -BodyParameter $params" +
-                "\r\n\r\n    $emailsubject = \"Nightly WhatsApp Report At: \" + (Get-Date).GetDateTimeFormats()[9]" +
-                "\r\n    $emailbody = \"Source: Automated PowerShell`nType: WhatsApp\";" +
-                "\r\n    $params = @{" +
-                "\r\n        Message = @{" +
-                "\r\n            Subject = $emailsubject" +
-                "\r\n            Body = @{" +
-                "\r\n                ContentType = \"Text\"" +
-                "\r\n                Content = $emailbody" +
-                "\r\n            }" +
-                "\r\n            ToRecipients = @(" +
-                "\r\n                @{" +
-                "\r\n                    EmailAddress = @{" +
-                "\r\n                        Address = $archiveEmail" +
-                "\r\n                    }" +
-                "\r\n                }" +
-                "\r\n            )" +
-                "\r\n            Attachments = @(" +
-                "\r\n                @{" +
-                "\r\n                    \"@odata.type\" = \"#microsoft.graph.fileAttachment\"" +
-                "\r\n                    Name = \"Archive.eml\"" +
-                "\r\n                    ContentType = \"text/plain\"" +
-                "\r\n                    ContentBytes = [System.Text.Encoding]::Default.GetBytes($AllWhatsAppMessages)" +
-                "\r\n                }" +
-                "\r\n            )" +
-                "\r\n        }" +
-                "\r\n    }" +
-                "\r\n\r\n    Send-MgUserMail -UserId $archiveEmail -BodyParameter $params" +
                 "\r\n}";
         }
 
