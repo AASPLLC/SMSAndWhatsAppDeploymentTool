@@ -1,13 +1,9 @@
-﻿using Azure.ResourceManager.Resources;
-using Azure.ResourceManager.Resources.Models;
-using Azure;
+﻿using Azure;
 using SMSAndWhatsAppDeploymentTool.JSONParsing;
-using System.Text.Json;
 using Azure.ResourceManager.CosmosDB.Models;
 using Azure.ResourceManager.CosmosDB;
 using Azure.Core;
 using AASPGlobalLibrary;
-using Azure.ResourceManager.AppService;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {

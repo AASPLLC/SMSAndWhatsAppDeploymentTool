@@ -8,9 +8,6 @@ using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using SMSAndWhatsAppDeploymentTool.JSONParsing;
-using Azure.ResourceManager.Authorization;
-using Azure.ResourceManager.Authorization.Models;
-using Microsoft.Extensions.Azure;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
@@ -316,6 +313,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             await kvrh2.UpdateInternalVaultProperties(
                 smsSiteResource.Data.Identity.PrincipalId.Value.ToString(),
                 whatsAppSiteResource.Data.Identity.PrincipalId.Value.ToString(),
+                cosmosAppSiteResource.Data.Identity.PrincipalId.Value.ToString(),
                 automationaccountid.ToString(),
                 internalVault,
                 TenantId.Value,

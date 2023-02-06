@@ -112,12 +112,32 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             properties.EnableRbacAuthorization = false;
             AccessPermissions permissions = new();
             permissions.Secrets.Add(SecretPermissions.Get);
+            permissions.Secrets.Add(SecretPermissions.List);
             properties.AccessPolicies.Add(new(TenantID, smsObjectId, permissions));
             properties.AccessPolicies.Add(new(TenantID, whatsAppObjectId, permissions));
             AccessPermissions automationPermissions = new();
+            automationPermissions.Secrets.Add(SecretPermissions.Get);
+            automationPermissions.Secrets.Add(SecretPermissions.Set);
+            automationPermissions.Secrets.Add(SecretPermissions.List);
+            properties.AccessPolicies.Add(new(TenantID, automationObjectId, automationPermissions));
+            VaultCreateOrUpdateContent content = new(SelectedRegion, properties);
+            _ = (await SelectedGroup.GetVaults().CreateOrUpdateAsync(WaitUntil.Completed, vaultResource.Data.Name, content)).Value;
+        }
+        internal virtual async Task UpdateInternalVaultProperties(string smsObjectId, string whatsAppObjectId, string restAppObjectId, string automationObjectId, VaultResource vaultResource, Guid TenantID, AzureLocation SelectedRegion, ResourceGroupResource SelectedGroup)
+        {
+            VaultProperties properties = vaultResource.Data.Properties;
+            properties.EnabledForTemplateDeployment = false;
+            properties.EnableRbacAuthorization = false;
+            AccessPermissions permissions = new();
             permissions.Secrets.Add(SecretPermissions.Get);
-            permissions.Secrets.Add(SecretPermissions.Set);
             permissions.Secrets.Add(SecretPermissions.List);
+            properties.AccessPolicies.Add(new(TenantID, smsObjectId, permissions));
+            properties.AccessPolicies.Add(new(TenantID, whatsAppObjectId, permissions));
+            properties.AccessPolicies.Add(new(TenantID, restAppObjectId, permissions));
+            AccessPermissions automationPermissions = new();
+            automationPermissions.Secrets.Add(SecretPermissions.Get);
+            automationPermissions.Secrets.Add(SecretPermissions.Set);
+            automationPermissions.Secrets.Add(SecretPermissions.List);
             properties.AccessPolicies.Add(new(TenantID, automationObjectId, automationPermissions));
             VaultCreateOrUpdateContent content = new(SelectedRegion, properties);
             _ = (await SelectedGroup.GetVaults().CreateOrUpdateAsync(WaitUntil.Completed, vaultResource.Data.Name, content)).Value;
