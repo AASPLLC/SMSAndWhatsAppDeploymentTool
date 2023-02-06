@@ -70,7 +70,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             form.OutputRT.Text += Environment.NewLine + "Finished updating function app configs";
             return internalVault;
         }
-        internal virtual async Task<VaultResource> InitialCreation(bool createAdminAccount, JSONSecretNames secretNames, string desiredRestSite, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, StorageAccountResource storageIdentity, string archiveEmail, string key, string desiredCosmosName, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, Guid TenantId, CosmosDeploy form)
+        internal virtual async Task<VaultResource> InitialCreation(bool createAdminAccount, JSONSecretNames secretNames, string desiredRestSite, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, WebSiteResource cosmosAppSiteResource, StorageAccountResource storageIdentity, string archiveEmail, string key, string desiredCosmosName, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, Guid TenantId, CosmosDeploy form)
         {
             VaultResource publicVault;
             VaultResource internalVault;
@@ -100,7 +100,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 await CreateKeyVaultSecretsCosmos(createAdminAccount, secretNames, archiveEmail, desiredRestSite, publicVault, internalVault, TenantId, whatsappSystemAccessToken, whatsappCallbackToken, smsEndpoint, storageIdentity.Id.Name, key, desiredCosmosName, form);
 
             form.OutputRT.Text += Environment.NewLine + "Updating function app configs";
-            await UpdateFunctionConfigs(desiredInternalKeyVaultName, smsSiteResource, whatsAppSiteResource);
+            await UpdateFunctionConfigs(desiredInternalKeyVaultName, smsSiteResource, whatsAppSiteResource, cosmosAppSiteResource);
             form.OutputRT.Text += Environment.NewLine + "Finished updating function app configs";
             return internalVault;
         }
@@ -371,7 +371,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return temp.Value;
         }
 
-        static async Task UpdateFunctionConfigs(string internalVaultName, WebSiteResource smsFunctionAppResource, WebSiteResource whatsAppFunctionAppResource)
+        static async Task UpdateSMSConfigs(string internalVaultName, WebSiteResource smsFunctionAppResource)
         {
             AppServiceIPSecurityRestriction appServiceIPSecurityRestriction = new()
             {
@@ -464,6 +464,18 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             smsApp.IsFunctionsRuntimeScaleMonitoringEnabled = false;
             smsApp.MinimumElasticInstanceCount = 0;
             smsApp.IsVnetRouteAllEnabled = true;
+            _ = await smsFunctionAppResource.GetWebSiteConfig().UpdateAsync(smsApp);
+        }
+        static async Task UpdateWhatsAppConfigs(string internalVaultName, WebSiteResource whatsAppFunctionAppResource)
+        {
+            AppServiceIPSecurityRestriction appServiceIPSecurityRestriction = new()
+            {
+                IPAddressOrCidr = "Any",
+                Action = "Allow",
+                Priority = 2147483647,
+                Name = "Allow all",
+                Description = "Allow all access"
+            };
 
             SiteConfigData whatsApp = new();
             whatsApp.AppSettings.Add(new AppServiceNameValuePair
@@ -543,8 +555,97 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             whatsApp.FunctionAppScaleLimit = 0;
             whatsApp.IsFunctionsRuntimeScaleMonitoringEnabled = false;
             whatsApp.MinimumElasticInstanceCount = 0;
-            _ = await smsFunctionAppResource.GetWebSiteConfig().UpdateAsync(smsApp);
             _ = await whatsAppFunctionAppResource.GetWebSiteConfig().UpdateAsync(whatsApp);
+        }
+        static async Task UpdateCosmosConfigs(string internalVaultName, WebSiteResource cosmosAppFunctionAppResource)
+        {
+            SiteConfigData cosmosApp = new();
+            cosmosApp.AppSettings.Add(new AppServiceNameValuePair
+            {
+                Name = "vaultname",
+                Value = internalVaultName
+            });
+            cosmosApp.AppSettings.Add(new AppServiceNameValuePair()
+            {
+                Name = "AzureWebJobs.Function1.Disabled",
+                Value = "0"
+            });
+            cosmosApp.AppSettings.Add(new AppServiceNameValuePair()
+            {
+                Name = "DiagnosticServices_EXTENSION_VERSION",
+                Value = "~3"
+            });
+            cosmosApp.AppSettings.Add(new AppServiceNameValuePair()
+            {
+                Name = "FUNCTIONS_EXTENSION_VERSION",
+                Value = "~4"
+            });
+            cosmosApp.AppSettings.Add(new AppServiceNameValuePair()
+            {
+                Name = "FUNCTIONS_WORKER_RUNTIME",
+                Value = "dotnet"
+            });
+            cosmosApp.AppSettings.Add(new AppServiceNameValuePair()
+            {
+                Name = "WEBSITE_RUN_FROM_PACKAGE",
+                Value = "1"
+            });
+            cosmosApp.NumberOfWorkers = 1;
+            cosmosApp.DefaultDocuments.Add("Default.htm");
+            cosmosApp.DefaultDocuments.Add("Default.html");
+            cosmosApp.DefaultDocuments.Add("Default.asp");
+            cosmosApp.DefaultDocuments.Add("index.htm");
+            cosmosApp.DefaultDocuments.Add("index.html");
+            cosmosApp.DefaultDocuments.Add("iisstart.htm");
+            cosmosApp.DefaultDocuments.Add("default.aspx");
+            cosmosApp.DefaultDocuments.Add("index.php");
+            cosmosApp.NetFrameworkVersion = "v6.0";
+            cosmosApp.IsRequestTracingEnabled = false;
+            cosmosApp.IsRemoteDebuggingEnabled = false;
+            cosmosApp.IsHttpLoggingEnabled = false;
+            cosmosApp.UseManagedIdentityCreds = false;
+            cosmosApp.LogsDirectorySizeLimit = 35;
+            cosmosApp.IsDetailedErrorLoggingEnabled = false;
+            cosmosApp.PublishingUsername = "$" + cosmosAppFunctionAppResource.Data.Name;
+            cosmosApp.ScmType = ScmType.None;
+            cosmosApp.Use32BitWorkerProcess = true;
+            cosmosApp.IsWebSocketsEnabled = false;
+            cosmosApp.IsAlwaysOn = true;
+            cosmosApp.ManagedPipelineMode = ManagedPipelineMode.Integrated;
+            cosmosApp.VirtualApplications.Add(new VirtualApplication()
+            {
+                VirtualPath = "/",
+                PhysicalPath = "site\\wwwroot",
+                IsPreloadEnabled = true
+            });
+            cosmosApp.LoadBalancing = SiteLoadBalancing.LeastRequests;
+            cosmosApp.IsAutoHealEnabled = false;
+            //siteConfigData.ManagedServiceIdentityId = 13433;
+            cosmosApp.IsVnetRouteAllEnabled = false;
+            cosmosApp.VnetPrivatePortsCount = 0;
+            cosmosApp.IsLocalMySqlEnabled = false;
+
+            cosmosApp.AllowIPSecurityRestrictionsForScmToUseMain = true;
+            cosmosApp.IsHttp20Enabled = false;
+            cosmosApp.MinTlsVersion = "1.2";
+            cosmosApp.ScmMinTlsVersion = "1.2";
+            cosmosApp.FtpsState = AppServiceFtpsState.FtpsOnly;
+            cosmosApp.PreWarmedInstanceCount = 0;
+            cosmosApp.FunctionAppScaleLimit = 0;
+            cosmosApp.IsFunctionsRuntimeScaleMonitoringEnabled = false;
+            cosmosApp.MinimumElasticInstanceCount = 0;
+            _ = await cosmosAppFunctionAppResource.GetWebSiteConfig().UpdateAsync(cosmosApp);
+        }
+        static async Task UpdateFunctionConfigs(string internalVaultName, WebSiteResource smsFunctionAppResource, WebSiteResource whatsAppFunctionAppResource)
+        {
+            await UpdateSMSConfigs(internalVaultName, smsFunctionAppResource);
+            await UpdateWhatsAppConfigs(internalVaultName, whatsAppFunctionAppResource);
+        }
+        static async Task UpdateFunctionConfigs(string internalVaultName, WebSiteResource smsFunctionAppResource, WebSiteResource whatsAppFunctionAppResource, WebSiteResource cosmosAppFunctionAppResource)
+        {
+            await UpdateSMSConfigs(internalVaultName, smsFunctionAppResource);
+            await UpdateWhatsAppConfigs(internalVaultName, whatsAppFunctionAppResource);
+            await UpdateCosmosConfigs(internalVaultName, cosmosAppFunctionAppResource);
         }
     }
 }

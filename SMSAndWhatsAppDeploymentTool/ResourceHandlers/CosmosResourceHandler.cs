@@ -7,6 +7,7 @@ using Azure.ResourceManager.CosmosDB.Models;
 using Azure.ResourceManager.CosmosDB;
 using Azure.Core;
 using AASPGlobalLibrary;
+using Azure.ResourceManager.AppService;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
@@ -16,9 +17,9 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         internal static bool found = false;
         internal virtual async Task InitialCreation(JSONDefaultCosmosLibrary cosmosLibrary, ResourceIdentifier subnetID, string DBName, string desiredCosmosName, string vnetName, CosmosDeploy form, bool useArm = false)
         {
-            if (useArm)
-                await CreateCosmosARM(form, DBName, Environment.CurrentDirectory + @"\JSONS\CosmosDeploy.json", desiredCosmosName, form.SelectedSubscription.Data.SubscriptionId, vnetName, subnetID.Name);
-            else
+            //if (useArm)
+                //await CreateCosmosARM(form, DBName, Environment.CurrentDirectory + @"\JSONS\CosmosDeploy.json", desiredCosmosName, form.SelectedSubscription.Data.SubscriptionId, vnetName, subnetID.Name);
+            //else
                 await CreateCosmosDB(cosmosLibrary, subnetID, DBName, desiredCosmosName, form);
         }
 
@@ -41,7 +42,13 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 Id = subnetID,
                 IgnoreMissingVnetServiceEndpoint = true
             });
-            foreach (var item in form.SelectedGroup.GetCosmosDBAccounts())
+            try
+            {
+                var item = form.SelectedGroup.GetCosmosDBAccount(desiredCosmosName).Value;
+                form.OutputRT.Text += Environment.NewLine + item.Data.Name + "already exists in your environment, skipping.";
+            }
+            //can be improved?
+            /*foreach (var item in form.SelectedGroup.GetCosmosDBAccounts())
             {
                 CosmosDBSqlDatabaseResource dbResponse = (await item.GetCosmosDBSqlDatabases().CreateOrUpdateAsync(WaitUntil.Completed, DBName, new(form.SelectedRegion, new(DBName)))).Value;
                 CosmosDBContainerPartitionKey partKey = new() { Kind = CosmosDBPartitionKind.Hash };
@@ -74,7 +81,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 found = true;
                 break;
             }
-            if (!found)
+            if (!found)*/
+            catch
             {
                 try
                 {
@@ -120,7 +128,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
         }
 
-        static async Task CreateCosmosARM(CosmosDeploy form, string DBName, string cosmosJSONPath, string desiredCosmosAccountName, string subId, string virtualNetworkName, string subnetName, string customAccountsContainerName = "SMSAndWhatsAppA", string customCounterContainerName = "SMSAndWhatsAppC", string customSMSContainerName = "SMSM", string customWhatsAppContainerName = "WhatsAppM", string currentschema = "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#")
+        /*static async Task CreateCosmosARM(CosmosDeploy form, string DBName, string cosmosJSONPath, string desiredCosmosAccountName, string subId, string virtualNetworkName, string subnetName, string customAccountsContainerName = "SMSAndWhatsAppA", string customCounterContainerName = "SMSAndWhatsAppC", string customSMSContainerName = "SMSM", string customWhatsAppContainerName = "WhatsAppM", string currentschema = "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#")
         {
             var temp = new JsonSerializerOptions()
             {
@@ -221,6 +229,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             {
                 form.OutputRT.Text += Environment.NewLine + e.Message;
             }
-        }
+        }*/
     }
 }

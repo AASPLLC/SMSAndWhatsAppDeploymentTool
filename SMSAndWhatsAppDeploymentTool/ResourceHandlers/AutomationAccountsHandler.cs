@@ -5,6 +5,8 @@ using Azure.ResourceManager.Models;
 using Azure.ResourceManager.Resources;
 using Azure.Core;
 using SMSAndWhatsAppDeploymentTool.JSONParsing;
+using Azure.ResourceManager.Authorization.Models;
+using Azure.ResourceManager.Authorization;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
@@ -620,7 +622,15 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 }
             }
             catch { }
+
 #pragma warning disable CS8629 // Nullable value type may be null.
+            ResourceIdentifier contributor = ResourceIdentifier.Parse("/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c");
+            RoleAssignmentCreateOrUpdateContent authorizationroledefinition = new(contributor, response.Data.Identity.PrincipalId.Value)
+            {
+                PrincipalType = RoleManagementPrincipalType.ServicePrincipal
+            };
+            try { await form.SelectedGroup.GetRoleAssignments().CreateOrUpdateAsync(Azure.WaitUntil.Completed, Guid.NewGuid().ToString(), authorizationroledefinition); } catch { }
+
             return response.Data.Identity.PrincipalId.Value;
 #pragma warning restore CS8629 // Nullable value type may be null.
         }
@@ -661,7 +671,15 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 }
             }
             catch { }
+
 #pragma warning disable CS8629 // Nullable value type may be null.
+            ResourceIdentifier contributor = ResourceIdentifier.Parse("/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c");
+            RoleAssignmentCreateOrUpdateContent authorizationroledefinition = new(contributor, response.Data.Identity.PrincipalId.Value)
+            {
+                PrincipalType = RoleManagementPrincipalType.ServicePrincipal
+            };
+            await form.SelectedGroup.GetRoleAssignments().CreateOrUpdateAsync(Azure.WaitUntil.Completed, Guid.NewGuid().ToString(), authorizationroledefinition);
+
             return response.Data.Identity.PrincipalId.Value;
 #pragma warning restore CS8629 // Nullable value type may be null.
         }

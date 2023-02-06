@@ -215,13 +215,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 desiredInternalKeyVaultName,
                 form);
 
-            ResourceIdentifier contributor = ResourceIdentifier.Parse("/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c");
-            RoleAssignmentCreateOrUpdateContent authorizationroledefinition = new(contributor, automationaccountid)
-            {
-                PrincipalType = RoleManagementPrincipalType.ServicePrincipal
-            };
-            await form.SelectedGroup.GetRoleAssignments().CreateOrUpdateAsync(Azure.WaitUntil.Completed, Guid.NewGuid().ToString(), authorizationroledefinition);
-
             KeyVaultResourceHandler kvrh2 = new();
             await kvrh2.UpdateInternalVaultProperties(
                 smsSiteResource.Data.Identity.PrincipalId.Value.ToString(),
@@ -268,7 +261,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             ResourceIdentifier appPlan = await asprh.InitialCreation(form);
 
             FunctionAppResourceHandler farh = new();
-            (WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, desiredRestSite) = await farh.InitialCreation(
+            (WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, WebSiteResource cosmosAppSiteResource) = await farh.InitialCreation(
                 appPlan,
                 vnetSubnetIdentity,
                 desiredStorageName,
@@ -276,6 +269,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 desiredWhatsAppFunctionAppName,
                 desiredRestSite,
                 form);
+            //required to create keyvault secret properly.
+            desiredRestSite = cosmosAppSiteResource.Data.Name;
 
             JSONSecretNames secretNames = await Globals.LoadJSON<JSONSecretNames>(Environment.CurrentDirectory + "/JSONS/SecretNames.json");
             JSONDefaultCosmosLibrary cosmosLibrary = await Globals.LoadJSON<JSONDefaultCosmosLibrary>(Environment.CurrentDirectory + "/JSONS/defaultLibraryCosmos.json");
@@ -297,6 +292,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 desiredRestSite,
                 smsSiteResource,
                 whatsAppSiteResource,
+                cosmosAppSiteResource,
                 storageIdentity,
                 archiveEmail,
                 key,
@@ -315,13 +311,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 desiredCosmosName,
                 desiredInternalKeyVaultName,
                 form);
-
-            ResourceIdentifier contributor = ResourceIdentifier.Parse("/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c");
-            RoleAssignmentCreateOrUpdateContent authorizationroledefinition = new(contributor, automationaccountid)
-            {
-                PrincipalType = RoleManagementPrincipalType.ServicePrincipal
-            };
-            await form.SelectedGroup.GetRoleAssignments().CreateOrUpdateAsync(Azure.WaitUntil.Completed, Guid.NewGuid().ToString(), authorizationroledefinition);
 
             KeyVaultResourceHandler kvrh2 = new();
             await kvrh2.UpdateInternalVaultProperties(

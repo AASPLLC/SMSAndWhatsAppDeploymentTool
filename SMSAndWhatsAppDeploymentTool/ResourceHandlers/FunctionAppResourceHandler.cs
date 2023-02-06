@@ -19,27 +19,15 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             WebSiteResource whatsAppSiteResource = await DeepCheckWhatsApp(appPlan, vnetIdentity, desiredWhatsAppFunctionAppName, form);
             return (smsSiteResource, whatsAppSiteResource);
         }
-        internal virtual async Task<(WebSiteResource, WebSiteResource, string)> InitialCreation(ResourceIdentifier appPlan, ResourceIdentifier vnetIdentity, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredRestAppName, CosmosDeploy form)
+        internal virtual async Task<(WebSiteResource, WebSiteResource, WebSiteResource)> InitialCreation(ResourceIdentifier appPlan, ResourceIdentifier vnetIdentity, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredRestAppName, CosmosDeploy form)
         {
             WebSiteResource smsSiteResource = await DeepCheckSMS(appPlan, vnetIdentity, desiredStorageName, desiredSMSFunctionAppName, form);
             WebSiteResource whatsAppSiteResource = await DeepCheckWhatsApp(appPlan, vnetIdentity, desiredWhatsAppFunctionAppName, form);
-
-            bool haveREST = false;
-            foreach (var item in form.SelectedGroup.GetWebSites())
-            {
-                if (item.Data.Name.EndsWith("CosmosREST"))
-                {
-                    haveREST = true;
-                    desiredRestAppName = item.Data.Name;
-                    break;
-                }
-            }
-            if (!haveREST)
-                _ = await InitialRESTCreation(appPlan, vnetIdentity, desiredRestAppName, form);
+            WebSiteResource cosmosAppSiteResource = await DeepCheckCosmosApp(appPlan, vnetIdentity, desiredRestAppName, form);
 
             //await DeployZips(smsSiteResource, whatsAppSiteResource, form);
 
-            return (smsSiteResource, whatsAppSiteResource, desiredRestAppName);
+            return (smsSiteResource, whatsAppSiteResource, cosmosAppSiteResource);
         }
 
         static async Task<WebSiteResource> InitialSMSCreation(ResourceIdentifier appPlan, ResourceIdentifier vnetIdentity, string desiredSMSFunctionAppName, string deisredStorageAccountName, DataverseDeploy form)
@@ -588,6 +576,17 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 }
             }
             return await InitialWhatsAppCreation(appPlan, vnetIdentity, desiredWhatsAppFunctionAppName, form);
+        }
+        static async Task<WebSiteResource> DeepCheckCosmosApp(ResourceIdentifier appPlan, ResourceIdentifier vnetIdentity, string desiredCosmosRestName, CosmosDeploy form)
+        {
+            foreach (var item in form.SelectedGroup.GetWebSites())
+            {
+                if (item.Data.Name.EndsWith("CosmosREST"))
+                {
+                    return item;
+                }
+            }
+            return await InitialRESTCreation(appPlan, vnetIdentity, desiredCosmosRestName, form);
         }
 
         static async Task CreateStorageRoleAccessARM(string storageName, string smsId, DataverseDeploy form)
