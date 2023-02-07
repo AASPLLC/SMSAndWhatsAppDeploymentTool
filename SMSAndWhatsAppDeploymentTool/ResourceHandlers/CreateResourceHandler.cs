@@ -304,7 +304,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             AutomationAccountsHandler aah = new();
             Guid automationaccountid = await aah.InitialCreation(
-                cosmosLibrary,
                 desiredCosmosName,
                 desiredInternalKeyVaultName,
                 form);

@@ -270,7 +270,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         {
             if (createAdminAccount)
             {
-                var name = await TokenHandler.JwtGetUsersInfo.GetUsersEmail();
+                var name = await TokenHandler.JwtGetUsersInfo.GetUsersID();
                 form.OutputRT.Text += Environment.NewLine + "First account creation attempt: " + await CosmosDBHandler.AddOrUpdateAccount(desiredRestSite, name, name, "+1", "1", "1");
             }
 
@@ -286,7 +286,10 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                         await CreateSecret(publicVault, secretNames.PWhatsAppAccess, "Bearer " + whatsappSystemAccessToken);
                 }
                 if (desiredRestSite != "")
+                {
                     await CreateSecret(publicVault, secretNames.RESTSite, desiredRestSite);
+                    await CreateSecret(internalVault, secretNames.RESTSite, desiredRestSite);
+                }
                 await CreateSecret(publicVault, secretNames.Type, "1");
 
                 string urlPrimary = "DefaultEndpointsProtocol=https;AccountName=" + storageName + ";AccountKey=" + storageAccountPrimaryKey + ";EndpointSuffix=core.windows.net";

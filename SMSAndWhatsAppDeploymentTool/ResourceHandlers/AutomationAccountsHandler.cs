@@ -14,16 +14,16 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
     {
         readonly public string AutomationAccountName = "Automation-SMS-And-WhatsApp";
 
-        internal virtual async Task<Guid> InitialCreation(JSONDefaultCosmosLibrary cosmosLibrary, string desiredCosmosAccountName, string internalVaultName, CosmosDeploy form)
+        internal virtual async Task<Guid> InitialCreation(string desiredCosmosAccountName, string internalVaultName, CosmosDeploy form)
         {
-            return await CreateAutomationAccount(cosmosLibrary, desiredCosmosAccountName, internalVaultName, form);
+            return await CreateAutomationAccount(desiredCosmosAccountName, internalVaultName, form);
         }
         internal virtual async Task<Guid> InitialCreation(JSONDefaultDataverseLibrary dataverseLibrary, JSONSecretNames SecretNames, string internalVaultName, DataverseDeploy form)
         {
             return await CreateAutomationAccount(dataverseLibrary, SecretNames, internalVaultName, form);
         }
 
-        async Task<AutomationAccountResource> CreateVariables(JSONDefaultCosmosLibrary cosmosLibrary, ResourceGroupResource SelectedGroup, AzureLocation SelectedRegion, string desiredCosmosAccountName, string internalVaultName)
+        async Task<AutomationAccountResource> CreateVariables(ResourceGroupResource SelectedGroup, AzureLocation SelectedRegion, string desiredCosmosAccountName, string internalVaultName)
         {
             AutomationAccountCreateOrUpdateContent content = new()
             {
@@ -585,24 +585,57 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 "\r\n    }" +
                 "\r\n}";
         }
-
-        async Task<Guid> CreateAutomationAccount(JSONDefaultCosmosLibrary cosmosLibrary, string desiredCosmosAccountName, string internalVaultName, CosmosDeploy form)
+        static string AutoPowerShellCosmosArchiver()
         {
-            AutomationAccountResource response = await CreateVariables(cosmosLibrary, form.SelectedGroup, form.SelectedRegion, desiredCosmosAccountName, internalVaultName);
+            return "$global:messagecount = \"100\"" +
+                "\r\n$global:TimeOffset = (Get-Date).AddMonths(-1)" +
+                "\r\n" +
+                "\r\ntry" +
+                "\r\n{" +
+                "\r\n    Connect-AzAccount -Identity | Out-Null" +
+                "\r\n}" +
+                "\r\ncatch {" +
+                "\r\n    Write-Error -Message $_.Exception" +
+                "\r\n    throw $_.Exception" +
+                "\r\n}" +
+                "\r\n" +
+                "\r\n$token = (Get-AzAccessToken).Token" +
+                "\r\n#comment out the one you don't want to use here" +
+                "\r\n$body = @{" +
+                "\r\n    token = $token" +
+                "\r\n    type = \"0\"" +
+                "\r\n    count = $global:messagecount" +
+                "\r\n    #time = $global:TimeOffset" +
+                "\r\n}" +
+                "\r\n$json = $body | ConvertTo-Json" +
+                "\r\n" +
+                "\r\n$vault = Get-AutomationVariable -Name 'InternalVault'" +
+                "\r\n" +
+                "\r\n$RestSite = (Get-AzKeyVaultSecret -VaultName $vault -Name \\\"CosmosRestSite\\\").SecretValue" +
+                "\r\n$RestSite = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($RestSite)" +
+                "\r\n$RestSite = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($RestSite)" +
+                "\r\n" +
+                "\r\n$CosmosRestURL = \"https://\" + $RestSite + \".azurewebsites.net/api/Function1\"" +
+                "\r\n" +
+                "\r\n$response = Invoke-RestMethod -Method Post -ContentType \"application/json\" -Uri $CosmosRestURL -Body $json" +
+                "\r\n$response";
+        }
 
-            AutomationRunbookResource runbook = (await response.GetAutomationRunbooks().CreateOrUpdateAsync(WaitUntil.Completed, "AutoRotation", new(AutomationRunbookType.PowerShell) { Location = form.SelectedRegion })).Value;
+        static async Task<Guid> CreateRunbook(AutomationAccountResource response, string code, string runbookname, AzureLocation SelectedRegion)
+        {
+            AutomationRunbookResource runbook = (await response.GetAutomationRunbooks().CreateOrUpdateAsync(
+                WaitUntil.Completed,
+                runbookname,
+                new(AutomationRunbookType.PowerShell) { Location = SelectedRegion })).Value;
 
             try
             {
-                using (var stream = new MemoryStream())
-                {
-                    //stream.Write(Encoding.UTF8.GetBytes(runbookstring));
-                    using var writer = new StreamWriter(stream);
-                    writer.Write(AutoPowerShellKeyCode());
-                    writer.Flush();
-                    stream.Seek(0, SeekOrigin.Begin);
-                    _ = await runbook.ReplaceContentRunbookDraftAsync(WaitUntil.Completed, stream);
-                }
+                using MemoryStream stream = new();
+                using StreamWriter writer = new(stream);
+                writer.Write(code);
+                writer.Flush();
+                stream.Seek(0, SeekOrigin.Begin);
+                _ = await runbook.ReplaceContentRunbookDraftAsync(WaitUntil.Completed, stream);
             }
             catch { }
             try { _ = await runbook.PublishAsync(WaitUntil.Completed); } catch { }
@@ -624,53 +657,16 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             catch { }
 
 #pragma warning disable CS8629 // Nullable value type may be null.
-            ResourceIdentifier contributor = ResourceIdentifier.Parse("/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c");
-            RoleAssignmentCreateOrUpdateContent authorizationroledefinition = new(contributor, response.Data.Identity.PrincipalId.Value)
-            {
-                PrincipalType = RoleManagementPrincipalType.ServicePrincipal
-            };
-            try { await form.SelectedGroup.GetRoleAssignments().CreateOrUpdateAsync(Azure.WaitUntil.Completed, Guid.NewGuid().ToString(), authorizationroledefinition); } catch { }
-
             return response.Data.Identity.PrincipalId.Value;
 #pragma warning restore CS8629 // Nullable value type may be null.
         }
-        async Task<Guid> CreateAutomationAccount(JSONDefaultDataverseLibrary dataverseLibrary, JSONSecretNames secretNames, string internalVaultName, DataverseDeploy form)
+        async Task<Guid> CreateAutomationAccount(string desiredCosmosAccountName, string internalVaultName, CosmosDeploy form)
         {
-            AutomationAccountResource response = await CreateVariables(dataverseLibrary, form.SelectedGroup, form.SelectedRegion, secretNames, internalVaultName);
-
-            //string runbookstring = "try\r\n{\r\n    \"Logging in to Azure...\"\r\n    Connect-AzAccount -Identity\r\n}\r\ncatch {\r\n    Write-Error -Message $_.Exception\r\n    throw $_.Exception\r\n}\r\n\r\n$resourceGroupName = Get-AutomationVariable -Name 'ResourceGroupName' # Resource Group must already exist\r\n$accountName = Get-AutomationVariable -Name 'CosmosAccountName' # Must be all lower case\r\n$keyKind = \"primary\" # Other key kinds: secondary, primaryReadonly, secondaryReadonly\r\n$vault = Get-AutomationVariable -Name 'CosmosVault'\r\n$secretname = Get-AutomationVariable -Name 'SecretName'\r\n\r\n$newkey = New-AzCosmosDBAccountKey `\r\n    -ResourceGroupName $resourceGroupName `\r\n    -Name $accountName `\r\n    -KeyKind $keyKind\r\n$Secret = ConvertTo-SecureString -String $newkey -AsPlainText -Force\r\n$newkey = \"\"\r\n\r\nGet-AzKeyVaultSecret $vault | Where-Object {$_.Name -like $secretname} | Update-AzKeyVaultSecret -Enable $False\r\n\r\nSet-AzKeyVaultSecret -VaultName $vault -Name $secretname -SecretValue $Secret";
-            AutomationRunbookResource runbook = (await response.GetAutomationRunbooks().CreateOrUpdateAsync(WaitUntil.Completed, "AutoArchiver", new(AutomationRunbookType.PowerShell) { Location = form.SelectedRegion })).Value;
-
-            try
-            {
-                using (var stream = new MemoryStream())
-                {
-                    //stream.Write(Encoding.UTF8.GetBytes(runbookstring));
-                    using var writer = new StreamWriter(stream);
-                    writer.Write(AutoPowerShellDataverseArchiver());
-                    writer.Flush();
-                    stream.Seek(0, SeekOrigin.Begin);
-                    _ = await runbook.ReplaceContentRunbookDraftAsync(WaitUntil.Completed, stream);
-                }
-            }
-            catch { }
-            try { _ = await runbook.PublishAsync(WaitUntil.Completed); } catch { }
-
-            string cosmosDBDailyrotation = "Dailyrotation";
-            AutomationScheduleCreateOrUpdateContent schedulecontent = new(cosmosDBDailyrotation, new(DateTime.Now.AddMinutes(10)), AutomationScheduleFrequency.Day) { Interval = BinaryData.FromString("1") };
-            AutomationScheduleResource schedule = (await response.GetAutomationSchedules().CreateOrUpdateAsync(WaitUntil.Completed, cosmosDBDailyrotation, schedulecontent)).Value;
-            try
-            {
-                AutomationJobResource job = (await response.GetAutomationJobs().CreateOrUpdateAsync(WaitUntil.Completed, "JobName", new() { RunbookName = "AutoRotation" })).Value;
-
-                if (job.Data.JobId != null)
-                {
-                    ScheduleAssociationProperty associationSchedule = new() { Name = schedule.Data.Name };
-                    RunbookAssociationProperty associationRunbook = new() { Name = runbook.Data.Name };
-                    _ = await response.GetAutomationJobSchedules().CreateOrUpdateAsync(WaitUntil.Completed, job.Data.JobId.Value, new(associationSchedule, associationRunbook));
-                }
-            }
-            catch { }
+            AutomationAccountResource response = await CreateVariables(
+                form.SelectedGroup,
+                form.SelectedRegion,
+                desiredCosmosAccountName,
+                internalVaultName);
 
 #pragma warning disable CS8629 // Nullable value type may be null.
             ResourceIdentifier contributor = ResourceIdentifier.Parse("/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c");
@@ -678,10 +674,34 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             {
                 PrincipalType = RoleManagementPrincipalType.ServicePrincipal
             };
-            try { await form.SelectedGroup.GetRoleAssignments().CreateOrUpdateAsync(Azure.WaitUntil.Completed, Guid.NewGuid().ToString(), authorizationroledefinition); } catch { }
-
-            return response.Data.Identity.PrincipalId.Value;
+            try { await form.SelectedGroup.GetRoleAssignments().CreateOrUpdateAsync(WaitUntil.Completed, Guid.NewGuid().ToString(), authorizationroledefinition); } catch { }
 #pragma warning restore CS8629 // Nullable value type may be null.
+
+            _ = await CreateRunbook(response, AutoPowerShellCosmosArchiver(), "AutoArchiver ", form.SelectedRegion);
+
+            return await CreateRunbook(response, AutoPowerShellKeyCode(), "AutoRotation", form.SelectedRegion);
+        }
+        async Task<Guid> CreateAutomationAccount(JSONDefaultDataverseLibrary dataverseLibrary, JSONSecretNames secretNames, string internalVaultName, DataverseDeploy form)
+        {
+            AutomationAccountResource response = await CreateVariables(
+                dataverseLibrary,
+                form.SelectedGroup,
+                form.SelectedRegion,
+                secretNames,
+                internalVaultName);
+
+#pragma warning disable CS8629 // Nullable value type may be null.
+            ResourceIdentifier contributor = ResourceIdentifier.Parse("/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c");
+            RoleAssignmentCreateOrUpdateContent authorizationroledefinition = new(contributor, response.Data.Identity.PrincipalId.Value)
+            {
+                PrincipalType = RoleManagementPrincipalType.ServicePrincipal
+            };
+            try { await form.SelectedGroup.GetRoleAssignments().CreateOrUpdateAsync(WaitUntil.Completed, Guid.NewGuid().ToString(), authorizationroledefinition); } catch { }
+#pragma warning restore CS8629 // Nullable value type may be null.
+
+            _ = await CreateRunbook(response, AutoPowerShellDataverseArchiver(), "AutoArchiver", form.SelectedRegion);
+
+            return await CreateRunbook(response, AutoPowerShellKeyCode(), "AutoRotation", form.SelectedRegion);
         }
 
         static async Task SetupVariable(AutomationAccountResource response, string name, string value)
