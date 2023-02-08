@@ -23,5 +23,6 @@
         public string? DbName1 { get; set; }
         public string? DbName2 { get; set; }
         public string? DbName3 { get; set; }
+        public string? AutomationId { get; set; }
     }
 }

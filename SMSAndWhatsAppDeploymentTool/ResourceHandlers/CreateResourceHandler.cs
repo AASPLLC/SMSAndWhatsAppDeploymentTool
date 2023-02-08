@@ -310,6 +310,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             KeyVaultResourceHandler kvrh2 = new();
             await kvrh2.UpdateInternalVaultProperties(
+                secretNames,
                 smsSiteResource.Data.Identity.PrincipalId.Value.ToString(),
                 whatsAppSiteResource.Data.Identity.PrincipalId.Value.ToString(),
                 cosmosAppSiteResource.Data.Identity.PrincipalId.Value.ToString(),

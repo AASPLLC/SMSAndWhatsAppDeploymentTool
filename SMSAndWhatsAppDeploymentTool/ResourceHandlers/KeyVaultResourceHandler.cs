@@ -123,8 +123,17 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             VaultCreateOrUpdateContent content = new(SelectedRegion, properties);
             _ = (await SelectedGroup.GetVaults().CreateOrUpdateAsync(WaitUntil.Completed, vaultResource.Data.Name, content)).Value;
         }
-        internal virtual async Task UpdateInternalVaultProperties(string smsObjectId, string whatsAppObjectId, string restAppObjectId, string automationObjectId, VaultResource vaultResource, Guid TenantID, AzureLocation SelectedRegion, ResourceGroupResource SelectedGroup)
+        internal virtual async Task UpdateInternalVaultProperties(JSONSecretNames secretNames, string smsObjectId, string whatsAppObjectId, string restAppObjectId, string automationObjectId, VaultResource vaultResource, Guid TenantID, AzureLocation SelectedRegion, ResourceGroupResource SelectedGroup)
         {
+
+            if (secretNames != null)
+            {
+                if (restAppObjectId != "")
+#pragma warning disable CS8604 // Possible null reference argument.
+                    await CreateSecret(vaultResource, secretNames.AutomationId, restAppObjectId);
+#pragma warning restore CS8604 // Possible null reference argument.
+            }
+
             VaultProperties properties = vaultResource.Data.Properties;
             properties.EnabledForTemplateDeployment = false;
             properties.EnableRbacAuthorization = false;
@@ -273,6 +282,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 var name = await TokenHandler.JwtGetUsersInfo.GetUsersID();
                 form.OutputRT.Text += Environment.NewLine + "First account creation attempt: " + await CosmosDBHandler.AddOrUpdateAccount(desiredRestSite, name, name, "+1", "1", "1");
             }
+
 
 #pragma warning disable CS8604 // Possible null reference argument.
             if (secretNames != null)

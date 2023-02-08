@@ -85,7 +85,8 @@ These values must be specific, but for reference, this is the format:
   "DbName": "",
   "DbName1": "",
   "DbName2": "",
-  "DbName3": ""
+  "DbName3": "",
+  "AutomationId": ""
 }
 ```
 
