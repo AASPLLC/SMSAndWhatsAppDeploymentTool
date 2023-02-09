@@ -82,6 +82,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             await SetupVariable(response, "AccountsDBName", secretNames.DbName1.ToLower() + "eses");
             await SetupVariable(response, "SMSMessagesDBName", secretNames.DbName2.ToLower() + "eses");
             await SetupVariable(response, "WhatsAppMessagesDBName", secretNames.DbName3.ToLower() + "eses");
+            await SetupVariable(response, "PhoneNumberDBName", secretNames.DbName4.ToLower() + "eses");
+            await SetupVariable(response, "PhoneNumberIDDBName", secretNames.DbName5.ToLower() + "eses");
 
             //column data
             await SetupVariable(response, "PhoneNumberDBColumn", dataverseLibrary.metadataPhoneNumber.ToLower() + "es");
@@ -92,6 +94,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             await SetupVariable(response, "FromDBColumn", dataverseLibrary.metadataFrom.ToLower() + "es");
             await SetupVariable(response, "TimestampDBColumn", dataverseLibrary.metadataTimestamp.ToLower() + "es");
             await SetupVariable(response, "MessagesDBColumn", dataverseLibrary.metadataMessage.ToLower() + "es");
+            await SetupVariable(response, "PicturePathDBColumn", dataverseLibrary.metadataPicPath.ToLower() + "es");
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 
             return response;

@@ -179,7 +179,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             JSONSecretNames secretNames = await Globals.LoadJSON<JSONSecretNames>(Environment.CurrentDirectory + "/JSONS/SecretNames.json");
 #pragma warning disable CS8601
-            string[] databases = { secretNames.DbName1, secretNames.DbName2, secretNames.DbName3 };
+            string[] databases = { secretNames.DbName1, secretNames.DbName2, secretNames.DbName3, secretNames.DbName4, secretNames.DbName5 };
 #pragma warning restore CS8601
             List<string> apipackage = await SetupDataverseEnvironment(
                 databases,

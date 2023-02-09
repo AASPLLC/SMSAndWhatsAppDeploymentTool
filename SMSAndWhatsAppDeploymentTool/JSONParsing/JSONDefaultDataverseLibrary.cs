@@ -13,5 +13,6 @@
         public string? metadataPhoneNumber { get; set; }
         public string? metadataPhoneNumberID { get; set; }
         public string? metadataEmailAccount { get; set; }
+        public string? metadataDisplayName { get; set; }
     }
 }

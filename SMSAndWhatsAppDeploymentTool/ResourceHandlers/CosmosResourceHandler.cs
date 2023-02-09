@@ -19,6 +19,17 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 await CreateCosmosDB(cosmosLibrary, subnetID, DBName, desiredCosmosName, form);
         }
 
+        static async Task AddContainer(CosmosDBSqlDatabaseResource dbResponse, string idName, string containerName, AzureLocation SelectedRegion)
+        {
+            CosmosDBContainerPartitionKey partKey = new() { Kind = CosmosDBPartitionKind.Hash };
+            partKey.Paths.Add(idName);
+            _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(
+                WaitUntil.Completed,
+                containerName,
+                new(SelectedRegion,
+                new(containerName)
+                { PartitionKey = partKey }))).Value;
+        }
         static async Task CreateCosmosDB(JSONDefaultCosmosLibrary cosmosLibrary, ResourceIdentifier subnetID, string DBName, string desiredCosmosName, CosmosDeploy form)
         {
             List<CosmosDBAccountLocation> Locations = new();
@@ -84,18 +95,14 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 {
                     CosmosDBAccountResource dbAccountResponse = (await form.SelectedGroup.GetCosmosDBAccounts().CreateOrUpdateAsync(WaitUntil.Completed, desiredCosmosName, accountcontent)).Value;
                     CosmosDBSqlDatabaseResource dbResponse = (await dbAccountResponse.GetCosmosDBSqlDatabases().CreateOrUpdateAsync(WaitUntil.Completed, DBName, new(form.SelectedRegion, new(DBName)))).Value;
-                    CosmosDBContainerPartitionKey partKey = new() { Kind = CosmosDBPartitionKind.Hash };
-                    partKey.Paths.Add(cosmosLibrary.accountsIDName);
-                    _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.accountsContainerName, new(form.SelectedRegion, new(cosmosLibrary.accountsContainerName) { PartitionKey = partKey }))).Value;
-                    partKey.Paths.Clear();
-                    partKey.Paths.Add(cosmosLibrary.countersIDName);
-                    _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.countersContainerName, new(form.SelectedRegion, new(cosmosLibrary.countersContainerName) { PartitionKey = partKey }))).Value;
-                    partKey.Paths.Clear();
-                    partKey.Paths.Add(cosmosLibrary.smsIDName);
-                    _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.smsContainerName, new(form.SelectedRegion, new(cosmosLibrary.smsContainerName) { PartitionKey = partKey }))).Value;
-                    partKey.Paths.Clear();
-                    partKey.Paths.Add(cosmosLibrary.whatsappIDName);
-                    _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.whatsappContainerName, new(form.SelectedRegion, new(cosmosLibrary.whatsappContainerName) { PartitionKey = partKey }))).Value;
+#pragma warning disable CS8604
+                    await AddContainer(dbResponse, cosmosLibrary?.accountsIDName, cosmosLibrary?.accountsContainerName, form.SelectedRegion);
+                    await AddContainer(dbResponse, cosmosLibrary?.countersIDName, cosmosLibrary?.countersContainerName, form.SelectedRegion);
+                    await AddContainer(dbResponse, cosmosLibrary?.smsIDName, cosmosLibrary?.smsContainerName, form.SelectedRegion);
+                    await AddContainer(dbResponse, cosmosLibrary?.whatsappIDName, cosmosLibrary?.whatsappContainerName, form.SelectedRegion);
+                    await AddContainer(dbResponse, cosmosLibrary?.phoneIDName, cosmosLibrary?.phoneContainerName, form.SelectedRegion);
+                    await AddContainer(dbResponse, cosmosLibrary?.whatsappphoneIDName, cosmosLibrary?.whatsappphoneContainerName, form.SelectedRegion);
+#pragma warning restore CS8604
                 }
                 catch (Exception ex)
                 {
