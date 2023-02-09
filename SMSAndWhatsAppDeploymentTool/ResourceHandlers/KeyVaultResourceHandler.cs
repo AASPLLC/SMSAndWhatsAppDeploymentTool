@@ -151,8 +151,10 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             VaultCreateOrUpdateContent content = new(SelectedRegion, properties);
             _ = (await SelectedGroup.GetVaults().CreateOrUpdateAsync(WaitUntil.Completed, vaultResource.Data.Name, content)).Value;
         }
-        
+
+#pragma warning disable IDE0051 // Remove unused private members
         static async Task CreateSecretManaged(VaultResource vr, string key, string value)
+#pragma warning restore IDE0051 // Remove unused private members
         {
             try
             {
