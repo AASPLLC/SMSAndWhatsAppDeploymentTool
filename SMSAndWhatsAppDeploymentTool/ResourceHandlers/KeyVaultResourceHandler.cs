@@ -151,11 +151,34 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             VaultCreateOrUpdateContent content = new(SelectedRegion, properties);
             _ = (await SelectedGroup.GetVaults().CreateOrUpdateAsync(WaitUntil.Completed, vaultResource.Data.Name, content)).Value;
         }
-
+        
+        static async Task CreateSecretManaged(VaultResource vr, string key, string value)
+        {
+            try
+            {
+                SecretClient sc = TokenHandler.GetFunctionAppKeyVaultClient(vr.Data.Name);
+                if ((await sc.GetSecretAsync(key)).Value.Value != value)
+                {
+                    await sc.UpdateSecretPropertiesAsync(new(key) { Enabled = false });
+                    await vr.GetSecrets().CreateOrUpdateAsync(WaitUntil.Completed, key, new SecretCreateOrUpdateContent(new()
+                    {
+                        Value = value
+                    }));
+                }
+            }
+            catch
+            {
+                await vr.GetSecrets().CreateOrUpdateAsync(WaitUntil.Completed, key, new SecretCreateOrUpdateContent(new()
+                {
+                    Value = value
+                }));
+            }
+        }
         static async Task CreateSecret(VaultResource vr, string key, string value)
         {
-            try {
-                SecretClient sc = TokenHandler.GetFunctionAppKeyVaultClient(vr.Data.Name);
+            try
+            {
+                SecretClient sc = TokenHandler.GetFunctionAppKeyVaultClient();
                 if ((await sc.GetSecretAsync(key)).Value.Value != value)
                 {
                     await sc.UpdateSecretPropertiesAsync(new(key) { Enabled = false });
@@ -223,10 +246,12 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 await CreateSecret(publicVault, secretNames.PAccountsDBPrefix, databases[0].ToLower() + "eses");
                 await CreateSecret(publicVault, secretNames.PSMSDBPrefix, databases[1].ToLower() + "eses");
                 await CreateSecret(publicVault, secretNames.PWhatsAppDBPrefix, databases[2].ToLower() + "eses");
+                await CreateSecret(publicVault, secretNames.PPhoneNumberDBPrefix, databases[3].ToLower() + "eses");
                 await CreateSecret(internalVault, secretNames.PDynamicsEnvironment, form.SelectedEnvironment);
                 await CreateSecret(internalVault, secretNames.PAccountsDBPrefix, databases[0].ToLower() + "eses");
                 await CreateSecret(internalVault, secretNames.PSMSDBPrefix, databases[1].ToLower() + "eses");
                 await CreateSecret(internalVault, secretNames.PWhatsAppDBPrefix, databases[2].ToLower() + "eses");
+                await CreateSecret(internalVault, secretNames.PPhoneNumberDBPrefix, databases[3].ToLower() + "eses");
                 await CreateSecret(internalVault, secretNames.IoOrgID, dynamicsOrgId);
                 await CreateSecret(internalVault, secretNames.IoClientID, package[1]);
                 if (package[2] == "0")

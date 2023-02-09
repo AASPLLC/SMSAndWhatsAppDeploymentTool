@@ -8,6 +8,7 @@
         public string? PWhatsAppDBPrefix { get; set; }
         public string? PCommsEndpoint { get; set; }
         public string? PWhatsAppAccess { get; set; }
+        public string? PPhoneNumberDBPrefix { get; set; }
         public string? PTenantID { get; set; }
         public string? IoOrgID { get; set; }
         public string? IoClientID { get; set; }
