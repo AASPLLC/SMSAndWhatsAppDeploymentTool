@@ -31,17 +31,18 @@ The format below is in case you want to create your own word list:
 These values must be specific, but for reference, this is the format:
 ```
 {
-    "StartingPrefix": "",
-    "api": "",
-    "metadataFrom": "",
-    "metadataMessage": "",
-    "metadataTo": "",
-    "metadataTimestamp": "",
-    "metadataPicPath": "",
-    "metadataEmailNonAccount":"",
-    "metadataPhoneNumber": "",
-    "metadataPhoneNumberID": "",
-    "metadataEmailAccount": ""
+  "StartingPrefix": "",
+  "api": "",
+  "metadataFrom": "",
+  "metadataMessage": "",
+  "metadataTo": "",
+  "metadataTimestamp": "",
+  "metadataPicPath": "",
+  "metadataEmailNonAccount": "",
+  "metadataPhoneNumber": "",
+  "metadataPhoneNumberID": "",
+  "metadataEmailAccount": "",
+  "metadataDisplayName": ""
 }
 ```
 3. The defaultLibraryCosmos.json file is specific to Cosmos DB and is required for the application to deploy correctly.
@@ -49,14 +50,18 @@ These values must be specific, but for reference, this is the format:
 These values must be specific, but for reference, this is the format:
 ```
 {
-    "smsIDName": "",
-    "whatsappIDName": "",
-    "accountsIDName": "",
-    "countersIDName": "",
-    "smsContainerName": "",
-    "whatsappContainerName": "",
-    "accountsContainerName": "",
-    "countersContainerName": ""
+  "smsIDName": "",
+  "whatsappIDName": "",
+  "accountsIDName": "",
+  "countersIDName": "",
+  "phoneIDName": "",
+  "whatsappphoneIDName": "",
+  "smsContainerName": "",
+  "whatsappContainerName": "",
+  "accountsContainerName": "",
+  "countersContainerName": "",
+  "phoneContainerName": "",
+  "whatsappphoneContainerName": ""
 }
 ```
 
@@ -69,6 +74,7 @@ These values must be specific, but for reference, this is the format:
   "PAccountsDBPrefix": "",
   "PSMSDBPrefix": "",
   "PWhatsAppDBPrefix": "",
+  "PPhoneNumberDBPrefix": "",
   "PCommsEndpoint": "",
   "PWhatsAppAccess": "",
   "PTenantID": "",
@@ -86,8 +92,10 @@ These values must be specific, but for reference, this is the format:
   "DbName1": "",
   "DbName2": "",
   "DbName3": "",
+  "DbName4": "",
+  "DbName5": "",
   "AutomationId": ""
 }
 ```
 
-This application is dependent on the following library: [AASP Global Library](https://github.com/wrharper/AASPGlobalLibrary)
+This application is dependent on the following library: [AASP Global Library](https://github.com/wrharper-AASP/AASPGlobalLibrary)
