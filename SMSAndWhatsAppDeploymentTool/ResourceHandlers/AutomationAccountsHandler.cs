@@ -127,7 +127,13 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 "\r\n" +
                 "\r\nGet-AzKeyVaultSecret $vault | Where-Object {$_.Name -like $secretname} | Update-AzKeyVaultSecret -Enable $False" +
                 "\r\n" +
-                "\r\nSet-AzKeyVaultSecret -VaultName $vault -Name $secretname -SecretValue $Secret";
+                "\r\nSet-AzKeyVaultSecret -VaultName $vault -Name $secretname -SecretValue $Secret" +
+                "\r\n" +
+                "\r\n$FunctionApps = (Get-AzFunctionApp -ResourceGroupName $resourceGroupName).Name" +
+                "\r\nforeach ($item in $FunctionApps)" +
+                "\r\n{" +
+                "\r\n    Restart-AzFunctionApp -ResourceGroupName $resourceGroupName -Name $item -Force" +
+                "\r\n}";
         }
         static string AutoPowerShellDataverseArchiver()
         {
