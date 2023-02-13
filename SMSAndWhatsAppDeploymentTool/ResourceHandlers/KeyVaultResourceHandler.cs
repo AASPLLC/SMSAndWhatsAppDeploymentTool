@@ -194,8 +194,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         }
         static async Task CreateSecret(VaultResource vr, string key, string value)
         {
-            //try
-            //{
+            try
+            {
                 SecretClient sc = TokenHandler.GetFunctionAppKeyVaultClient("https://" + vr.Data.Name + ".vault.azure.net/");
                 if ((await sc.GetSecretAsync(key)).Value.Value != value)
                 {
@@ -212,13 +212,13 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                         Value = value
                     }));
                 }
-            //}
-            //catch {
-                //await vr.GetSecrets().CreateOrUpdateAsync(WaitUntil.Completed, key, new SecretCreateOrUpdateContent(new()
-                //{
-                    //Value = value
-                //}));
-            //}
+            }
+            catch {
+                await vr.GetSecrets().CreateOrUpdateAsync(WaitUntil.Completed, key, new SecretCreateOrUpdateContent(new()
+                {
+                    Value = value
+                }));
+            }
         }
 
         static async Task<VaultResource> CreateKeyVaultResource(string desiredName, Guid TenantID, DataverseDeploy form)
