@@ -62,18 +62,6 @@ namespace SMSAndWhatsAppDeploymentTool
                 Environment.NewLine +
                 "Please refer to the WhatsApp Configuration documentation provided.");
 
-            string vaultnametip = "Internal vault will be desired name + \"io\"";
-            t_Tip.SetToolTip(desiredPublicKeyvaultNameTB, vaultnametip);
-            t_Tip.SetToolTip(keyvaultLBL, vaultnametip);
-
-            string smsnametip = "SMS function app will be desired name + \"SMSApp\"";
-            t_Tip.SetToolTip(desiredSMSFunctionAppNameTB, smsnametip);
-            t_Tip.SetToolTip(smsLBL, smsnametip);
-
-            string whatsappnametip = "WhatsApp function app will be desired name + \"WhatsApp\"";
-            t_Tip.SetToolTip(desiredWhatsAppFunctionNameTB, whatsappnametip);
-            t_Tip.SetToolTip(whatsappLBL, whatsappnametip);
-
             //PromptWindow.ShowDialog("test", "test2", this);
             //await ArmClientHandler.Init(tokenCredential);
         }
@@ -136,6 +124,7 @@ namespace SMSAndWhatsAppDeploymentTool
                     desiredWhatsAppFunctionNameTB.Text,
                     desiredPublicKeyvaultNameTB.Text,
                     desiredInternalKeyvaultNameTB.Text,
+                    SMSTemplateTB.Text,
                     //true, //can add easily as a feature now, currently hardcoded as on
                     this);
             }
@@ -250,6 +239,11 @@ namespace SMSAndWhatsAppDeploymentTool
             if (whatsappCallbackTokenTB.Text == "")
                 whatsappCallbackTokenTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
             whatsappCallbackTokenTB.Text = ChooseDBType.GenerateUniqueString(whatsappCallbackTokenTB.Text);
+        }
+
+        private void Button2_Click(object sender, EventArgs e)
+        {
+            Globals.OpenLink("https://developers.facebook.com/docs/whatsapp/message-templates/guidelines/");
         }
     }
 }

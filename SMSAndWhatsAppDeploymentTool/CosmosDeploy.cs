@@ -56,22 +56,6 @@ namespace SMSAndWhatsAppDeploymentTool
                 Environment.NewLine +
                 "Please refer to the WhatsApp Configuration documentation provided.");
 
-            string vaultnametip = "Internal vault will be desired name + \"io\"";
-            t_Tip.SetToolTip(desiredPublicKeyvaultNameTB, vaultnametip);
-            t_Tip.SetToolTip(keyvaultLBL, vaultnametip);
-
-            string smsnametip = "SMS function app will be desired name + \"SMSApp\"";
-            t_Tip.SetToolTip(desiredSMSFunctionAppNameTB, smsnametip);
-            t_Tip.SetToolTip(smsLBL, smsnametip);
-
-            string whatsappnametip = "WhatsApp function app will be desired name + \"WhatsApp\"";
-            t_Tip.SetToolTip(desiredWhatsAppFunctionNameTB, whatsappnametip);
-            t_Tip.SetToolTip(whatsappLBL, whatsappnametip);
-
-            string resttip = "Cosmos REST API function app will be desired name + \"CosmosREST\"";
-            t_Tip.SetToolTip(desiredCosmosRESTAPIFunctionNameTB, resttip);
-            t_Tip.SetToolTip(cosmosrestLBL, resttip);
-
             //PromptWindow.ShowDialog("test", "test2", this);
             //await ArmClientHandler.Init(tokenCredential);
         }
@@ -141,6 +125,7 @@ namespace SMSAndWhatsAppDeploymentTool
                     desiredInternalKeyvaultNameTB.Text,
                     desiredCosmosRESTAPIFunctionNameTB.Text,
                     desiredCosmosAccountNameFunctionNameTB.Text,
+                    SMSTemplateTB.Text,
                     this);
             }
             EnableAll();
@@ -255,6 +240,11 @@ namespace SMSAndWhatsAppDeploymentTool
             if (whatsappCallbackTokenTB.Text == "")
                 whatsappCallbackTokenTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
             whatsappCallbackTokenTB.Text = ChooseDBType.GenerateUniqueString(whatsappCallbackTokenTB.Text);
+        }
+
+        private void Button2_Click(object sender, EventArgs e)
+        {
+            Globals.OpenLink("https://developers.facebook.com/docs/whatsapp/message-templates/guidelines/");
         }
     }
 }

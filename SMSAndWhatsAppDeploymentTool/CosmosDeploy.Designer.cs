@@ -58,6 +58,9 @@
             this.archiveEmailTB = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
             this.adminAccountCheck = new System.Windows.Forms.CheckBox();
+            this.SMSTemplateTB = new System.Windows.Forms.TextBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this.button2 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // desiredPublicKeyvaultNameTB
@@ -65,6 +68,7 @@
             this.desiredPublicKeyvaultNameTB.Location = new System.Drawing.Point(277, 14);
             this.desiredPublicKeyvaultNameTB.MaxLength = 24;
             this.desiredPublicKeyvaultNameTB.Name = "desiredPublicKeyvaultNameTB";
+            this.desiredPublicKeyvaultNameTB.PlaceholderText = "Must be all lowercase characters";
             this.desiredPublicKeyvaultNameTB.Size = new System.Drawing.Size(458, 23);
             this.desiredPublicKeyvaultNameTB.TabIndex = 0;
             // 
@@ -79,17 +83,17 @@
             // 
             // OutputRT
             // 
-            this.OutputRT.Location = new System.Drawing.Point(12, 358);
+            this.OutputRT.Location = new System.Drawing.Point(12, 387);
             this.OutputRT.Name = "OutputRT";
             this.OutputRT.ReadOnly = true;
-            this.OutputRT.Size = new System.Drawing.Size(864, 281);
+            this.OutputRT.Size = new System.Drawing.Size(864, 252);
             this.OutputRT.TabIndex = 2;
             this.OutputRT.Text = "";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 337);
+            this.label2.Location = new System.Drawing.Point(12, 366);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(48, 15);
             this.label2.TabIndex = 3;
@@ -118,6 +122,7 @@
             // 
             this.desiredCommunicationsNameTB.Location = new System.Drawing.Point(277, 72);
             this.desiredCommunicationsNameTB.Name = "desiredCommunicationsNameTB";
+            this.desiredCommunicationsNameTB.PlaceholderText = "Can contain dashes (-)";
             this.desiredCommunicationsNameTB.Size = new System.Drawing.Size(458, 23);
             this.desiredCommunicationsNameTB.TabIndex = 18;
             // 
@@ -125,6 +130,7 @@
             // 
             this.desiredStorageNameTB.Location = new System.Drawing.Point(277, 101);
             this.desiredStorageNameTB.Name = "desiredStorageNameTB";
+            this.desiredStorageNameTB.PlaceholderText = "Must be all lowercase characters";
             this.desiredStorageNameTB.Size = new System.Drawing.Size(458, 23);
             this.desiredStorageNameTB.TabIndex = 19;
             // 
@@ -141,6 +147,7 @@
             // 
             this.desiredSMSFunctionAppNameTB.Location = new System.Drawing.Point(277, 130);
             this.desiredSMSFunctionAppNameTB.Name = "desiredSMSFunctionAppNameTB";
+            this.desiredSMSFunctionAppNameTB.PlaceholderText = "This function app will add SMSApp to the end of the desired name.";
             this.desiredSMSFunctionAppNameTB.Size = new System.Drawing.Size(458, 23);
             this.desiredSMSFunctionAppNameTB.TabIndex = 21;
             // 
@@ -157,6 +164,7 @@
             // 
             this.desiredWhatsAppFunctionNameTB.Location = new System.Drawing.Point(277, 159);
             this.desiredWhatsAppFunctionNameTB.Name = "desiredWhatsAppFunctionNameTB";
+            this.desiredWhatsAppFunctionNameTB.PlaceholderText = "This function app will add WhatsApp to the end of the desired name.";
             this.desiredWhatsAppFunctionNameTB.Size = new System.Drawing.Size(458, 23);
             this.desiredWhatsAppFunctionNameTB.TabIndex = 23;
             // 
@@ -204,12 +212,13 @@
             // 
             this.whatsappSystemTokenTB.Location = new System.Drawing.Point(277, 246);
             this.whatsappSystemTokenTB.Name = "whatsappSystemTokenTB";
+            this.whatsappSystemTokenTB.PlaceholderText = "Required to know how to make calls to the WhatsApp Meta Developer API";
             this.whatsappSystemTokenTB.Size = new System.Drawing.Size(458, 23);
             this.whatsappSystemTokenTB.TabIndex = 28;
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(198, 246);
+            this.button1.Location = new System.Drawing.Point(247, 246);
             this.button1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(23, 23);
@@ -231,7 +240,7 @@
             // 
             this.whatsappCallbackTokenTB.Location = new System.Drawing.Point(277, 275);
             this.whatsappCallbackTokenTB.Name = "whatsappCallbackTokenTB";
-            this.whatsappCallbackTokenTB.PlaceholderText = "Recommended to make this unique";
+            this.whatsappCallbackTokenTB.PlaceholderText = "It is recommended to make this unique";
             this.whatsappCallbackTokenTB.Size = new System.Drawing.Size(458, 23);
             this.whatsappCallbackTokenTB.TabIndex = 31;
             // 
@@ -248,6 +257,7 @@
             // 
             this.desiredCosmosRESTAPIFunctionNameTB.Location = new System.Drawing.Point(277, 188);
             this.desiredCosmosRESTAPIFunctionNameTB.Name = "desiredCosmosRESTAPIFunctionNameTB";
+            this.desiredCosmosRESTAPIFunctionNameTB.PlaceholderText = "This function app will add CosmosREST to the end of the desired name.";
             this.desiredCosmosRESTAPIFunctionNameTB.Size = new System.Drawing.Size(458, 23);
             this.desiredCosmosRESTAPIFunctionNameTB.TabIndex = 33;
             // 
@@ -255,6 +265,7 @@
             // 
             this.desiredCosmosAccountNameFunctionNameTB.Location = new System.Drawing.Point(277, 217);
             this.desiredCosmosAccountNameFunctionNameTB.Name = "desiredCosmosAccountNameFunctionNameTB";
+            this.desiredCosmosAccountNameFunctionNameTB.PlaceholderText = "The cosmos database account name";
             this.desiredCosmosAccountNameFunctionNameTB.Size = new System.Drawing.Size(458, 23);
             this.desiredCosmosAccountNameFunctionNameTB.TabIndex = 34;
             // 
@@ -283,6 +294,7 @@
             this.desiredInternalKeyvaultNameTB.Location = new System.Drawing.Point(277, 43);
             this.desiredInternalKeyvaultNameTB.MaxLength = 24;
             this.desiredInternalKeyvaultNameTB.Name = "desiredInternalKeyvaultNameTB";
+            this.desiredInternalKeyvaultNameTB.PlaceholderText = "Must be all lowercase characters";
             this.desiredInternalKeyvaultNameTB.Size = new System.Drawing.Size(458, 23);
             this.desiredInternalKeyvaultNameTB.TabIndex = 37;
             // 
@@ -315,16 +327,49 @@
             // adminAccountCheck
             // 
             this.adminAccountCheck.AutoSize = true;
-            this.adminAccountCheck.Location = new System.Drawing.Point(677, 333);
+            this.adminAccountCheck.Location = new System.Drawing.Point(677, 362);
             this.adminAccountCheck.Name = "adminAccountCheck";
             this.adminAccountCheck.Size = new System.Drawing.Size(201, 19);
             this.adminAccountCheck.TabIndex = 41;
             this.adminAccountCheck.Text = "Create First Time Admin Account";
             this.adminAccountCheck.UseVisualStyleBackColor = true;
             // 
+            // SMSTemplateTB
+            // 
+            this.SMSTemplateTB.Location = new System.Drawing.Point(277, 333);
+            this.SMSTemplateTB.Name = "SMSTemplateTB";
+            this.SMSTemplateTB.PlaceholderText = "Used to comply with the same standards as WhatsApp";
+            this.SMSTemplateTB.Size = new System.Drawing.Size(458, 23);
+            this.SMSTemplateTB.TabIndex = 42;
+            this.SMSTemplateTB.Text = "Hello, This is COMPANYNAMEHERE, in order for the conversation to continue, please" +
+    " respond with an accepted message (Yes, ok, y, etc.) to continue.";
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(12, 336);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(182, 15);
+            this.label9.TabIndex = 43;
+            this.label9.Text = "SMS 24 Hour Template Response:";
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(247, 333);
+            this.button2.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(23, 23);
+            this.button2.TabIndex = 44;
+            this.button2.Text = "?";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.Button2_Click);
+            // 
             // CosmosDeploy
             // 
             this.ClientSize = new System.Drawing.Size(890, 651);
+            this.Controls.Add(this.button2);
+            this.Controls.Add(this.label9);
+            this.Controls.Add(this.SMSTemplateTB);
             this.Controls.Add(this.adminAccountCheck);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.archiveEmailTB);
@@ -398,5 +443,8 @@
         private TextBox archiveEmailTB;
         private Label label6;
         private CheckBox adminAccountCheck;
+        private TextBox SMSTemplateTB;
+        private Label label9;
+        private Button button2;
     }
 }

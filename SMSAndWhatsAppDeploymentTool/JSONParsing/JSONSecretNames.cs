@@ -27,5 +27,6 @@
         public string? DbName4 { get; set; }
         public string? DbName5 { get; set; }
         public string? AutomationId { get; set; }
+        public string? SMSTemplate { get; set; }
     }
 }

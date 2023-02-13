@@ -16,7 +16,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
     internal class KeyVaultResourceHandler
     {
-        internal virtual async Task<VaultResource> InitialCreation(JSONSecretNames secretNames, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, StorageAccountResource storageIdentity, string archiveEmail, string[] databases, List<string> apipackage, string connString, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, DataverseDeploy form)
+        internal virtual async Task<VaultResource> InitialCreation(JSONSecretNames secretNames, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, StorageAccountResource storageIdentity, string archiveEmail, string[] databases, List<string> apipackage, string connString, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string smsTemplate, DataverseDeploy form)
         {
             //string prefix = "smsapp_";
             //must be lowercase or errors will occur
@@ -61,6 +61,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                     apipackage,
                     form.SelectedOrgId,
                     databases,
+                    smsTemplate,
                     form);
                 await UpdateRedirectUrlsAsync(GraphHandler.GetServiceClientWithoutAPI(), apipackage[3], apipackage[1]);
             }
@@ -70,7 +71,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             form.OutputRT.Text += Environment.NewLine + "Finished updating function app configs";
             return internalVault;
         }
-        internal virtual async Task<VaultResource> InitialCreation(bool createAdminAccount, JSONSecretNames secretNames, string desiredRestSite, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, WebSiteResource cosmosAppSiteResource, StorageAccountResource storageIdentity, string archiveEmail, string key, string desiredCosmosName, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, Guid TenantId, CosmosDeploy form)
+        internal virtual async Task<VaultResource> InitialCreation(bool createAdminAccount, JSONSecretNames secretNames, string desiredRestSite, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, WebSiteResource cosmosAppSiteResource, StorageAccountResource storageIdentity, string archiveEmail, string key, string desiredCosmosName, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, Guid TenantId, string smsTemplate, CosmosDeploy form)
         {
             VaultResource publicVault;
             VaultResource internalVault;
@@ -97,7 +98,22 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             if (smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
             //if (!skip && smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
-                await CreateKeyVaultSecretsCosmos(createAdminAccount, secretNames, archiveEmail, desiredRestSite, publicVault, internalVault, TenantId, whatsappSystemAccessToken, whatsappCallbackToken, smsEndpoint, storageIdentity.Id.Name, key, desiredCosmosName, form);
+                await CreateKeyVaultSecretsCosmos(
+                    createAdminAccount,
+                    secretNames,
+                    archiveEmail,
+                    desiredRestSite,
+                    publicVault,
+                    internalVault,
+                    TenantId,
+                    whatsappSystemAccessToken,
+                    whatsappCallbackToken,
+                    smsEndpoint,
+                    storageIdentity.Id.Name,
+                    key,
+                    desiredCosmosName,
+                    smsTemplate,
+                    form);
 
             form.OutputRT.Text += Environment.NewLine + "Updating function app configs";
             await UpdateFunctionConfigs(desiredInternalKeyVaultName, smsSiteResource, whatsAppSiteResource, cosmosAppSiteResource);
@@ -239,11 +255,13 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return keyVaultResponse;
         }
 
-        static async Task CreateKeyVaultSecretsDataverse(JSONSecretNames secretNames, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string archiveEmail, string whatsappSystemAccessToken, string verifyHTTPToken, string smsEndpoint, string storageName, string storageAccountPrimaryKey, List<string> package, string dynamicsOrgId, string[] databases, DataverseDeploy form)
+        static async Task CreateKeyVaultSecretsDataverse(JSONSecretNames secretNames, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string archiveEmail, string whatsappSystemAccessToken, string verifyHTTPToken, string smsEndpoint, string storageName, string storageAccountPrimaryKey, List<string> package, string dynamicsOrgId, string[] databases, string smsTemplate, DataverseDeploy form)
         {
 #pragma warning disable CS8604 // Possible null reference argument.
             if (secretNames != null)
             {
+                if (!smsTemplate.Contains("COMPANYNAMEHERE") && smsTemplate != "")
+                    await CreateSecret(publicVault, secretNames.SMSTemplate, smsTemplate);
                 await CreateSecret(publicVault, secretNames.PDynamicsEnvironment, form.SelectedEnvironment);
                 await CreateSecret(publicVault, secretNames.PAccountsDBPrefix, databases[0].ToLower() + "eses");
                 await CreateSecret(publicVault, secretNames.PSMSDBPrefix, databases[1].ToLower() + "eses");
@@ -302,7 +320,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created and locked by RBAC access.";
         }
-        static async Task CreateKeyVaultSecretsCosmos(bool createAdminAccount, JSONSecretNames secretNames, string archiveEmail, string desiredRestSite, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsEndpoint, string storageName, string storageAccountPrimaryKey, string desiredCosmosName, CosmosDeploy form)
+        static async Task CreateKeyVaultSecretsCosmos(bool createAdminAccount, JSONSecretNames secretNames, string archiveEmail, string desiredRestSite, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsEndpoint, string storageName, string storageAccountPrimaryKey, string desiredCosmosName, string smsTemplate, CosmosDeploy form)
         {
             if (createAdminAccount)
             {
@@ -314,6 +332,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 #pragma warning disable CS8604 // Possible null reference argument.
             if (secretNames != null)
             {
+                if (!smsTemplate.Contains("COMPANYNAMEHERE") && smsTemplate != "")
+                    await CreateSecret(publicVault, secretNames.SMSTemplate, smsTemplate);
                 await CreateSecret(publicVault, secretNames.PCommsEndpoint, smsEndpoint);
                 if (whatsappSystemAccessToken != "")
                 {
