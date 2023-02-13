@@ -78,6 +78,7 @@ namespace SMSAndWhatsAppDeploymentTool
             desiredInternalKeyvaultNameTB.Enabled = false;
             archiveEmailTB.Enabled = false;
             adminAccountCheck.Enabled = false;
+            SMSTemplateTB.Enabled = false;
         }
         internal void EnableAll()
         {
@@ -97,6 +98,7 @@ namespace SMSAndWhatsAppDeploymentTool
             desiredInternalKeyvaultNameTB.Enabled = true;
             archiveEmailTB.Enabled = true;
             adminAccountCheck.Enabled = true;
+            SMSTemplateTB.Enabled = true;
         }
 
         internal async Task FinishCreation()

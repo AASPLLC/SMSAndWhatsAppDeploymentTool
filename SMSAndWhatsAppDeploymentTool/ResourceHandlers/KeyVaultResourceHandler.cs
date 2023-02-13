@@ -174,7 +174,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         {
             try
             {
-                SecretClient sc = TokenHandler.GetFunctionAppKeyVaultClient(vr.Data.Name);
+                SecretClient sc = TokenHandler.GetFunctionAppKeyVaultClient();
                 if ((await sc.GetSecretAsync(key)).Value.Value != value)
                 {
                     await sc.UpdateSecretPropertiesAsync(new(key) { Enabled = false });
@@ -194,24 +194,31 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         }
         static async Task CreateSecret(VaultResource vr, string key, string value)
         {
-            try
-            {
-                SecretClient sc = TokenHandler.GetFunctionAppKeyVaultClient();
+            //try
+            //{
+                SecretClient sc = TokenHandler.GetFunctionAppKeyVaultClient("https://" + vr.Data.Name + ".vault.azure.net/");
                 if ((await sc.GetSecretAsync(key)).Value.Value != value)
                 {
-                    await sc.UpdateSecretPropertiesAsync(new(key) { Enabled = false });
+                    await foreach (var version in (sc.GetPropertiesOfSecretVersionsAsync(key)))
+                    {
+                        if (version.Enabled == true)
+                        {
+                            version.Enabled = false;
+                            await sc.UpdateSecretPropertiesAsync(version);
+                        }
+                    }
                     await vr.GetSecrets().CreateOrUpdateAsync(WaitUntil.Completed, key, new SecretCreateOrUpdateContent(new()
                     {
                         Value = value
                     }));
                 }
-            }
-            catch {
-                await vr.GetSecrets().CreateOrUpdateAsync(WaitUntil.Completed, key, new SecretCreateOrUpdateContent(new()
-                {
-                    Value = value
-                }));
-            }
+            //}
+            //catch {
+                //await vr.GetSecrets().CreateOrUpdateAsync(WaitUntil.Completed, key, new SecretCreateOrUpdateContent(new()
+                //{
+                    //Value = value
+                //}));
+            //}
         }
 
         static async Task<VaultResource> CreateKeyVaultResource(string desiredName, Guid TenantID, DataverseDeploy form)

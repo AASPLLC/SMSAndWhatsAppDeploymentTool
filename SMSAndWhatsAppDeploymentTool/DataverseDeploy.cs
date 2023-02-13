@@ -81,6 +81,7 @@ namespace SMSAndWhatsAppDeploymentTool
             CallbackUniqueBTN.Enabled = false;
             desiredInternalKeyvaultNameTB.Enabled = false;
             archiveEmailTB.Enabled = false;
+            SMSTemplateTB.Enabled = false;
         }
         internal void EnableAll()
         {
@@ -98,6 +99,7 @@ namespace SMSAndWhatsAppDeploymentTool
             desiredInternalKeyvaultNameTB.Enabled = true;
             desiredStorageNameTB.Enabled = true;
             archiveEmailTB.Enabled = true;
+            SMSTemplateTB.Enabled = true;
         }
 
         internal async Task FinishCreation()
