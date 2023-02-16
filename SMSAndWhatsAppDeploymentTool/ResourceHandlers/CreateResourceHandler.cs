@@ -113,19 +113,32 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             {
                 form.OutputRT.Text += Environment.NewLine + "Waiting for API Creation";
 
-                var gs = GraphHandler.GetServiceClientWithoutAPI();
-                var app = await CreateAzureAPIHandler.CreateAzureAPIAsync(gs, dataverseAPIName);
+                try
+                {
+                    var gs = GraphHandler.GetServiceClientWithoutAPI();
+                    var app = await CreateAzureAPIHandler.CreateAzureAPIAsync(gs, dataverseAPIName);
 
-                await CreateAzureAPIHandler.UpdateRedirectUrlsAsync(gs, app.Id, app.AppId);
-                //var secretText = await AddSecretClientPasswordAsync(gs, app.Id, app.AppId, "ArchiveAccess");
+                    await CreateAzureAPIHandler.UpdateRedirectUrlsAsync(gs, app.Id, app.AppId);
+                    //var secretText = await AddSecretClientPasswordAsync(gs, app.Id, app.AppId, "ArchiveAccess");
 
-                apipackage.Add(app.DisplayName);
-                apipackage.Add(app.AppId);
-                apipackage.Add("0");
-                apipackage.Add(app.Id);
+                    apipackage.Add(app.DisplayName);
+                    apipackage.Add(app.AppId);
+                    apipackage.Add("0");
+                    apipackage.Add(app.Id);
 
-                form.OutputRT.Text += Environment.NewLine + "Created: " + apipackage[0];
-                form.OutputRT.Text += Environment.NewLine + "Created: " + apipackage[0];
+                    form.OutputRT.Text += Environment.NewLine + "Created: " + apipackage[0];
+                    form.OutputRT.Text += Environment.NewLine + "Created: " + apipackage[0];
+                }
+                catch(Exception e)
+                {
+                    MessageBox2 mb = new();
+                    mb.label1.Text = "Error: Failed Creating API Automatically.";
+                    mb.richTextBox1.Text = "Most common reason is due to missing Global Admin Access or Dynamics 365 Admin access."
+                        + Environment.NewLine + Environment.NewLine +
+                        "Full Error: " + e.ToString();
+                    mb.ShowDialog();
+                    mb.Close();
+                }
             }
             else
             {

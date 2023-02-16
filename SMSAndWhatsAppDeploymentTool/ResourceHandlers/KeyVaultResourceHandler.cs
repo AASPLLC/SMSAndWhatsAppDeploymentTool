@@ -287,10 +287,23 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 }
                 else
                 {
-                    SecuredExistingSecret securedExistingSecret = new();
-                    securedExistingSecret.ShowDialog();
-                    await CreateSecret(internalVault, secretNames.IoSecret, securedExistingSecret.GetSecuredString());
-                    securedExistingSecret.Dispose();
+                    try
+                    {
+                        _ = await TokenHandler.GetConfidentialClientAccessToken(
+                            package[1],
+                            await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
+                            new[] { "https://graph.microsoft.com/.default" },
+                            TenantID.ToString());
+                    }
+                    catch(Exception e)
+                    {
+                        form.OutputRT.Text += Environment.NewLine + e.ToString();
+                        SecuredExistingSecret securedExistingSecret = new();
+                        securedExistingSecret.ShowDialog();
+                        if (securedExistingSecret.GetSecuredString() != "")
+                            await CreateSecret(internalVault, secretNames.IoSecret, securedExistingSecret.GetSecuredString());
+                        securedExistingSecret.Dispose();
+                    }
                 }
 
                 await CreateSecret(publicVault, secretNames.PCommsEndpoint, smsEndpoint);

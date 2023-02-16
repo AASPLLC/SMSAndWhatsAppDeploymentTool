@@ -638,7 +638,13 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 runbookname,
                 new(AutomationRunbookType.PowerShell) { Location = SelectedRegion })).Value;
 
-            _ = await runbook.ReplaceContentRunbookDraftAsync(WaitUntil.Completed, Globals.GenerateStreamFromString(code));
+            using MemoryStream stream = new();
+            using StreamWriter writer = new(stream);
+            writer.Write(code);
+            writer.Flush();
+            stream.Seek(0, SeekOrigin.Begin);
+            _ = await runbook.ReplaceContentRunbookDraftAsync(WaitUntil.Completed, stream);
+            //_ = await runbook.ReplaceContentRunbookDraftAsync(WaitUntil.Completed, Globals.GenerateStreamFromString(code));
             /*try
             {
                 using MemoryStream stream = new();

@@ -2,7 +2,6 @@ using Azure.Core;
 using Azure.ResourceManager.Resources;
 using AASPGlobalLibrary;
 using SMSAndWhatsAppDeploymentTool.ResourceHandlers;
-using Microsoft.Azure.Cosmos.Spatial;
 
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
 #pragma warning disable CS8618 // Possible null reference argument.
