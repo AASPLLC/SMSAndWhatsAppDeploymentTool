@@ -99,4 +99,7 @@ These values must be specific, but for reference, this is the format:
 }
 ```
 
+5. For your first Cosmos account the first admin account will need to be manually added.
+This information is secret and won't be provided in the readme.
+
 This application is dependent on the following library: [AASP Global Library](https://github.com/wrharper-AASP/AASPGlobalLibrary)

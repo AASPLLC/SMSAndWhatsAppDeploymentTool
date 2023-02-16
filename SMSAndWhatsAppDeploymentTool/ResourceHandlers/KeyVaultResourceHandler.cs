@@ -71,7 +71,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             form.OutputRT.Text += Environment.NewLine + "Finished updating function app configs";
             return internalVault;
         }
-        internal virtual async Task<VaultResource> InitialCreation(bool createAdminAccount, JSONSecretNames secretNames, string desiredRestSite, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, WebSiteResource cosmosAppSiteResource, StorageAccountResource storageIdentity, string archiveEmail, string key, string desiredCosmosName, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, Guid TenantId, string smsTemplate, CosmosDeploy form)
+        internal virtual async Task<VaultResource> InitialCreation(JSONSecretNames secretNames, string desiredRestSite, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, WebSiteResource cosmosAppSiteResource, StorageAccountResource storageIdentity, string archiveEmail, string key, string desiredCosmosName, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, Guid TenantId, string smsTemplate, CosmosDeploy form)
         {
             VaultResource publicVault;
             VaultResource internalVault;
@@ -99,7 +99,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             if (smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
             //if (!skip && smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
                 await CreateKeyVaultSecretsCosmos(
-                    createAdminAccount,
                     secretNames,
                     archiveEmail,
                     desiredRestSite,
@@ -327,13 +326,15 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created and locked by RBAC access.";
         }
-        static async Task CreateKeyVaultSecretsCosmos(bool createAdminAccount, JSONSecretNames secretNames, string archiveEmail, string desiredRestSite, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsEndpoint, string storageName, string storageAccountPrimaryKey, string desiredCosmosName, string smsTemplate, CosmosDeploy form)
+        static async Task CreateKeyVaultSecretsCosmos(JSONSecretNames secretNames, string archiveEmail, string desiredRestSite, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsEndpoint, string storageName, string storageAccountPrimaryKey, string desiredCosmosName, string smsTemplate, CosmosDeploy form)
         {
-            if (createAdminAccount)
+            //so far not possible due to the custom security. you cannot create an account without already having one that has admin access.
+            /*if (createAdminAccount)
             {
                 var name = await TokenHandler.JwtGetUsersInfo.GetUsersID();
-                form.OutputRT.Text += Environment.NewLine + "First account creation attempt: " + await CosmosDBHandler.AddOrUpdateAccount(desiredRestSite, name, name, "+1", "1", "1");
-            }
+                string fullurl = "https://" + desiredRestSite + ".documents.azure.com/";
+                form.OutputRT.Text += Environment.NewLine + "First account creation attempt: " + await CosmosDBHandler.AddOrUpdateAccount(fullurl, name, name, "+1", "1", "1");
+            }*/
 
 
 #pragma warning disable CS8604 // Possible null reference argument.

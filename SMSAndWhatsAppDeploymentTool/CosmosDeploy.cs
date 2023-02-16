@@ -77,7 +77,6 @@ namespace SMSAndWhatsAppDeploymentTool
             desiredCosmosAccountNameFunctionNameTB.Enabled = false;
             desiredInternalKeyvaultNameTB.Enabled = false;
             archiveEmailTB.Enabled = false;
-            adminAccountCheck.Enabled = false;
             SMSTemplateTB.Enabled = false;
         }
         internal void EnableAll()
@@ -97,7 +96,6 @@ namespace SMSAndWhatsAppDeploymentTool
             desiredCosmosAccountNameFunctionNameTB.Enabled = true;
             desiredInternalKeyvaultNameTB.Enabled = true;
             archiveEmailTB.Enabled = true;
-            adminAccountCheck.Enabled = true;
             SMSTemplateTB.Enabled = true;
         }
 
@@ -114,7 +112,6 @@ namespace SMSAndWhatsAppDeploymentTool
             {
                 CreateResourceHandler crh = new();
                 await crh.CreateAllCosmosResources(
-                    adminAccountCheck.Checked,
                     TenantID,
                     archiveEmailTB.Text,
                     whatsappSystemTokenTB.Text,

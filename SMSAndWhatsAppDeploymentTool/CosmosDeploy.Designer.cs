@@ -57,7 +57,6 @@
             this.label5 = new System.Windows.Forms.Label();
             this.archiveEmailTB = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
-            this.adminAccountCheck = new System.Windows.Forms.CheckBox();
             this.SMSTemplateTB = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
@@ -324,16 +323,6 @@
             this.label6.TabIndex = 40;
             this.label6.Text = "Archive Email:";
             // 
-            // adminAccountCheck
-            // 
-            this.adminAccountCheck.AutoSize = true;
-            this.adminAccountCheck.Location = new System.Drawing.Point(677, 362);
-            this.adminAccountCheck.Name = "adminAccountCheck";
-            this.adminAccountCheck.Size = new System.Drawing.Size(201, 19);
-            this.adminAccountCheck.TabIndex = 41;
-            this.adminAccountCheck.Text = "Create First Time Admin Account";
-            this.adminAccountCheck.UseVisualStyleBackColor = true;
-            // 
             // SMSTemplateTB
             // 
             this.SMSTemplateTB.Location = new System.Drawing.Point(277, 333);
@@ -370,7 +359,6 @@
             this.Controls.Add(this.button2);
             this.Controls.Add(this.label9);
             this.Controls.Add(this.SMSTemplateTB);
-            this.Controls.Add(this.adminAccountCheck);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.archiveEmailTB);
             this.Controls.Add(this.label5);
@@ -442,7 +430,6 @@
         private Label label5;
         private TextBox archiveEmailTB;
         private Label label6;
-        private CheckBox adminAccountCheck;
         private TextBox SMSTemplateTB;
         private Label label9;
         private Button button2;

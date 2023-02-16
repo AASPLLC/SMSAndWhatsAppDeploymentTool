@@ -7,6 +7,7 @@ using Azure.Core;
 using SMSAndWhatsAppDeploymentTool.JSONParsing;
 using Azure.ResourceManager.Authorization.Models;
 using Azure.ResourceManager.Authorization;
+using AASPGlobalLibrary;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
@@ -637,7 +638,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 runbookname,
                 new(AutomationRunbookType.PowerShell) { Location = SelectedRegion })).Value;
 
-            try
+            _ = await runbook.ReplaceContentRunbookDraftAsync(WaitUntil.Completed, Globals.GenerateStreamFromString(code));
+            /*try
             {
                 using MemoryStream stream = new();
                 using StreamWriter writer = new(stream);
@@ -646,7 +648,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 stream.Seek(0, SeekOrigin.Begin);
                 _ = await runbook.ReplaceContentRunbookDraftAsync(WaitUntil.Completed, stream);
             }
-            catch { }
+            catch { }*/
             try { _ = await runbook.PublishAsync(WaitUntil.Completed); } catch { }
 
             string cosmosDBDailyrotation = "Dailyrotation";
