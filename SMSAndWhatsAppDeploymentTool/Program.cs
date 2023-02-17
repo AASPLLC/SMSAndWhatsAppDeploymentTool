@@ -12,7 +12,7 @@ namespace SMSAndWhatsAppDeploymentTool
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
             //Application.Run(new form1());
-            Application.Run(new ChooseDBType());
+            Application.Run(new SetupMethod());
         }
     }
 }

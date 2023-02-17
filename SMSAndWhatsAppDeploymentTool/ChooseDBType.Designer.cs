@@ -60,9 +60,9 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(12, 43);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(156, 15);
+            this.label1.Size = new System.Drawing.Size(153, 15);
             this.label1.TabIndex = 2;
-            this.label1.Text = "Choose  your database type:";
+            this.label1.Text = "Choose your database type:";
             // 
             // label2
             // 
@@ -99,6 +99,7 @@
             this.MinimizeBox = false;
             this.Name = "ChooseDBType";
             this.Text = "Choose Database Type";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.DBTypeForm_Closing);
             this.Load += new System.EventHandler(this.ChooseDBType_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

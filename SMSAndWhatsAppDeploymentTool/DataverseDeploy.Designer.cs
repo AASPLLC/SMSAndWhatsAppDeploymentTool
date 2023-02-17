@@ -56,6 +56,11 @@
             this.button2 = new System.Windows.Forms.Button();
             this.label9 = new System.Windows.Forms.Label();
             this.SMSTemplateTB = new System.Windows.Forms.TextBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.defaultSubnetTB = new System.Windows.Forms.TextBox();
+            this.label10 = new System.Windows.Forms.Label();
+            this.appsSubnetTB = new System.Windows.Forms.TextBox();
+            this.label11 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // desiredPublicKeyvaultNameTB
@@ -78,17 +83,17 @@
             // 
             // OutputRT
             // 
-            this.OutputRT.Location = new System.Drawing.Point(12, 322);
+            this.OutputRT.Location = new System.Drawing.Point(12, 351);
             this.OutputRT.Name = "OutputRT";
             this.OutputRT.ReadOnly = true;
-            this.OutputRT.Size = new System.Drawing.Size(864, 317);
+            this.OutputRT.Size = new System.Drawing.Size(864, 288);
             this.OutputRT.TabIndex = 2;
             this.OutputRT.Text = "";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 304);
+            this.label2.Location = new System.Drawing.Point(12, 333);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(48, 15);
             this.label2.TabIndex = 3;
@@ -315,9 +320,57 @@
             this.SMSTemplateTB.Text = "Hello, This is COMPANYNAMEHERE, in order for the conversation to continue, please" +
     " respond with an accepted message (Yes, ok, y, etc.) to continue.";
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(12, 307);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(88, 15);
+            this.label5.TabIndex = 48;
+            this.label5.Text = "Default Subnet:";
+            // 
+            // defaultSubnetTB
+            // 
+            this.defaultSubnetTB.Location = new System.Drawing.Point(106, 304);
+            this.defaultSubnetTB.Name = "defaultSubnetTB";
+            this.defaultSubnetTB.PlaceholderText = "Keep blank to use 10.1.0.0/29, ends in /29";
+            this.defaultSubnetTB.Size = new System.Drawing.Size(268, 23);
+            this.defaultSubnetTB.TabIndex = 49;
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(380, 307);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(77, 15);
+            this.label10.TabIndex = 50;
+            this.label10.Text = "Apps Subnet:";
+            // 
+            // appsSubnetTB
+            // 
+            this.appsSubnetTB.Location = new System.Drawing.Point(463, 304);
+            this.appsSubnetTB.Name = "appsSubnetTB";
+            this.appsSubnetTB.PlaceholderText = "Keep blank to use 10.1.0.32/27, ends in /27";
+            this.appsSubnetTB.Size = new System.Drawing.Size(272, 23);
+            this.appsSubnetTB.TabIndex = 51;
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(744, 307);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(98, 15);
+            this.label11.TabIndex = 52;
+            this.label11.Text = "Prefix: Default/16";
+            // 
             // DataverseDeploy
             // 
             this.ClientSize = new System.Drawing.Size(890, 651);
+            this.Controls.Add(this.label11);
+            this.Controls.Add(this.appsSubnetTB);
+            this.Controls.Add(this.label10);
+            this.Controls.Add(this.defaultSubnetTB);
+            this.Controls.Add(this.label5);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.label9);
             this.Controls.Add(this.SMSTemplateTB);
@@ -387,5 +440,10 @@
         private Button button2;
         private Label label9;
         private TextBox SMSTemplateTB;
+        private Label label5;
+        private TextBox defaultSubnetTB;
+        private Label label10;
+        private TextBox appsSubnetTB;
+        private Label label11;
     }
 }

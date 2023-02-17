@@ -8,31 +8,31 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
     internal class VirtualNetworkResourceHandler
     {
-        internal virtual async Task<ResourceIdentifier> InitialCreation(DataverseDeploy form)
+        internal virtual async Task<ResourceIdentifier> InitialCreation(string defaultSubnet, string appSubnet, DataverseDeploy form)
         {
             if (await CheckVirtualNetworkName(form))
             {
-                VirtualNetworkResource vnetResource = (await form.SelectedGroup.GetVirtualNetworks().CreateOrUpdateAsync(WaitUntil.Completed, "StorageConnection", CreateVirtualNetworkData(form.SelectedRegion, false, form))).Value;
+                VirtualNetworkResource vnetResource = (await form.SelectedGroup.GetVirtualNetworks().CreateOrUpdateAsync(WaitUntil.Completed, "StorageConnection", CreateVirtualNetworkData(defaultSubnet, appSubnet, form.SelectedRegion, false, form))).Value;
                 return vnetResource.Data.Subnets[1].Id;
             }
             else
             {
                 SubnetResource subnet = await form.SelectedGroup.GetVirtualNetwork("StorageConnection").Value.GetSubnetAsync("RestAPIToCosmos");
-                await subnet.UpdateAsync(WaitUntil.Completed, CreateSubnetData("RestAPIToCosmos", "10.1.0.32/27", form.SelectedRegion, false));
+                await subnet.UpdateAsync(WaitUntil.Completed, CreateSubnetData("RestAPIToCosmos", appSubnet + "/27", form.SelectedRegion, false));
                 return await SkipVirtualNetwork(form);
             }
         }
-        internal virtual async Task<(ResourceIdentifier, string)> InitialCreation(CosmosDeploy form)
+        internal virtual async Task<(ResourceIdentifier, string)> InitialCreation(string defaultSubnet, string appSubnet, CosmosDeploy form)
         {
             if (await CheckVirtualNetworkName(form))
             {
-                VirtualNetworkData virtualNetworkData = (await form.SelectedGroup.GetVirtualNetworks().CreateOrUpdateAsync(WaitUntil.Completed, "StorageConnection", CreateVirtualNetworkData(form.SelectedRegion, true, form))).Value.Data;
+                VirtualNetworkData virtualNetworkData = (await form.SelectedGroup.GetVirtualNetworks().CreateOrUpdateAsync(WaitUntil.Completed, "StorageConnection", CreateVirtualNetworkData(defaultSubnet, appSubnet, form.SelectedRegion, true, form))).Value.Data;
                 return (virtualNetworkData.Subnets[1].Id, virtualNetworkData.Name);
             }
             else
             {
                 SubnetResource subnet = await form.SelectedGroup.GetVirtualNetwork("StorageConnection").Value.GetSubnetAsync("RestAPIToCosmos");
-                await subnet.UpdateAsync(WaitUntil.Completed, CreateSubnetData("RestAPIToCosmos", "10.1.0.32/27", form.SelectedRegion, true));
+                await subnet.UpdateAsync(WaitUntil.Completed, CreateSubnetData("RestAPIToCosmos", appSubnet + "/27", form.SelectedRegion, true));
                 return await SkipVirtualNetwork(form);
             }
         }
@@ -75,7 +75,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return (temp.Value.Data.Subnets[1].Id, temp.Value.Data.Name);
         }
 
-        static VirtualNetworkData CreateVirtualNetworkData(string region, bool rest, dynamic form)
+        static VirtualNetworkData CreateVirtualNetworkData(string defaultSubnet, string appSubnet, string region, bool rest, dynamic form)
         {
             form.OutputRT.Text += Environment.NewLine + "Waiting for Virtual Network Creation";
             VirtualNetworkData virtualNetwork = new()
@@ -83,9 +83,9 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 EnableDdosProtection = false,
                 Location = region,
             };
-            virtualNetwork.Subnets.Add(CreateSubnetData("default", "10.1.0.0/29"));
-            virtualNetwork.Subnets.Add(CreateSubnetData("RestAPIToCosmos", "10.1.0.32/27", region, rest));
-            virtualNetwork.AddressPrefixes.Add("10.1.0.0/16");
+            virtualNetwork.Subnets.Add(CreateSubnetData("default", defaultSubnet + "/29"));
+            virtualNetwork.Subnets.Add(CreateSubnetData("RestAPIToCosmos", appSubnet + "/27", region, rest));
+            virtualNetwork.AddressPrefixes.Add(defaultSubnet + "/16");
 
             form.OutputRT.Text += Environment.NewLine + "Virtual network for internal storage connection created";
             return virtualNetwork;

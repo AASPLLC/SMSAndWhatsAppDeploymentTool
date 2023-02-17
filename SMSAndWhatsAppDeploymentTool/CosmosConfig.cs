@@ -5,8 +5,12 @@ namespace SMSAndWhatsAppDeploymentTool
 {
     internal partial class CosmosConfig : Form
     {
-        internal CosmosConfig()
+        readonly ChooseDBType dBType;
+        readonly CosmosDeploy cosmosDeploy;
+        internal CosmosConfig(ChooseDBType dBType)
         {
+            cosmosDeploy = new(dBType);
+            this.dBType = dBType;
             InitializeComponent();
 
             //US added first
@@ -69,16 +73,16 @@ namespace SMSAndWhatsAppDeploymentTool
 
         private void InstallConfig_Load(object sender, EventArgs e)
         {
-            ChooseDBType.cosmosForm.Arm = new ArmClientHandler();
+            cosmosDeploy.Arm = new ArmClientHandler();
             //List<string> names = new();
-            (List<string> names, subids) = ChooseDBType.cosmosForm.Arm.SetupSubscriptionName();
+            (List<string> names, subids) = cosmosDeploy.Arm.SetupSubscriptionName();
             comboBox1.Items.AddRange(names.ToArray());
             comboBox1.SelectedIndex = 0;
         }
 
         private void Button1_Click(object sender, EventArgs e)
         {
-            ChooseDBType.cosmosForm.SelectedSubscription = subids[comboBox1.SelectedIndex];
+            cosmosDeploy.SelectedSubscription = subids[comboBox1.SelectedIndex];
 
             button1.Enabled = false;
             comboBox1.Enabled = false;
@@ -87,20 +91,19 @@ namespace SMSAndWhatsAppDeploymentTool
             comboBox3.Enabled = true;
         }
 
-        private async void InstallConfig_Closed(object sender, FormClosedEventArgs e)
+        private void InstallConfig_Closed(object sender, FormClosedEventArgs e)
         {
-            await ChooseDBType.cosmosForm.Init();
-            ChooseDBType.cosmosForm.ShowDialog();
+            dBType.Close();
         }
 
-        private void Button3_Click(object sender, EventArgs e)
+        private async void Button3_Click(object sender, EventArgs e)
         {
-            ChooseDBType.cosmosForm.SelectedRegion = comboBox3.Text;
+            cosmosDeploy.SelectedRegion = comboBox3.Text;
 
-            button3.Enabled = false;
-            comboBox3.Enabled = false;
+            this.Hide();
 
-            this.Close();
+            await cosmosDeploy.Init();
+            cosmosDeploy.ShowDialog();
         }
     }
 }

@@ -1,22 +1,18 @@
 ﻿using Azure.Deployments.Expression.Expressions;
 using AASPGlobalLibrary;
+using System.Runtime.CompilerServices;
 
 namespace SMSAndWhatsAppDeploymentTool
 {
     internal partial class ChooseDBType : Form
     {
-#pragma warning disable CA2211 // Non-constant fields should not be visible
-        internal static DataverseDeploy dataverseForm = new();
-        internal static CosmosDeploy cosmosForm = new();
-        internal static ChooseDBType chooseDBForm = new();
-#pragma warning restore CA2211 // Non-constant fields should not be visible
-
         internal int DBType = 0;
 
-        internal ChooseDBType()
+        readonly SetupMethod setupMethod;
+        internal ChooseDBType(SetupMethod setupMethod)
         {
+            this.setupMethod = setupMethod;
             InitializeComponent();
-            chooseDBForm = this;
         }
 
         private void LinkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -27,14 +23,14 @@ namespace SMSAndWhatsAppDeploymentTool
         private void DataverseBTN_Click(object sender, EventArgs e)
         {
             this.Hide();
-            DataverseConfig installconfig = new();
+            DataverseConfig installconfig = new(this);
             installconfig.ShowDialog();
         }
 
         private void CosmosBTN_Click(object sender, EventArgs e)
         {
             this.Hide();
-            CosmosConfig installconfig = new();
+            CosmosConfig installconfig = new(this);
             installconfig.ShowDialog();
         }
 
@@ -52,6 +48,11 @@ namespace SMSAndWhatsAppDeploymentTool
             var jt = new JTokenExpression(value);
             FunctionArgument fa = new(jt.Value);
             return funcs.EvaluateFunction("uniqueString", new FunctionArgument[] { fa }, new ExpressionEvaluationContext() { }).ToString();
+        }
+
+        private void DBTypeForm_Closing(object sender, FormClosingEventArgs e)
+        {
+            setupMethod.Close();
         }
     }
 }

@@ -9,8 +9,12 @@ namespace SMSAndWhatsAppDeploymentTool
 {
     internal partial class DataverseConfig : Form
     {
-        internal DataverseConfig()
+        readonly ChooseDBType dbtype;
+        readonly DataverseDeploy dataverseDeploy;
+        internal DataverseConfig(ChooseDBType dbtype)
         {
+            dataverseDeploy = new(dbtype);
+            this.dbtype = dbtype;
             InitializeComponent();
 
             //US added first
@@ -72,11 +76,32 @@ namespace SMSAndWhatsAppDeploymentTool
         List<SubscriptionResource> subids = new();
         JSONGetDataverseEnvironments info = new();
 
+        void DisableAll()
+        {
+            button1.Enabled = false;
+            comboBox1.Enabled = false;
+            button3.Enabled = false;
+            comboBox3.Enabled = false;
+            button2.Enabled = false;
+            comboBox2.Enabled = false;
+        }
+
+        void EnableAll()
+        {
+            button1.Enabled = true;
+            comboBox1.Enabled = true;
+            button3.Enabled = true;
+            comboBox3.Enabled = true;
+            button2.Enabled = true;
+            comboBox2.Enabled = true;
+        }
+
         private async void InstallConfig_Load(object sender, EventArgs e)
         {
-            ChooseDBType.dataverseForm.Arm = new ArmClientHandler();
+            DisableAll();
+            dataverseDeploy.Arm = new ArmClientHandler();
             //List<string> names = new();
-            (List<string> names, subids) = ChooseDBType.dataverseForm.Arm.SetupSubscriptionName();
+            (List<string> names, subids) = dataverseDeploy.Arm.SetupSubscriptionName();
             comboBox1.Items.AddRange(names.ToArray());
             comboBox1.SelectedIndex = 0;
 
@@ -98,11 +123,12 @@ namespace SMSAndWhatsAppDeploymentTool
                 comboBox2.SelectedIndex = 0;
             }
 #pragma warning restore CS8602 // Converting null literal or possible null value to non-nullable type.
+            EnableAll();
         }
 
         private void Button1_Click(object sender, EventArgs e)
         {
-            ChooseDBType.dataverseForm.SelectedSubscription = subids[comboBox1.SelectedIndex];
+            dataverseDeploy.SelectedSubscription = subids[comboBox1.SelectedIndex];
 
             button1.Enabled = false;
             comboBox1.Enabled = false;
@@ -111,15 +137,14 @@ namespace SMSAndWhatsAppDeploymentTool
             comboBox3.Enabled = true;
         }
 
-        private async void InstallConfig_Closed(object sender, FormClosedEventArgs e)
+        private void InstallConfig_Closed(object sender, FormClosedEventArgs e)
         {
-            await ChooseDBType.dataverseForm.Init();
-            ChooseDBType.dataverseForm.ShowDialog();
+            dbtype.Close();
         }
 
         private void Button3_Click(object sender, EventArgs e)
         {
-            ChooseDBType.dataverseForm.SelectedRegion = comboBox3.Text;
+            dataverseDeploy.SelectedRegion = comboBox3.Text;
 
             button3.Enabled = false;
             comboBox3.Enabled = false;
@@ -127,17 +152,20 @@ namespace SMSAndWhatsAppDeploymentTool
             comboBox2.Enabled = true;
         }
 
-        private void Button2_Click(object sender, EventArgs e)
+        private async void Button2_Click(object sender, EventArgs e)
         {
 #pragma warning disable CS8602 // Converting null literal or possible null value to non-nullable type.
 #pragma warning disable CS8601 // Converting null literal or possible null value to non-nullable type.
-            ChooseDBType.dataverseForm.SelectedEnvironment =  info.value[comboBox2.SelectedIndex].UrlName;
-            ChooseDBType.dataverseForm.SelectedOrgId = info.value[comboBox2.SelectedIndex].Id;
-            ChooseDBType.dataverseForm.AutoAPI = checkBox1.Checked;
+            dataverseDeploy.SelectedEnvironment =  info.value[comboBox2.SelectedIndex].UrlName;
+            dataverseDeploy.SelectedOrgId = info.value[comboBox2.SelectedIndex].Id;
+            dataverseDeploy.AutoAPI = checkBox1.Checked;
 #pragma warning restore CS8601 // Converting null literal or possible null value to non-nullable type.
 #pragma warning restore CS8602 // Converting null literal or possible null value to non-nullable type.
 
-            this.Close();
+            this.Hide();
+
+            await dataverseDeploy.Init();
+            dataverseDeploy.ShowDialog();
         }
     }
 }

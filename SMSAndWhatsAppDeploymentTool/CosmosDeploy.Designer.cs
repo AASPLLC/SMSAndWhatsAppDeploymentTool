@@ -60,6 +60,10 @@
             this.SMSTemplateTB = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
+            this.appsSubnetTB = new System.Windows.Forms.TextBox();
+            this.label10 = new System.Windows.Forms.Label();
+            this.defaultSubnetTB = new System.Windows.Forms.TextBox();
+            this.label11 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // desiredPublicKeyvaultNameTB
@@ -82,17 +86,17 @@
             // 
             // OutputRT
             // 
-            this.OutputRT.Location = new System.Drawing.Point(12, 387);
+            this.OutputRT.Location = new System.Drawing.Point(12, 408);
             this.OutputRT.Name = "OutputRT";
             this.OutputRT.ReadOnly = true;
-            this.OutputRT.Size = new System.Drawing.Size(864, 252);
+            this.OutputRT.Size = new System.Drawing.Size(864, 231);
             this.OutputRT.TabIndex = 2;
             this.OutputRT.Text = "";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 366);
+            this.label2.Location = new System.Drawing.Point(12, 390);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(48, 15);
             this.label2.TabIndex = 3;
@@ -353,9 +357,47 @@
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.Button2_Click);
             // 
+            // appsSubnetTB
+            // 
+            this.appsSubnetTB.Location = new System.Drawing.Point(463, 362);
+            this.appsSubnetTB.Name = "appsSubnetTB";
+            this.appsSubnetTB.PlaceholderText = "Keep blank to use 10.1.0.32/27, ends in /27";
+            this.appsSubnetTB.Size = new System.Drawing.Size(272, 23);
+            this.appsSubnetTB.TabIndex = 55;
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(380, 365);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(77, 15);
+            this.label10.TabIndex = 54;
+            this.label10.Text = "Apps Subnet:";
+            // 
+            // defaultSubnetTB
+            // 
+            this.defaultSubnetTB.Location = new System.Drawing.Point(106, 362);
+            this.defaultSubnetTB.Name = "defaultSubnetTB";
+            this.defaultSubnetTB.PlaceholderText = "Keep blank to use 10.1.0.0/29, ends in /29";
+            this.defaultSubnetTB.Size = new System.Drawing.Size(268, 23);
+            this.defaultSubnetTB.TabIndex = 53;
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(12, 365);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(88, 15);
+            this.label11.TabIndex = 52;
+            this.label11.Text = "Default Subnet:";
+            // 
             // CosmosDeploy
             // 
             this.ClientSize = new System.Drawing.Size(890, 651);
+            this.Controls.Add(this.appsSubnetTB);
+            this.Controls.Add(this.label10);
+            this.Controls.Add(this.defaultSubnetTB);
+            this.Controls.Add(this.label11);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.label9);
             this.Controls.Add(this.SMSTemplateTB);
@@ -433,5 +475,9 @@
         private TextBox SMSTemplateTB;
         private Label label9;
         private Button button2;
+        private TextBox appsSubnetTB;
+        private Label label10;
+        private TextBox defaultSubnetTB;
+        private Label label11;
     }
 }

@@ -28,8 +28,10 @@ namespace SMSAndWhatsAppDeploymentTool
 
         internal bool AutoAPI = false;
 
-        internal CosmosDeploy()
+        readonly ChooseDBType chooseDBType;
+        internal CosmosDeploy(ChooseDBType chooseDBType)
         {
+            this.chooseDBType = chooseDBType;
             InitializeComponent();
             //this.button1.Click += new EventHandler(async (s, e) => { await button1_Click(s, e); });
             this.deployBTN.Click += new EventHandler(this.Button1_Click);
@@ -78,6 +80,8 @@ namespace SMSAndWhatsAppDeploymentTool
             desiredInternalKeyvaultNameTB.Enabled = false;
             archiveEmailTB.Enabled = false;
             SMSTemplateTB.Enabled = false;
+            defaultSubnetTB.Enabled = false;
+            appsSubnetTB.Enabled = false;
         }
         internal void EnableAll()
         {
@@ -97,6 +101,8 @@ namespace SMSAndWhatsAppDeploymentTool
             desiredInternalKeyvaultNameTB.Enabled = true;
             archiveEmailTB.Enabled = true;
             SMSTemplateTB.Enabled = true;
+            defaultSubnetTB.Enabled = true;
+            appsSubnetTB.Enabled = true;
         }
 
         internal async Task FinishCreation()
@@ -112,6 +118,8 @@ namespace SMSAndWhatsAppDeploymentTool
             {
                 CreateResourceHandler crh = new();
                 await crh.CreateAllCosmosResources(
+                    defaultSubnetTB.Text,
+                    appsSubnetTB.Text,
                     TenantID,
                     archiveEmailTB.Text,
                     whatsappSystemTokenTB.Text,
@@ -231,7 +239,7 @@ namespace SMSAndWhatsAppDeploymentTool
 
         private void CosmosDeploy_Closed(object sender, FormClosedEventArgs e)
         {
-            ChooseDBType.chooseDBForm.Close();
+            chooseDBType.Close();
         }
 
         private void CallbackUniqueBTN_Click(object sender, EventArgs e)

@@ -34,8 +34,10 @@ namespace SMSAndWhatsAppDeploymentTool
 
         internal bool AutoAPI = false;
 
-        internal DataverseDeploy()
+        readonly ChooseDBType chooseDBType;
+        internal DataverseDeploy(ChooseDBType chooseDBType)
         {
+            this.chooseDBType = chooseDBType;
             InitializeComponent();
             //this.button1.Click += new EventHandler(async (s, e) => { await button1_Click(s, e); });
             this.deployBTN.Click += new EventHandler(this.Button1_Click);
@@ -81,6 +83,8 @@ namespace SMSAndWhatsAppDeploymentTool
             desiredInternalKeyvaultNameTB.Enabled = false;
             archiveEmailTB.Enabled = false;
             SMSTemplateTB.Enabled = false;
+            defaultSubnetTB.Enabled = false;
+            appsSubnetTB.Enabled = false;
         }
         internal void EnableAll()
         {
@@ -99,6 +103,8 @@ namespace SMSAndWhatsAppDeploymentTool
             desiredStorageNameTB.Enabled = true;
             archiveEmailTB.Enabled = true;
             SMSTemplateTB.Enabled = true;
+            defaultSubnetTB.Enabled = true;
+            appsSubnetTB.Enabled = true;
         }
 
         internal async Task FinishCreation()
@@ -114,6 +120,8 @@ namespace SMSAndWhatsAppDeploymentTool
             {
                 CreateResourceHandler crh = new();
                 await crh.CreateAllDataverseResources(
+                    defaultSubnetTB.Text,
+                    appsSubnetTB.Text,
                     dh,
                     TenantID,
                     archiveEmailTB.Text,
@@ -232,7 +240,7 @@ namespace SMSAndWhatsAppDeploymentTool
 
         private void DataverseDeploy_Closed(object sender, FormClosedEventArgs e)
         {
-            ChooseDBType.chooseDBForm.Close();
+            chooseDBType.Close();
         }
 
         private void CallbackUniqueBTN_Click(object sender, EventArgs e)

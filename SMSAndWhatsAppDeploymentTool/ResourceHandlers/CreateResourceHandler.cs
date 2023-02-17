@@ -156,7 +156,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             return apipackage;
         }
-        internal virtual async Task CreateAllDataverseResources(DataverseHandler dh, Guid? TenantId, string archiveEmail, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string smsTemplate, DataverseDeploy form)
+        internal virtual async Task CreateAllDataverseResources(string defaultSubnet, string appsSubnet, DataverseHandler dh, Guid? TenantId, string archiveEmail, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string smsTemplate, DataverseDeploy form)
         {
             desiredStorageName = GetDesiredStorageName(desiredStorageName, form.SelectedGroup);
             (desiredPublicKeyVaultName, desiredInternalKeyVaultName) = await GetDesiredKeyVaultName(
@@ -172,6 +172,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             VirtualNetworkResourceHandler vnrh = new();
             ResourceIdentifier vnetSubnetIdentity = await vnrh.InitialCreation(
+                defaultSubnet,
+                appsSubnet,
                 form);
 
             StorageAccountResourceHandler sarh = new();
@@ -244,7 +246,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 form.SelectedGroup);
         }
 
-        internal virtual async Task CreateAllCosmosResources(Guid? TenantId, string archiveEmail, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string desiredRestSite, string desiredCosmosName, string smsTemplate, CosmosDeploy form)
+        internal virtual async Task CreateAllCosmosResources(string defaultSubnet, string appsSubnet, Guid? TenantId, string archiveEmail, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string desiredRestSite, string desiredCosmosName, string smsTemplate, CosmosDeploy form)
         {
             desiredStorageName = GetDesiredStorageName(desiredStorageName, form.SelectedGroup);
             (desiredPublicKeyVaultName, desiredInternalKeyVaultName) = await GetDesiredKeyVaultName(
@@ -261,6 +263,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             VirtualNetworkResourceHandler vnrh = new();
             (ResourceIdentifier vnetSubnetIdentity, string vnetName) = await vnrh.InitialCreation(
+                defaultSubnet,
+                appsSubnet,
                 form);
 
             StorageAccountResourceHandler sarh = new();
