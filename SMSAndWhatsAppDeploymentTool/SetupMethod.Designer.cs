@@ -28,78 +28,90 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.Button1 = new System.Windows.Forms.Button();
-            this.Button2 = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.SuspendLayout();
+            Button1 = new Button();
+            Button2 = new Button();
+            label1 = new Label();
+            label2 = new Label();
+            label3 = new Label();
+            LinkLabel1 = new LinkLabel();
+            SuspendLayout();
             // 
             // Button1
             // 
-            this.Button1.Enabled = false;
-            this.Button1.Location = new System.Drawing.Point(12, 52);
-            this.Button1.Name = "Button1";
-            this.Button1.Size = new System.Drawing.Size(231, 43);
-            this.Button1.TabIndex = 0;
-            this.Button1.Text = "Step-By-Step(Easier)";
-            this.Button1.UseVisualStyleBackColor = true;
-            this.Button1.Click += new System.EventHandler(this.Button1_Click);
+            Button1.Location = new Point(12, 80);
+            Button1.Name = "Button1";
+            Button1.Size = new Size(231, 43);
+            Button1.TabIndex = 0;
+            Button1.Text = "Step-By-Step(Easier)";
+            Button1.UseVisualStyleBackColor = true;
+            Button1.Click += Button1_Click;
             // 
             // Button2
             // 
-            this.Button2.Location = new System.Drawing.Point(256, 52);
-            this.Button2.Name = "Button2";
-            this.Button2.Size = new System.Drawing.Size(222, 43);
-            this.Button2.TabIndex = 1;
-            this.Button2.Text = "All At Once(Advanced)";
-            this.Button2.UseVisualStyleBackColor = true;
-            this.Button2.Click += new System.EventHandler(this.Button2_Click);
+            Button2.Location = new Point(256, 80);
+            Button2.Name = "Button2";
+            Button2.Size = new Size(222, 43);
+            Button2.TabIndex = 1;
+            Button2.Text = "All At Once(Advanced)";
+            Button2.UseVisualStyleBackColor = true;
+            Button2.Click += Button2_Click;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 9);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(135, 15);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "Choose your setup type:";
+            label1.AutoSize = true;
+            label1.Location = new Point(12, 37);
+            label1.Name = "label1";
+            label1.Size = new Size(135, 15);
+            label1.TabIndex = 2;
+            label1.Text = "Choose your setup type:";
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 34);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(231, 15);
-            this.label2.TabIndex = 3;
-            this.label2.Text = "Provides detailed instructions step by step:";
+            label2.AutoSize = true;
+            label2.Location = new Point(12, 62);
+            label2.Name = "label2";
+            label2.Size = new Size(231, 15);
+            label2.TabIndex = 3;
+            label2.Text = "Provides detailed instructions step by step:";
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(256, 34);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(222, 15);
-            this.label3.TabIndex = 4;
-            this.label3.Text = "Asks for all required information at once:";
+            label3.AutoSize = true;
+            label3.Location = new Point(256, 62);
+            label3.Name = "label3";
+            label3.Size = new Size(222, 15);
+            label3.TabIndex = 4;
+            label3.Text = "Asks for all required information at once:";
+            // 
+            // LinkLabel1
+            // 
+            LinkLabel1.AutoSize = true;
+            LinkLabel1.Location = new Point(12, 9);
+            LinkLabel1.Name = "LinkLabel1";
+            LinkLabel1.Size = new Size(274, 15);
+            LinkLabel1.TabIndex = 5;
+            LinkLabel1.TabStop = true;
+            LinkLabel1.Text = "Click here to review the Deployment Requirements";
+            LinkLabel1.LinkClicked += LinkLabel1_LinkClicked;
             // 
             // SetupMethod
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(503, 107);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.Button2);
-            this.Controls.Add(this.Button1);
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "SetupMethod";
-            this.Text = "Setup Method";
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(503, 138);
+            Controls.Add(LinkLabel1);
+            Controls.Add(label3);
+            Controls.Add(label2);
+            Controls.Add(label1);
+            Controls.Add(Button2);
+            Controls.Add(Button1);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "SetupMethod";
+            Text = "Setup Method";
+            Load += SetupMethod_Load;
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -109,5 +121,6 @@
         private Label label1;
         private Label label2;
         private Label label3;
+        private LinkLabel LinkLabel1;
     }
 }

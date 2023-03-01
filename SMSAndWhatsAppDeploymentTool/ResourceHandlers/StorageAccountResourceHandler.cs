@@ -3,13 +3,38 @@ using Azure;
 using Azure.ResourceManager.Storage;
 using Azure.Core;
 using Azure.ResourceManager.Resources;
+using SMSAndWhatsAppDeploymentTool.StepByStep;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
     internal class StorageAccountResourceHandler
     {
+        static string GetDesiredStorageName(string desiredStorageName, ResourceGroupResource SelectedGroup)
+        {
+            foreach (var item in SelectedGroup.GetStorageAccounts())
+            {
+                desiredStorageName = item.Data.Name;
+                break;
+            }
+            return desiredStorageName;
+        }
+
+        internal virtual async Task InitialCreation(string desiredStorageName, StepByStepValues sbs)
+        {
+            foreach (var item in sbs.SelectedGroup.GetStorageAccounts())
+            {
+                desiredStorageName = item.Data.Name;
+                break;
+            }
+            sbs.DesiredStorageName = desiredStorageName;
+            if (await CheckStorageAccountName(desiredStorageName, sbs))
+            {
+                await CreateStorageAccountResource(desiredStorageName, sbs);
+            }
+        }
         internal virtual async Task<(StorageAccountResource, string)> InitialCreation(string desiredStorageName, DataverseDeploy form)
         {
+            desiredStorageName = GetDesiredStorageName(desiredStorageName, form.SelectedGroup);
             if (await CheckStorageAccountName(desiredStorageName, form))
             {
                 return await CreateStorageAccountResource(desiredStorageName, form);
@@ -21,6 +46,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         }
         internal virtual async Task<(StorageAccountResource, string)> InitialCreation(string desiredStorageName, CosmosDeploy form)
         {
+            desiredStorageName = GetDesiredStorageName(desiredStorageName, form.SelectedGroup);
             if (await CheckStorageAccountName(desiredStorageName, form))
             {
                 return await CreateStorageAccountResource(desiredStorageName, form);
@@ -52,6 +78,69 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             { NetworkRuleSet = networkRules });
         }
 
+        static async Task<(StorageAccountResource, string)> CreateStorageAccountResource(string desiredName, StepByStepValues sbs)
+        {
+            Console.Write(Environment.NewLine + "Waiting for Storage Account Creation");
+
+            StorageAccountEncryption storageAccountEncryption = new()
+            {
+                KeySource = "Microsoft.Storage"
+            };
+
+            StorageAccountEncryptionServices storageAccountEncryptionServices = new()
+            {
+                File = new StorageEncryptionService()
+                {
+                    KeyType = "Account",
+                    IsEnabled = true
+                },
+                Blob = new StorageEncryptionService()
+                {
+                    KeyType = "Account",
+                    IsEnabled = true
+                }
+                //may need to add Queue
+                /*storageAccountEncryptionServices.Queue = new StorageEncryptionService()
+                {
+                    KeyType = "Account",
+                    IsEnabled = true
+                };*/
+
+            };
+            storageAccountEncryption.Services = storageAccountEncryptionServices;
+
+            //these settings will likely need to change
+            var storageAccountResponse = await sbs.SelectedGroup.GetStorageAccounts().CreateOrUpdateAsync(WaitUntil.Completed, desiredName, new StorageAccountCreateOrUpdateContent(new StorageSku(StorageSkuName.StandardLrs), StorageKind.Storage, sbs.SelectedRegion)
+            {
+                IsDefaultToOAuthAuthentication = true,
+                PublicNetworkAccess = StoragePublicNetworkAccess.Enabled,
+                MinimumTlsVersion = StorageMinimumTlsVersion.Tls1_0,
+                AllowBlobPublicAccess = false,
+                AllowSharedKeyAccess = true,
+                //NetworkRuleSet = networkRules,
+                EnableHttpsTrafficOnly = true,
+                Encryption = storageAccountEncryption
+            });
+
+            int counter = 0;
+            var finishedStorageAccount = await Task.Run(async () =>
+            {
+                await Task.Delay(1000);
+                counter++;
+                Console.Write(", " + counter);
+                return storageAccountResponse.WaitForCompletionResponse();
+            });
+
+            var storageAccountResource = storageAccountResponse.Value;
+
+            var queueResponse = await storageAccountResource.GetQueueService().GetStorageQueues().CreateOrUpdateAsync(WaitUntil.Completed, "smsq", new StorageQueueData());
+
+            Page<StorageAccountKey>[] keys = storageAccountResource.GetKeys().AsPages().ToArray();
+
+            Console.Write(Environment.NewLine + "Storage account created");
+
+            return (storageAccountResource, keys[0].Values[0].Value);
+        }
         static async Task<(StorageAccountResource, string)> CreateStorageAccountResource(string desiredName, DataverseDeploy form)
             {
             form.OutputRT.Text += Environment.NewLine + "Waiting for Storage Account Creation";
@@ -198,6 +287,38 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return (temp, keys[0].Values[0].Value);
         }
 
+        static async Task<bool> CheckStorageAccountName(string desiredName, StepByStepValues sbs)
+        {
+            desiredName = desiredName.Trim();
+            try
+            {
+                _ = await sbs.SelectedGroup.GetStorageAccountAsync(desiredName);
+                Console.Write(Environment.NewLine + desiredName + " already exists in your environment, skipping.");
+                return false;
+            }
+            catch (RequestFailedException ex) when (ex.Status == 404)
+            {
+                if (desiredName != "")
+                {
+                    var nameResponse = await sbs.SelectedSubscription.CheckStorageAccountNameAvailabilityAsync(new StorageAccountNameAvailabilityContent(desiredName));
+
+                    if (nameResponse.Value.IsNameAvailable == true)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        Console.Write(Environment.NewLine + "Storage Account name has already been taken, try another.");
+                        return false;
+                    }
+                }
+                else
+                {
+                    Console.Write(Environment.NewLine + "Storage Account text is empty.");
+                    return false;
+                }
+            }
+        }
         static async Task<bool> CheckStorageAccountName(string desiredName, DataverseDeploy form)
         {
             desiredName = desiredName.Trim();

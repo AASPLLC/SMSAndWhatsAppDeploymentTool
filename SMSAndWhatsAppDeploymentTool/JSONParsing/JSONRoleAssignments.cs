@@ -1,4 +1,7 @@
-﻿namespace SMSAndWhatsAppDeploymentTool.JSONParsing
+﻿using AASPGlobalLibrary;
+using System.Text.Json;
+
+namespace SMSAndWhatsAppDeploymentTool.JSONParsing
 {
     internal class JSONRoleAssignments
     {
@@ -87,5 +90,19 @@
             public string? principalId { get; set; }
         }
 
+        public static async Task<JSONRoleAssignments> Load()
+        {
+            return await Globals.LoadJSON<JSONRoleAssignments>(Environment.CurrentDirectory + "/JSONS/StorageRoleAccess.json");
+        }
+
+        readonly JsonSerializerOptions options = new()
+        {
+            WriteIndented = true
+        };
+
+        public override string ToString()
+        {
+            return JsonSerializer.Serialize(this, options);
+        }
     }
 }

@@ -1,18 +1,21 @@
 ﻿using Azure.Deployments.Expression.Expressions;
 using AASPGlobalLibrary;
-using System.Runtime.CompilerServices;
+using SMSAndWhatsAppDeploymentTool.StepByStep;
 
 namespace SMSAndWhatsAppDeploymentTool
 {
     internal partial class ChooseDBType : Form
     {
-        internal int DBType = 0;
+        readonly int setupType = 0;
 
         readonly SetupMethod setupMethod;
-        internal ChooseDBType(SetupMethod setupMethod)
+        readonly StepByStepValues sbs = new();
+        internal ChooseDBType(SetupMethod setupMethod, int setupType, StepByStepValues sbs)
         {
+            this.sbs = sbs;
             this.setupMethod = setupMethod;
             InitializeComponent();
+            this.setupType = setupType;
         }
 
         private void LinkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -23,24 +26,26 @@ namespace SMSAndWhatsAppDeploymentTool
         private void DataverseBTN_Click(object sender, EventArgs e)
         {
             this.Hide();
-            DataverseConfig installconfig = new(this);
+            sbs.DBType = 0;
+            DataverseConfig installconfig = new(this, setupType, sbs);
             installconfig.ShowDialog();
         }
 
         private void CosmosBTN_Click(object sender, EventArgs e)
         {
             this.Hide();
-            CosmosConfig installconfig = new(this);
+            sbs.DBType = 1;
+            CosmosConfig installconfig = new(this, setupType, sbs);
             installconfig.ShowDialog();
         }
 
-        internal IntPtr windowHandle;
+        /*internal IntPtr windowHandle;
         private void ChooseDBType_Load(object sender, EventArgs e)
         {
             windowHandle = Handle;
             NativeWindow nativeWindow = new();
             nativeWindow.AssignHandle(windowHandle);
-        }
+        }*/
 
         internal static string GenerateUniqueString(string value)
         {

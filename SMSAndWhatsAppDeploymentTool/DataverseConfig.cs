@@ -4,17 +4,22 @@ using SMSAndWhatsAppDeploymentTool.JSONParsing;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using AASPGlobalLibrary;
+using SMSAndWhatsAppDeploymentTool.StepByStep;
 
 namespace SMSAndWhatsAppDeploymentTool
 {
-    internal partial class DataverseConfig : Form
+    public partial class DataverseConfig : Form
     {
         readonly ChooseDBType dbtype;
         readonly DataverseDeploy dataverseDeploy;
-        internal DataverseConfig(ChooseDBType dbtype)
+        readonly int setupType;
+        readonly StepByStepValues sbs;
+        internal DataverseConfig(ChooseDBType dbtype, int setupType, StepByStepValues sbs)
         {
-            dataverseDeploy = new(dbtype);
+            this.sbs = sbs;
+            dataverseDeploy = new(dbtype, sbs);
             this.dbtype = dbtype;
+            this.setupType = setupType;
             InitializeComponent();
 
             //US added first
@@ -123,12 +128,16 @@ namespace SMSAndWhatsAppDeploymentTool
                 comboBox2.SelectedIndex = 0;
             }
 #pragma warning restore CS8602 // Converting null literal or possible null value to non-nullable type.
-            EnableAll();
+            button1.Enabled = true;
+            comboBox1.Enabled = true;
         }
 
         private void Button1_Click(object sender, EventArgs e)
         {
-            dataverseDeploy.SelectedSubscription = subids[comboBox1.SelectedIndex];
+            if (setupType == 1)
+                dataverseDeploy.SelectedSubscription = subids[comboBox1.SelectedIndex];
+            else
+                sbs.SelectedSubscription = subids[comboBox1.SelectedIndex];
 
             button1.Enabled = false;
             comboBox1.Enabled = false;
@@ -154,18 +163,39 @@ namespace SMSAndWhatsAppDeploymentTool
 
         private async void Button2_Click(object sender, EventArgs e)
         {
+            DisableAll();
+            if (setupType == 1)
+            {
 #pragma warning disable CS8602 // Converting null literal or possible null value to non-nullable type.
 #pragma warning disable CS8601 // Converting null literal or possible null value to non-nullable type.
-            dataverseDeploy.SelectedEnvironment =  info.value[comboBox2.SelectedIndex].UrlName;
-            dataverseDeploy.SelectedOrgId = info.value[comboBox2.SelectedIndex].Id;
-            dataverseDeploy.AutoAPI = checkBox1.Checked;
+                dataverseDeploy.SelectedEnvironment = info.value[comboBox2.SelectedIndex].UrlName;
+                dataverseDeploy.SelectedOrgId = info.value[comboBox2.SelectedIndex].Id;
+                dataverseDeploy.AutoAPI = checkBox1.Checked;
 #pragma warning restore CS8601 // Converting null literal or possible null value to non-nullable type.
 #pragma warning restore CS8602 // Converting null literal or possible null value to non-nullable type.
 
-            this.Hide();
+                await dataverseDeploy.Init();
+                this.Hide();
+                dataverseDeploy.ShowDialog();
+            }
+            else
+            {
+                sbs.SelectedRegion = comboBox3.Text;
+                sbs.DBType = 0;
+#pragma warning disable CS8602 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8601 // Converting null literal or possible null value to non-nullable type.
+                sbs.SelectedEnvironment = info.value[comboBox2.SelectedIndex].UrlName;
+                sbs.SelectedOrgId = info.value[comboBox2.SelectedIndex].Id;
+                sbs.AutoAPI = checkBox1.Checked;
+#pragma warning restore CS8601 // Converting null literal or possible null value to non-nullable type.
+#pragma warning restore CS8602 // Converting null literal or possible null value to non-nullable type.
 
-            await dataverseDeploy.Init();
-            dataverseDeploy.ShowDialog();
+                ChooseKeyVaultNames1 s = new(sbs, this);
+                await s.Init();
+                this.Hide();
+                s.ShowDialog();
+            }
+            EnableAll();
         }
     }
 }

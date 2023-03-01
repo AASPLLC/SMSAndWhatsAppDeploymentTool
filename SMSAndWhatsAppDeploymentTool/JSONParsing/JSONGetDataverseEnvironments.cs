@@ -1,4 +1,7 @@
-﻿namespace SMSAndWhatsAppDeploymentTool.JSONParsing
+﻿using AASPGlobalLibrary;
+using System.Text.Json;
+
+namespace SMSAndWhatsAppDeploymentTool.JSONParsing
 {
     public class JSONGetDataverseEnvironments
     {
@@ -19,5 +22,14 @@
             public string? SchemaType { get; set; }
         }
 
+        readonly JsonSerializerOptions options = new()
+        {
+            WriteIndented = true
+        };
+
+        public override string ToString()
+        {
+            return JsonSerializer.Serialize(this, options);
+        }
     }
 }

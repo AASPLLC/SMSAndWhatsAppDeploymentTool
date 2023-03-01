@@ -4,19 +4,45 @@ using Azure.ResourceManager.CosmosDB.Models;
 using Azure.ResourceManager.CosmosDB;
 using Azure.Core;
 using AASPGlobalLibrary;
+using Azure.ResourceManager.Resources;
+using SMSAndWhatsAppDeploymentTool.StepByStep;
+using Azure.ResourceManager.Network;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
     //keep ARM plus Management way for security team
     internal class CosmosResourceHandler
     {
+        static string GetDesiredCosmosName(string desiredCosmosName, ResourceGroupResource SelectedGroup)
+        {
+            foreach (var item in SelectedGroup.GetCosmosDBAccounts())
+            {
+                desiredCosmosName = item.Data.Name;
+                break;
+            }
+            return desiredCosmosName;
+        }
+
         internal static bool found = false;
+        internal virtual async Task InitialCreation(string desiredCosmosName, StepByStepValues sbs)
+        {
+#pragma warning disable CS8604
+            desiredCosmosName = GetDesiredCosmosName(desiredCosmosName, sbs.SelectedGroup);
+#pragma warning restore CS8604
+            //if (useArm)
+            //await CreateCosmosARM(form, DBName, Environment.CurrentDirectory + @"\JSONS\CosmosDeploy.json", desiredCosmosName, form.SelectedSubscription.Data.SubscriptionId, vnetName, subnetID.Name);
+            //else
+            if (sbs.secretNames.DbName != null)
+                await CreateCosmosDB(sbs.secretNames.DbName, desiredCosmosName, sbs);
+            await sbs.CreateCosmosSecret(desiredCosmosName);
+        }
         internal virtual async Task InitialCreation(JSONDefaultCosmosLibrary cosmosLibrary, ResourceIdentifier subnetID, string DBName, string desiredCosmosName, string vnetName, CosmosDeploy form, bool useArm = false)
         {
+            desiredCosmosName = GetDesiredCosmosName(desiredCosmosName, form.SelectedGroup);
             //if (useArm)
-                //await CreateCosmosARM(form, DBName, Environment.CurrentDirectory + @"\JSONS\CosmosDeploy.json", desiredCosmosName, form.SelectedSubscription.Data.SubscriptionId, vnetName, subnetID.Name);
+            //await CreateCosmosARM(form, DBName, Environment.CurrentDirectory + @"\JSONS\CosmosDeploy.json", desiredCosmosName, form.SelectedSubscription.Data.SubscriptionId, vnetName, subnetID.Name);
             //else
-                await CreateCosmosDB(cosmosLibrary, subnetID, DBName, desiredCosmosName, form);
+            await CreateCosmosDB(cosmosLibrary, subnetID, DBName, desiredCosmosName, form);
         }
 
         static async Task AddContainer(CosmosDBSqlDatabaseResource dbResponse, string idName, string containerName, AzureLocation SelectedRegion)
@@ -29,6 +55,73 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 new(SelectedRegion,
                 new(containerName)
                 { PartitionKey = partKey }))).Value;
+        }
+        static async Task CreateCosmosDB(string DBName, string desiredCosmosName, StepByStepValues sbs)
+        {
+            JSONDefaultCosmosLibrary cosmosLibrary = await JSONDefaultCosmosLibrary.Load();
+            List<CosmosDBAccountLocation> Locations = new();
+            CosmosDBAccountLocation locationstuff = new()
+            {
+                LocationName = sbs.SelectedRegion,
+                IsZoneRedundant = false
+            };
+            Locations.Add(locationstuff);
+            CosmosDBAccountCreateOrUpdateContent accountcontent = new(sbs.SelectedRegion, Locations)
+            {
+                PublicNetworkAccess = CosmosDBPublicNetworkAccess.Enabled,
+                IsVirtualNetworkFilterEnabled = true
+            };
+            ResourceIdentifier subnetID = (await (await sbs.SelectedGroup.GetVirtualNetworkAsync("StorageConnection")).Value.GetSubnetAsync("RestAPIToCosmos")).Value.Id;
+            accountcontent.VirtualNetworkRules.Add(new()
+            {
+                Id = subnetID,
+                IgnoreMissingVnetServiceEndpoint = true
+            });
+            try
+            {
+                var item = sbs.SelectedGroup.GetCosmosDBAccount(desiredCosmosName).Value;
+                Console.Write(Environment.NewLine + item.Data.Name + "already exists in your environment, skipping.");
+            }
+            catch
+            {
+                try
+                {
+                    CosmosDBAccountResource dbAccountResponse = (await sbs.SelectedGroup.GetCosmosDBAccounts().CreateOrUpdateAsync(WaitUntil.Completed, desiredCosmosName, accountcontent)).Value;
+                    CosmosDBSqlDatabaseResource dbResponse = (await dbAccountResponse.GetCosmosDBSqlDatabases().CreateOrUpdateAsync(WaitUntil.Completed, DBName, new(sbs.SelectedRegion, new(DBName)))).Value;
+#pragma warning disable CS8604
+                    await AddContainer(dbResponse, cosmosLibrary?.accountsIDName, cosmosLibrary?.accountsContainerName, sbs.SelectedRegion);
+                    await AddContainer(dbResponse, cosmosLibrary?.countersIDName, cosmosLibrary?.countersContainerName, sbs.SelectedRegion);
+                    await AddContainer(dbResponse, cosmosLibrary?.smsIDName, cosmosLibrary?.smsContainerName, sbs.SelectedRegion);
+                    await AddContainer(dbResponse, cosmosLibrary?.whatsappIDName, cosmosLibrary?.whatsappContainerName, sbs.SelectedRegion);
+                    await AddContainer(dbResponse, cosmosLibrary?.phoneIDName, cosmosLibrary?.phoneContainerName, sbs.SelectedRegion);
+                    await AddContainer(dbResponse, cosmosLibrary?.whatsappphoneIDName, cosmosLibrary?.whatsappphoneContainerName, sbs.SelectedRegion);
+#pragma warning restore CS8604
+                }
+                catch (Exception ex)
+                {
+                    if (ex.Message.Contains("Sorry, we are currently experiencing high demand in"))
+                    {
+                        Globals.OpenLink("https://aka.ms/cosmosdbquota");
+                        MessageBox2 mb = new();
+                        mb.label1.Text = "Error: Cosmos DB has not finished due to high demand.";
+                        mb.richTextBox1.Text = "Run this again after fixing quota error link."
+                            + Environment.NewLine + Environment.NewLine +
+                            "Be sure to mention your requested name: " + desiredCosmosName
+                            + Environment.NewLine + Environment.NewLine +
+                            "Full error in case Microsoft needs it: " + Environment.NewLine + ex.Message;
+                        mb.ShowDialog();
+                        mb.Close();
+                    }
+                    else
+                    {
+                        MessageBox2 mb = new();
+                        mb.label1.Text = "Error: Cosmos DB has an unknown error.";
+                        mb.richTextBox1.Text = ex.Message;
+                        mb.ShowDialog();
+                        mb.Close();
+                    }
+                }
+            }
         }
         static async Task CreateCosmosDB(JSONDefaultCosmosLibrary cosmosLibrary, ResourceIdentifier subnetID, string DBName, string desiredCosmosName, CosmosDeploy form)
         {
@@ -54,41 +147,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 var item = form.SelectedGroup.GetCosmosDBAccount(desiredCosmosName).Value;
                 form.OutputRT.Text += Environment.NewLine + item.Data.Name + "already exists in your environment, skipping.";
             }
-            //can be improved?
-            /*foreach (var item in form.SelectedGroup.GetCosmosDBAccounts())
-            {
-                CosmosDBSqlDatabaseResource dbResponse = (await item.GetCosmosDBSqlDatabases().CreateOrUpdateAsync(WaitUntil.Completed, DBName, new(form.SelectedRegion, new(DBName)))).Value;
-                CosmosDBContainerPartitionKey partKey = new() { Kind = CosmosDBPartitionKind.Hash };
-                partKey.Paths.Add(cosmosLibrary.accountsIDName);
-                _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.accountsContainerName, new(form.SelectedRegion, new(cosmosLibrary.accountsContainerName) { PartitionKey = partKey }))).Value;
-                //CosmosDBSqlContainerResource sql = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.accountsContainerName, new(form.SelectedRegion, new(cosmosLibrary.accountsContainerName) { PartitionKey = partKey }))).Value;
-                partKey.Paths.Clear();
-                partKey.Paths.Add(cosmosLibrary.countersIDName);
-                _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.countersContainerName, new(form.SelectedRegion, new(cosmosLibrary.countersContainerName) { PartitionKey = partKey }))).Value;
-                partKey.Paths.Clear();
-                partKey.Paths.Add(cosmosLibrary.smsIDName);
-                _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.smsContainerName, new(form.SelectedRegion, new(cosmosLibrary.smsContainerName) { PartitionKey = partKey }))).Value;
-                partKey.Paths.Clear();
-                partKey.Paths.Add(cosmosLibrary.whatsappIDName);
-                _ = (await dbResponse.GetCosmosDBSqlContainers().CreateOrUpdateAsync(WaitUntil.Completed, cosmosLibrary.whatsappContainerName, new(form.SelectedRegion, new(cosmosLibrary.whatsappContainerName) { PartitionKey = partKey }))).Value;
-                if (item.Data.ProvisioningState.Contains("Failed"))
-                {
-                    MessageBox2 mb = new();
-                    mb.label1.Text = "Error: Unknown";
-                    mb.richTextBox1.Text = "Provisioning state is in failed status, but there is no description for the error."
-                        + Environment.NewLine +
-                        "The most likely cause is due to quota limits. Please see https://aka.ms/cosmosdbquota"
-                        + Environment.NewLine + Environment.NewLine +
-                        "Desired Cosmos Name: " + desiredCosmosName;
-                    mb.ShowDialog();
-                    mb.Close();
-                }
-                else
-                    form.OutputRT.Text += Environment.NewLine + item.Data.Name + "already exists in your environment, skipping.";
-                found = true;
-                break;
-            }
-            if (!found)*/
             catch
             {
                 try

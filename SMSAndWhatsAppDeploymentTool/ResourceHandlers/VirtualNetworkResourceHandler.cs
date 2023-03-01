@@ -2,12 +2,28 @@
 using Azure.ResourceManager.Network.Models;
 using Azure.ResourceManager.Network;
 using Azure;
-using System.Drawing;
+using SMSAndWhatsAppDeploymentTool.StepByStep;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
     internal class VirtualNetworkResourceHandler
     {
+        internal virtual async Task InitialCreation(string defaultSubnet, string appSubnet, StepByStepValues sbs)
+        {
+            if (defaultSubnet == "")
+                defaultSubnet = "10.1.0.0";
+            if (appSubnet == "")
+                appSubnet = "10.1.0.32";
+            if (await CheckVirtualNetworkName(sbs))
+            {
+                _ = await sbs.SelectedGroup.GetVirtualNetworks().CreateOrUpdateAsync(WaitUntil.Completed, "StorageConnection", CreateVirtualNetworkData(defaultSubnet, appSubnet, sbs.SelectedRegion, false));
+            }
+            else
+            {
+                SubnetResource subnet = await sbs.SelectedGroup.GetVirtualNetwork("StorageConnection").Value.GetSubnetAsync("RestAPIToCosmos");
+                await subnet.UpdateAsync(WaitUntil.Completed, CreateSubnetData("RestAPIToCosmos", appSubnet + "/27", sbs.SelectedRegion, false));
+            }
+        }
         internal virtual async Task<ResourceIdentifier> InitialCreation(string defaultSubnet, string appSubnet, DataverseDeploy form)
         {
             if (await CheckVirtualNetworkName(form))
@@ -37,6 +53,19 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
         }
 
+        static async Task<bool> CheckVirtualNetworkName(StepByStepValues sbs)
+        {
+            try
+            {
+                _ = await sbs.SelectedGroup.GetVirtualNetworkAsync("StorageConnection");
+                Console.Write(Environment.NewLine + "StorageConnection already exists in your environment, skipping.");
+                return false;
+            }
+            catch (RequestFailedException ex) when (ex.Status == 404)
+            {
+                return true;
+            }
+        }
         static async Task<bool> CheckVirtualNetworkName(DataverseDeploy form)
         {
             try
@@ -75,6 +104,21 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return (temp.Value.Data.Subnets[1].Id, temp.Value.Data.Name);
         }
 
+        static VirtualNetworkData CreateVirtualNetworkData(string defaultSubnet, string appSubnet, string region, bool rest)
+        {
+            Console.Write(Environment.NewLine + "Waiting for Virtual Network Creation");
+            VirtualNetworkData virtualNetwork = new()
+            {
+                EnableDdosProtection = false,
+                Location = region,
+            };
+            virtualNetwork.Subnets.Add(CreateSubnetData("default", defaultSubnet + "/29"));
+            virtualNetwork.Subnets.Add(CreateSubnetData("RestAPIToCosmos", appSubnet + "/27", region, rest));
+            virtualNetwork.AddressPrefixes.Add(defaultSubnet + "/16");
+
+            Console.Write(Environment.NewLine + "Virtual network for internal storage connection created");
+            return virtualNetwork;
+        }
         static VirtualNetworkData CreateVirtualNetworkData(string defaultSubnet, string appSubnet, string region, bool rest, dynamic form)
         {
             form.OutputRT.Text += Environment.NewLine + "Waiting for Virtual Network Creation";

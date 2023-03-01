@@ -28,386 +28,384 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.desiredPublicKeyvaultNameTB = new System.Windows.Forms.TextBox();
-            this.keyvaultLBL = new System.Windows.Forms.Label();
-            this.OutputRT = new System.Windows.Forms.RichTextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.deployBTN = new System.Windows.Forms.Button();
-            this.label3 = new System.Windows.Forms.Label();
-            this.desiredCommunicationsNameTB = new System.Windows.Forms.TextBox();
-            this.desiredStorageNameTB = new System.Windows.Forms.TextBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.desiredSMSFunctionAppNameTB = new System.Windows.Forms.TextBox();
-            this.smsLBL = new System.Windows.Forms.Label();
-            this.desiredWhatsAppFunctionNameTB = new System.Windows.Forms.TextBox();
-            this.whatsappLBL = new System.Windows.Forms.Label();
-            this.autoGenerateNamesBTN = new System.Windows.Forms.Button();
-            this.uniqueStringBTN = new System.Windows.Forms.Button();
-            this.label7 = new System.Windows.Forms.Label();
-            this.whatsappSystemTokenTB = new System.Windows.Forms.TextBox();
-            this.button1 = new System.Windows.Forms.Button();
-            this.label8 = new System.Windows.Forms.Label();
-            this.whatsappCallbackTokenTB = new System.Windows.Forms.TextBox();
-            this.CallbackUniqueBTN = new System.Windows.Forms.Button();
-            this.desiredInternalKeyvaultNameTB = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.archiveEmailTB = new System.Windows.Forms.TextBox();
-            this.button2 = new System.Windows.Forms.Button();
-            this.label9 = new System.Windows.Forms.Label();
-            this.SMSTemplateTB = new System.Windows.Forms.TextBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.defaultSubnetTB = new System.Windows.Forms.TextBox();
-            this.label10 = new System.Windows.Forms.Label();
-            this.appsSubnetTB = new System.Windows.Forms.TextBox();
-            this.label11 = new System.Windows.Forms.Label();
-            this.SuspendLayout();
+            desiredPublicKeyvaultNameTB = new TextBox();
+            keyvaultLBL = new Label();
+            OutputRT = new RichTextBox();
+            label2 = new Label();
+            deployBTN = new Button();
+            label3 = new Label();
+            desiredCommunicationsNameTB = new TextBox();
+            desiredStorageNameTB = new TextBox();
+            label4 = new Label();
+            desiredSMSFunctionAppNameTB = new TextBox();
+            smsLBL = new Label();
+            desiredWhatsAppFunctionNameTB = new TextBox();
+            whatsappLBL = new Label();
+            autoGenerateNamesBTN = new Button();
+            uniqueStringBTN = new Button();
+            label7 = new Label();
+            whatsappSystemTokenTB = new TextBox();
+            button1 = new Button();
+            label8 = new Label();
+            whatsappCallbackTokenTB = new TextBox();
+            CallbackUniqueBTN = new Button();
+            desiredInternalKeyvaultNameTB = new TextBox();
+            label1 = new Label();
+            label6 = new Label();
+            archiveEmailTB = new TextBox();
+            button2 = new Button();
+            label9 = new Label();
+            SMSTemplateTB = new TextBox();
+            label5 = new Label();
+            defaultSubnetTB = new TextBox();
+            label10 = new Label();
+            appsSubnetTB = new TextBox();
+            label11 = new Label();
+            SuspendLayout();
             // 
             // desiredPublicKeyvaultNameTB
             // 
-            this.desiredPublicKeyvaultNameTB.Location = new System.Drawing.Point(277, 14);
-            this.desiredPublicKeyvaultNameTB.MaxLength = 24;
-            this.desiredPublicKeyvaultNameTB.Name = "desiredPublicKeyvaultNameTB";
-            this.desiredPublicKeyvaultNameTB.PlaceholderText = "Must be all lowercase characters";
-            this.desiredPublicKeyvaultNameTB.Size = new System.Drawing.Size(458, 23);
-            this.desiredPublicKeyvaultNameTB.TabIndex = 0;
+            desiredPublicKeyvaultNameTB.Location = new Point(277, 14);
+            desiredPublicKeyvaultNameTB.MaxLength = 24;
+            desiredPublicKeyvaultNameTB.Name = "desiredPublicKeyvaultNameTB";
+            desiredPublicKeyvaultNameTB.PlaceholderText = "Must be all lowercase characters";
+            desiredPublicKeyvaultNameTB.Size = new Size(458, 23);
+            desiredPublicKeyvaultNameTB.TabIndex = 0;
             // 
             // keyvaultLBL
             // 
-            this.keyvaultLBL.AutoSize = true;
-            this.keyvaultLBL.Location = new System.Drawing.Point(12, 17);
-            this.keyvaultLBL.Name = "keyvaultLBL";
-            this.keyvaultLBL.Size = new System.Drawing.Size(171, 15);
-            this.keyvaultLBL.TabIndex = 1;
-            this.keyvaultLBL.Text = "Desired Public Key Vault Name:";
+            keyvaultLBL.AutoSize = true;
+            keyvaultLBL.Location = new Point(12, 17);
+            keyvaultLBL.Name = "keyvaultLBL";
+            keyvaultLBL.Size = new Size(171, 15);
+            keyvaultLBL.TabIndex = 1;
+            keyvaultLBL.Text = "Desired Public Key Vault Name:";
             // 
             // OutputRT
             // 
-            this.OutputRT.Location = new System.Drawing.Point(12, 351);
-            this.OutputRT.Name = "OutputRT";
-            this.OutputRT.ReadOnly = true;
-            this.OutputRT.Size = new System.Drawing.Size(864, 288);
-            this.OutputRT.TabIndex = 2;
-            this.OutputRT.Text = "";
+            OutputRT.Location = new Point(12, 351);
+            OutputRT.Name = "OutputRT";
+            OutputRT.ReadOnly = true;
+            OutputRT.Size = new Size(864, 288);
+            OutputRT.TabIndex = 2;
+            OutputRT.Text = "";
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 333);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(48, 15);
-            this.label2.TabIndex = 3;
-            this.label2.Text = "Output:";
+            label2.AutoSize = true;
+            label2.Location = new Point(12, 333);
+            label2.Name = "label2";
+            label2.Size = new Size(48, 15);
+            label2.TabIndex = 3;
+            label2.Text = "Output:";
             // 
             // deployBTN
             // 
-            this.deployBTN.Location = new System.Drawing.Point(743, 98);
-            this.deployBTN.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.deployBTN.Name = "deployBTN";
-            this.deployBTN.Size = new System.Drawing.Size(133, 78);
-            this.deployBTN.TabIndex = 4;
-            this.deployBTN.Text = "Deploy";
-            this.deployBTN.UseVisualStyleBackColor = true;
+            deployBTN.Location = new Point(743, 98);
+            deployBTN.Margin = new Padding(4, 5, 4, 5);
+            deployBTN.Name = "deployBTN";
+            deployBTN.Size = new Size(133, 78);
+            deployBTN.TabIndex = 4;
+            deployBTN.Text = "Deploy";
+            deployBTN.UseVisualStyleBackColor = true;
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 75);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(179, 15);
-            this.label3.TabIndex = 17;
-            this.label3.Text = "Desired Communications Name:";
+            label3.AutoSize = true;
+            label3.Location = new Point(12, 75);
+            label3.Name = "label3";
+            label3.Size = new Size(179, 15);
+            label3.TabIndex = 17;
+            label3.Text = "Desired Communications Name:";
             // 
             // desiredCommunicationsNameTB
             // 
-            this.desiredCommunicationsNameTB.Location = new System.Drawing.Point(277, 72);
-            this.desiredCommunicationsNameTB.Name = "desiredCommunicationsNameTB";
-            this.desiredCommunicationsNameTB.PlaceholderText = "Can contain dashes (-)";
-            this.desiredCommunicationsNameTB.Size = new System.Drawing.Size(458, 23);
-            this.desiredCommunicationsNameTB.TabIndex = 18;
+            desiredCommunicationsNameTB.Location = new Point(277, 72);
+            desiredCommunicationsNameTB.Name = "desiredCommunicationsNameTB";
+            desiredCommunicationsNameTB.PlaceholderText = "Can contain dashes (-)";
+            desiredCommunicationsNameTB.Size = new Size(458, 23);
+            desiredCommunicationsNameTB.TabIndex = 18;
             // 
             // desiredStorageNameTB
             // 
-            this.desiredStorageNameTB.Location = new System.Drawing.Point(277, 101);
-            this.desiredStorageNameTB.Name = "desiredStorageNameTB";
-            this.desiredStorageNameTB.PlaceholderText = "Must be all lowercase characters";
-            this.desiredStorageNameTB.Size = new System.Drawing.Size(458, 23);
-            this.desiredStorageNameTB.TabIndex = 19;
+            desiredStorageNameTB.Location = new Point(277, 101);
+            desiredStorageNameTB.Name = "desiredStorageNameTB";
+            desiredStorageNameTB.PlaceholderText = "Must be all lowercase characters";
+            desiredStorageNameTB.Size = new Size(458, 23);
+            desiredStorageNameTB.TabIndex = 19;
             // 
             // label4
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(12, 104);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(175, 15);
-            this.label4.TabIndex = 20;
-            this.label4.Text = "Desired Storage Account Name:";
+            label4.AutoSize = true;
+            label4.Location = new Point(12, 104);
+            label4.Name = "label4";
+            label4.Size = new Size(175, 15);
+            label4.TabIndex = 20;
+            label4.Text = "Desired Storage Account Name:";
             // 
             // desiredSMSFunctionAppNameTB
             // 
-            this.desiredSMSFunctionAppNameTB.Location = new System.Drawing.Point(277, 130);
-            this.desiredSMSFunctionAppNameTB.Name = "desiredSMSFunctionAppNameTB";
-            this.desiredSMSFunctionAppNameTB.PlaceholderText = "This function app will add SMSApp to the end of the desired name.";
-            this.desiredSMSFunctionAppNameTB.Size = new System.Drawing.Size(458, 23);
-            this.desiredSMSFunctionAppNameTB.TabIndex = 21;
+            desiredSMSFunctionAppNameTB.Location = new Point(277, 130);
+            desiredSMSFunctionAppNameTB.Name = "desiredSMSFunctionAppNameTB";
+            desiredSMSFunctionAppNameTB.PlaceholderText = "This function app will add SMSApp to the end of the desired name.";
+            desiredSMSFunctionAppNameTB.Size = new Size(458, 23);
+            desiredSMSFunctionAppNameTB.TabIndex = 21;
             // 
             // smsLBL
             // 
-            this.smsLBL.AutoSize = true;
-            this.smsLBL.Location = new System.Drawing.Point(12, 133);
-            this.smsLBL.Name = "smsLBL";
-            this.smsLBL.Size = new System.Drawing.Size(185, 15);
-            this.smsLBL.TabIndex = 22;
-            this.smsLBL.Text = "Desired SMS Function App Name:";
+            smsLBL.AutoSize = true;
+            smsLBL.Location = new Point(12, 133);
+            smsLBL.Name = "smsLBL";
+            smsLBL.Size = new Size(185, 15);
+            smsLBL.TabIndex = 22;
+            smsLBL.Text = "Desired SMS Function App Name:";
             // 
             // desiredWhatsAppFunctionNameTB
             // 
-            this.desiredWhatsAppFunctionNameTB.Location = new System.Drawing.Point(277, 159);
-            this.desiredWhatsAppFunctionNameTB.Name = "desiredWhatsAppFunctionNameTB";
-            this.desiredWhatsAppFunctionNameTB.PlaceholderText = "This function app will add WhatsApp to the end of the desired name.";
-            this.desiredWhatsAppFunctionNameTB.Size = new System.Drawing.Size(458, 23);
-            this.desiredWhatsAppFunctionNameTB.TabIndex = 23;
+            desiredWhatsAppFunctionNameTB.Location = new Point(277, 159);
+            desiredWhatsAppFunctionNameTB.Name = "desiredWhatsAppFunctionNameTB";
+            desiredWhatsAppFunctionNameTB.PlaceholderText = "This function app will add WhatsApp to the end of the desired name.";
+            desiredWhatsAppFunctionNameTB.Size = new Size(458, 23);
+            desiredWhatsAppFunctionNameTB.TabIndex = 23;
             // 
             // whatsappLBL
             // 
-            this.whatsappLBL.AutoSize = true;
-            this.whatsappLBL.Location = new System.Drawing.Point(12, 162);
-            this.whatsappLBL.Name = "whatsappLBL";
-            this.whatsappLBL.Size = new System.Drawing.Size(217, 15);
-            this.whatsappLBL.TabIndex = 24;
-            this.whatsappLBL.Text = "Desired WhatsApp Function App Name:";
+            whatsappLBL.AutoSize = true;
+            whatsappLBL.Location = new Point(12, 162);
+            whatsappLBL.Name = "whatsappLBL";
+            whatsappLBL.Size = new Size(217, 15);
+            whatsappLBL.TabIndex = 24;
+            whatsappLBL.Text = "Desired WhatsApp Function App Name:";
             // 
             // autoGenerateNamesBTN
             // 
-            this.autoGenerateNamesBTN.Location = new System.Drawing.Point(744, 14);
-            this.autoGenerateNamesBTN.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.autoGenerateNamesBTN.Name = "autoGenerateNamesBTN";
-            this.autoGenerateNamesBTN.Size = new System.Drawing.Size(133, 32);
-            this.autoGenerateNamesBTN.TabIndex = 25;
-            this.autoGenerateNamesBTN.Text = "Auto Generate Names";
-            this.autoGenerateNamesBTN.UseVisualStyleBackColor = true;
-            this.autoGenerateNamesBTN.Click += new System.EventHandler(this.AutoGenerateNamesBTN_Click);
+            autoGenerateNamesBTN.Location = new Point(744, 14);
+            autoGenerateNamesBTN.Margin = new Padding(4, 5, 4, 5);
+            autoGenerateNamesBTN.Name = "autoGenerateNamesBTN";
+            autoGenerateNamesBTN.Size = new Size(133, 32);
+            autoGenerateNamesBTN.TabIndex = 25;
+            autoGenerateNamesBTN.Text = "Auto Generate Names";
+            autoGenerateNamesBTN.UseVisualStyleBackColor = true;
+            autoGenerateNamesBTN.Click += AutoGenerateNamesBTN_Click;
             // 
             // uniqueStringBTN
             // 
-            this.uniqueStringBTN.Location = new System.Drawing.Point(742, 56);
-            this.uniqueStringBTN.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.uniqueStringBTN.Name = "uniqueStringBTN";
-            this.uniqueStringBTN.Size = new System.Drawing.Size(133, 32);
-            this.uniqueStringBTN.TabIndex = 26;
-            this.uniqueStringBTN.Text = "Make Unique";
-            this.uniqueStringBTN.UseVisualStyleBackColor = true;
-            this.uniqueStringBTN.Click += new System.EventHandler(this.UniqueStringBTN_Click);
+            uniqueStringBTN.Location = new Point(742, 56);
+            uniqueStringBTN.Margin = new Padding(4, 5, 4, 5);
+            uniqueStringBTN.Name = "uniqueStringBTN";
+            uniqueStringBTN.Size = new Size(133, 32);
+            uniqueStringBTN.TabIndex = 26;
+            uniqueStringBTN.Text = "Make Unique";
+            uniqueStringBTN.UseVisualStyleBackColor = true;
+            uniqueStringBTN.Click += UniqueStringBTN_Click;
             // 
             // label7
             // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(12, 191);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(179, 15);
-            this.label7.TabIndex = 27;
-            this.label7.Text = "WhatsApp System Access Token:";
+            label7.AutoSize = true;
+            label7.Location = new Point(12, 191);
+            label7.Name = "label7";
+            label7.Size = new Size(179, 15);
+            label7.TabIndex = 27;
+            label7.Text = "WhatsApp System Access Token:";
             // 
             // whatsappSystemTokenTB
             // 
-            this.whatsappSystemTokenTB.Location = new System.Drawing.Point(277, 188);
-            this.whatsappSystemTokenTB.Name = "whatsappSystemTokenTB";
-            this.whatsappSystemTokenTB.PlaceholderText = "Required to know how to make calls to the WhatsApp Meta Developer API";
-            this.whatsappSystemTokenTB.Size = new System.Drawing.Size(458, 23);
-            this.whatsappSystemTokenTB.TabIndex = 28;
+            whatsappSystemTokenTB.Location = new Point(277, 188);
+            whatsappSystemTokenTB.Name = "whatsappSystemTokenTB";
+            whatsappSystemTokenTB.PlaceholderText = "Required to know how to make calls to the WhatsApp Meta Developer API";
+            whatsappSystemTokenTB.Size = new Size(458, 23);
+            whatsappSystemTokenTB.TabIndex = 28;
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(247, 188);
-            this.button1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(23, 23);
-            this.button1.TabIndex = 29;
-            this.button1.Text = "?";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.Button1_Click_1);
+            button1.Location = new Point(247, 188);
+            button1.Margin = new Padding(4, 5, 4, 5);
+            button1.Name = "button1";
+            button1.Size = new Size(23, 23);
+            button1.TabIndex = 29;
+            button1.Text = "?";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += Button1_Click_1;
             // 
             // label8
             // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(12, 220);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(147, 15);
-            this.label8.TabIndex = 30;
-            this.label8.Text = "WhatsApp Callback Token:";
+            label8.AutoSize = true;
+            label8.Location = new Point(12, 220);
+            label8.Name = "label8";
+            label8.Size = new Size(147, 15);
+            label8.TabIndex = 30;
+            label8.Text = "WhatsApp Callback Token:";
             // 
             // whatsappCallbackTokenTB
             // 
-            this.whatsappCallbackTokenTB.Location = new System.Drawing.Point(277, 217);
-            this.whatsappCallbackTokenTB.Name = "whatsappCallbackTokenTB";
-            this.whatsappCallbackTokenTB.PlaceholderText = "It is recommended to make this unique";
-            this.whatsappCallbackTokenTB.Size = new System.Drawing.Size(458, 23);
-            this.whatsappCallbackTokenTB.TabIndex = 31;
+            whatsappCallbackTokenTB.Location = new Point(277, 217);
+            whatsappCallbackTokenTB.Name = "whatsappCallbackTokenTB";
+            whatsappCallbackTokenTB.PlaceholderText = "It is recommended to make this unique";
+            whatsappCallbackTokenTB.Size = new Size(458, 23);
+            whatsappCallbackTokenTB.TabIndex = 31;
             // 
             // CallbackUniqueBTN
             // 
-            this.CallbackUniqueBTN.Location = new System.Drawing.Point(742, 216);
-            this.CallbackUniqueBTN.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.CallbackUniqueBTN.Name = "CallbackUniqueBTN";
-            this.CallbackUniqueBTN.Size = new System.Drawing.Size(133, 23);
-            this.CallbackUniqueBTN.TabIndex = 32;
-            this.CallbackUniqueBTN.Text = "Make Unique";
-            this.CallbackUniqueBTN.UseVisualStyleBackColor = true;
-            this.CallbackUniqueBTN.Click += new System.EventHandler(this.CallbackUniqueBTN_Click);
+            CallbackUniqueBTN.Location = new Point(742, 216);
+            CallbackUniqueBTN.Margin = new Padding(4, 5, 4, 5);
+            CallbackUniqueBTN.Name = "CallbackUniqueBTN";
+            CallbackUniqueBTN.Size = new Size(133, 23);
+            CallbackUniqueBTN.TabIndex = 32;
+            CallbackUniqueBTN.Text = "Make Unique";
+            CallbackUniqueBTN.UseVisualStyleBackColor = true;
+            CallbackUniqueBTN.Click += CallbackUniqueBTN_Click;
             // 
             // desiredInternalKeyvaultNameTB
             // 
-            this.desiredInternalKeyvaultNameTB.Location = new System.Drawing.Point(277, 43);
-            this.desiredInternalKeyvaultNameTB.MaxLength = 24;
-            this.desiredInternalKeyvaultNameTB.Name = "desiredInternalKeyvaultNameTB";
-            this.desiredInternalKeyvaultNameTB.PlaceholderText = "Must be all lowercase characters";
-            this.desiredInternalKeyvaultNameTB.Size = new System.Drawing.Size(458, 23);
-            this.desiredInternalKeyvaultNameTB.TabIndex = 33;
+            desiredInternalKeyvaultNameTB.Location = new Point(277, 43);
+            desiredInternalKeyvaultNameTB.MaxLength = 24;
+            desiredInternalKeyvaultNameTB.Name = "desiredInternalKeyvaultNameTB";
+            desiredInternalKeyvaultNameTB.PlaceholderText = "Must be all lowercase characters";
+            desiredInternalKeyvaultNameTB.Size = new Size(458, 23);
+            desiredInternalKeyvaultNameTB.TabIndex = 33;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 46);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(178, 15);
-            this.label1.TabIndex = 34;
-            this.label1.Text = "Desired Internal Key Vault Name:";
+            label1.AutoSize = true;
+            label1.Location = new Point(12, 46);
+            label1.Name = "label1";
+            label1.Size = new Size(178, 15);
+            label1.TabIndex = 34;
+            label1.Text = "Desired Internal Key Vault Name:";
             // 
             // label6
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(12, 249);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(82, 15);
-            this.label6.TabIndex = 42;
-            this.label6.Text = "Archive Email:";
+            label6.AutoSize = true;
+            label6.Location = new Point(12, 249);
+            label6.Name = "label6";
+            label6.Size = new Size(82, 15);
+            label6.TabIndex = 42;
+            label6.Text = "Archive Email:";
             // 
             // archiveEmailTB
             // 
-            this.archiveEmailTB.Location = new System.Drawing.Point(277, 246);
-            this.archiveEmailTB.Name = "archiveEmailTB";
-            this.archiveEmailTB.PlaceholderText = "Email address to archive data";
-            this.archiveEmailTB.Size = new System.Drawing.Size(458, 23);
-            this.archiveEmailTB.TabIndex = 41;
+            archiveEmailTB.Location = new Point(277, 246);
+            archiveEmailTB.Name = "archiveEmailTB";
+            archiveEmailTB.PlaceholderText = "Email address to archive data";
+            archiveEmailTB.Size = new Size(458, 23);
+            archiveEmailTB.TabIndex = 41;
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(247, 275);
-            this.button2.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(23, 23);
-            this.button2.TabIndex = 47;
-            this.button2.Text = "?";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.Button2_Click);
+            button2.Location = new Point(247, 275);
+            button2.Margin = new Padding(4, 5, 4, 5);
+            button2.Name = "button2";
+            button2.Size = new Size(23, 23);
+            button2.TabIndex = 47;
+            button2.Text = "?";
+            button2.UseVisualStyleBackColor = true;
+            button2.Click += Button2_Click;
             // 
             // label9
             // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(12, 278);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(182, 15);
-            this.label9.TabIndex = 46;
-            this.label9.Text = "SMS 24 Hour Template Response:";
+            label9.AutoSize = true;
+            label9.Location = new Point(12, 278);
+            label9.Name = "label9";
+            label9.Size = new Size(182, 15);
+            label9.TabIndex = 46;
+            label9.Text = "SMS 24 Hour Template Response:";
             // 
             // SMSTemplateTB
             // 
-            this.SMSTemplateTB.Location = new System.Drawing.Point(277, 275);
-            this.SMSTemplateTB.Name = "SMSTemplateTB";
-            this.SMSTemplateTB.PlaceholderText = "Used to comply with WhatsApp template guidelines";
-            this.SMSTemplateTB.Size = new System.Drawing.Size(458, 23);
-            this.SMSTemplateTB.TabIndex = 45;
-            this.SMSTemplateTB.Text = "Hello, This is COMPANYNAMEHERE, in order for the conversation to continue, please" +
-    " respond with an accepted message (Yes, ok, y, etc.) to continue.";
+            SMSTemplateTB.Location = new Point(277, 275);
+            SMSTemplateTB.Name = "SMSTemplateTB";
+            SMSTemplateTB.PlaceholderText = "Used to comply with WhatsApp template guidelines";
+            SMSTemplateTB.Size = new Size(458, 23);
+            SMSTemplateTB.TabIndex = 45;
+            SMSTemplateTB.Text = "Hello, This is COMPANYNAMEHERE, in order for the conversation to continue, please respond with an accepted message (Yes, ok, y, etc.) to continue.";
             // 
             // label5
             // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(12, 307);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(88, 15);
-            this.label5.TabIndex = 48;
-            this.label5.Text = "Default Subnet:";
+            label5.AutoSize = true;
+            label5.Location = new Point(12, 307);
+            label5.Name = "label5";
+            label5.Size = new Size(88, 15);
+            label5.TabIndex = 48;
+            label5.Text = "Default Subnet:";
             // 
             // defaultSubnetTB
             // 
-            this.defaultSubnetTB.Location = new System.Drawing.Point(106, 304);
-            this.defaultSubnetTB.Name = "defaultSubnetTB";
-            this.defaultSubnetTB.PlaceholderText = "Keep blank to use 10.1.0.0/29, ends in /29";
-            this.defaultSubnetTB.Size = new System.Drawing.Size(268, 23);
-            this.defaultSubnetTB.TabIndex = 49;
+            defaultSubnetTB.Location = new Point(106, 304);
+            defaultSubnetTB.Name = "defaultSubnetTB";
+            defaultSubnetTB.PlaceholderText = "Keep blank to use 10.1.0.0/29, ends in /29";
+            defaultSubnetTB.Size = new Size(268, 23);
+            defaultSubnetTB.TabIndex = 49;
             // 
             // label10
             // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(380, 307);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(77, 15);
-            this.label10.TabIndex = 50;
-            this.label10.Text = "Apps Subnet:";
+            label10.AutoSize = true;
+            label10.Location = new Point(380, 307);
+            label10.Name = "label10";
+            label10.Size = new Size(77, 15);
+            label10.TabIndex = 50;
+            label10.Text = "Apps Subnet:";
             // 
             // appsSubnetTB
             // 
-            this.appsSubnetTB.Location = new System.Drawing.Point(463, 304);
-            this.appsSubnetTB.Name = "appsSubnetTB";
-            this.appsSubnetTB.PlaceholderText = "Keep blank to use 10.1.0.32/27, ends in /27";
-            this.appsSubnetTB.Size = new System.Drawing.Size(272, 23);
-            this.appsSubnetTB.TabIndex = 51;
+            appsSubnetTB.Location = new Point(463, 304);
+            appsSubnetTB.Name = "appsSubnetTB";
+            appsSubnetTB.PlaceholderText = "Keep blank to use 10.1.0.32/27, ends in /27";
+            appsSubnetTB.Size = new Size(272, 23);
+            appsSubnetTB.TabIndex = 51;
             // 
             // label11
             // 
-            this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(744, 307);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(98, 15);
-            this.label11.TabIndex = 52;
-            this.label11.Text = "Prefix: Default/16";
+            label11.AutoSize = true;
+            label11.Location = new Point(744, 307);
+            label11.Name = "label11";
+            label11.Size = new Size(98, 15);
+            label11.TabIndex = 52;
+            label11.Text = "Prefix: Default/16";
             // 
             // DataverseDeploy
             // 
-            this.ClientSize = new System.Drawing.Size(890, 651);
-            this.Controls.Add(this.label11);
-            this.Controls.Add(this.appsSubnetTB);
-            this.Controls.Add(this.label10);
-            this.Controls.Add(this.defaultSubnetTB);
-            this.Controls.Add(this.label5);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.label9);
-            this.Controls.Add(this.SMSTemplateTB);
-            this.Controls.Add(this.label6);
-            this.Controls.Add(this.archiveEmailTB);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.desiredInternalKeyvaultNameTB);
-            this.Controls.Add(this.CallbackUniqueBTN);
-            this.Controls.Add(this.whatsappCallbackTokenTB);
-            this.Controls.Add(this.label8);
-            this.Controls.Add(this.button1);
-            this.Controls.Add(this.whatsappSystemTokenTB);
-            this.Controls.Add(this.label7);
-            this.Controls.Add(this.uniqueStringBTN);
-            this.Controls.Add(this.autoGenerateNamesBTN);
-            this.Controls.Add(this.whatsappLBL);
-            this.Controls.Add(this.desiredWhatsAppFunctionNameTB);
-            this.Controls.Add(this.smsLBL);
-            this.Controls.Add(this.desiredSMSFunctionAppNameTB);
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this.desiredStorageNameTB);
-            this.Controls.Add(this.desiredCommunicationsNameTB);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.desiredPublicKeyvaultNameTB);
-            this.Controls.Add(this.keyvaultLBL);
-            this.Controls.Add(this.OutputRT);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.deployBTN);
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "DataverseDeploy";
-            this.Text = "Azure Configuration Tool";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.DataverseDeploy_Closed);
-            this.Load += new System.EventHandler(this.Form1_Load);
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            ClientSize = new Size(890, 651);
+            Controls.Add(label11);
+            Controls.Add(appsSubnetTB);
+            Controls.Add(label10);
+            Controls.Add(defaultSubnetTB);
+            Controls.Add(label5);
+            Controls.Add(button2);
+            Controls.Add(label9);
+            Controls.Add(SMSTemplateTB);
+            Controls.Add(label6);
+            Controls.Add(archiveEmailTB);
+            Controls.Add(label1);
+            Controls.Add(desiredInternalKeyvaultNameTB);
+            Controls.Add(CallbackUniqueBTN);
+            Controls.Add(whatsappCallbackTokenTB);
+            Controls.Add(label8);
+            Controls.Add(button1);
+            Controls.Add(whatsappSystemTokenTB);
+            Controls.Add(label7);
+            Controls.Add(uniqueStringBTN);
+            Controls.Add(autoGenerateNamesBTN);
+            Controls.Add(whatsappLBL);
+            Controls.Add(desiredWhatsAppFunctionNameTB);
+            Controls.Add(smsLBL);
+            Controls.Add(desiredSMSFunctionAppNameTB);
+            Controls.Add(label4);
+            Controls.Add(desiredStorageNameTB);
+            Controls.Add(desiredCommunicationsNameTB);
+            Controls.Add(label3);
+            Controls.Add(desiredPublicKeyvaultNameTB);
+            Controls.Add(keyvaultLBL);
+            Controls.Add(OutputRT);
+            Controls.Add(label2);
+            Controls.Add(deployBTN);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "DataverseDeploy";
+            Text = "Azure Configuration Tool";
+            FormClosed += DataverseDeploy_Closed;
+            Load += Form1_Load;
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion

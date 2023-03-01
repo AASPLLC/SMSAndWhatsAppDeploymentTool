@@ -2,6 +2,7 @@ using Azure.Core;
 using Azure.ResourceManager.Resources;
 using AASPGlobalLibrary;
 using SMSAndWhatsAppDeploymentTool.ResourceHandlers;
+using SMSAndWhatsAppDeploymentTool.StepByStep;
 
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
 #pragma warning disable CS8618 // Possible null reference argument.
@@ -11,7 +12,7 @@ using SMSAndWhatsAppDeploymentTool.ResourceHandlers;
 //it is best not to async the button itself in this case so it can be disabled immediately
 namespace SMSAndWhatsAppDeploymentTool
 {
-    internal partial class DataverseDeploy : Form
+    public partial class DataverseDeploy : Form
     {
         readonly internal string DataverseLibraryPath = Environment.CurrentDirectory + "/JSONS/defaultLibraryDataverse.json";
 
@@ -27,7 +28,6 @@ namespace SMSAndWhatsAppDeploymentTool
         internal Guid TenantID;
         internal AzureLocation SelectedRegion;
 
-        internal APIRequiredWindow apiRequiredWindow = new();
         internal string apiClientId = "";
         internal string apiObjectId = "";
         internal bool dataverseCreateAccount = true;
@@ -35,8 +35,10 @@ namespace SMSAndWhatsAppDeploymentTool
         internal bool AutoAPI = false;
 
         readonly ChooseDBType chooseDBType;
-        internal DataverseDeploy(ChooseDBType chooseDBType)
+        readonly StepByStepValues sbs;
+        internal DataverseDeploy(ChooseDBType chooseDBType, StepByStepValues sbs)
         {
+            this.sbs = sbs;
             this.chooseDBType = chooseDBType;
             InitializeComponent();
             //this.button1.Click += new EventHandler(async (s, e) => { await button1_Click(s, e); });
@@ -50,7 +52,8 @@ namespace SMSAndWhatsAppDeploymentTool
 
             // Creating and setting the
             // properties of the ToolTip
-            ToolTip t_Tip = new() {
+            ToolTip t_Tip = new()
+            {
                 Active = true,
                 AutoPopDelay = 4000,
                 InitialDelay = 600,
@@ -152,6 +155,7 @@ namespace SMSAndWhatsAppDeploymentTool
             catch { await dh.InitAsync(SelectedEnvironment); }
             if (!AutoAPI)
             {
+                APIRegistration apiRequiredWindow = new(sbs, this);
                 apiRequiredWindow.ShowDialog();
                 (apiClientId, apiObjectId, dataverseCreateAccount) = apiRequiredWindow.GetResponsePackage();
             }
@@ -164,8 +168,7 @@ namespace SMSAndWhatsAppDeploymentTool
 
                 OutputRT.Text += "Creating Initial Resource Group";
 
-                ResourceGroupResourceHandler rgrh = new();
-                SelectedGroup = await rgrh.FullResourceGroupCheck(this);
+                SelectedGroup = await ResourceGroupResourceHandler.FullResourceGroupCheck(this);
 
                 OutputRT.Text += Environment.NewLine + "Group Name: " + SelectedGroup.Data.Name;
                 EnableAll();
@@ -205,10 +208,14 @@ namespace SMSAndWhatsAppDeploymentTool
             if (desiredPublicKeyvaultNameTB.Text == "")
                 desiredPublicKeyvaultNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
             desiredPublicKeyvaultNameTB.Text = ChooseDBType.GenerateUniqueString(desiredPublicKeyvaultNameTB.Text);
+            if (desiredPublicKeyvaultNameTB.Text.Length > 24)
+                desiredPublicKeyvaultNameTB.Text = desiredPublicKeyvaultNameTB.Text[..24];
 
             if (desiredInternalKeyvaultNameTB.Text == "")
                 desiredInternalKeyvaultNameTB.Text = WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord() + WordGenerator.GetRandomWord();
             desiredInternalKeyvaultNameTB.Text = ChooseDBType.GenerateUniqueString(desiredInternalKeyvaultNameTB.Text);
+            if (desiredInternalKeyvaultNameTB.Text.Length > 24)
+                desiredInternalKeyvaultNameTB.Text = desiredInternalKeyvaultNameTB.Text[..24];
         }
 
         private void UniqueStringBTN_Click(object sender, EventArgs e)
@@ -218,8 +225,7 @@ namespace SMSAndWhatsAppDeploymentTool
 
         private void Button1_Click_1(object sender, EventArgs e)
         {
-            string url = "https://digitalpocketdevelopment.sharepoint.com/:w:/s/DigitalPocketDeveloment-Test2/EcpyX6fGaPhFoBygYoe3unoBjHPnfKU2V8ykApG78MJH8w?e=rdwuwK";
-            Globals.OpenLink(url);
+            sbs.infoWebsites.OpenWhatsAppConfiguration();
         }
 
         private void AutoGenerateNamesBTN_Click(object sender, EventArgs e)

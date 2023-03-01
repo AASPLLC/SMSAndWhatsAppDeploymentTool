@@ -2,6 +2,7 @@ using Azure.Core;
 using Azure.ResourceManager.Resources;
 using AASPGlobalLibrary;
 using SMSAndWhatsAppDeploymentTool.ResourceHandlers;
+using SMSAndWhatsAppDeploymentTool.StepByStep;
 
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
 #pragma warning disable CS8618 // Possible null reference argument.
@@ -20,7 +21,6 @@ namespace SMSAndWhatsAppDeploymentTool
         internal Guid? TenantID;
         internal AzureLocation SelectedRegion;
 
-        internal APIRequiredWindow apiRequiredWindow = new();
         internal string apiClientId = "";
         internal string apiSecret = "";
         internal string apiObjectId = "";
@@ -29,8 +29,10 @@ namespace SMSAndWhatsAppDeploymentTool
         internal bool AutoAPI = false;
 
         readonly ChooseDBType chooseDBType;
-        internal CosmosDeploy(ChooseDBType chooseDBType)
+        readonly StepByStepValues sbs;
+        internal CosmosDeploy(ChooseDBType chooseDBType, StepByStepValues sbs)
         {
+            this.sbs = sbs;
             this.chooseDBType = chooseDBType;
             InitializeComponent();
             //this.button1.Click += new EventHandler(async (s, e) => { await button1_Click(s, e); });
@@ -57,9 +59,6 @@ namespace SMSAndWhatsAppDeploymentTool
                 "After the account is created, you will need to create an app to create a system access token." +
                 Environment.NewLine +
                 "Please refer to the WhatsApp Configuration documentation provided.");
-
-            //PromptWindow.ShowDialog("test", "test2", this);
-            //await ArmClientHandler.Init(tokenCredential);
         }
 
         internal void DisableAll()
@@ -154,8 +153,7 @@ namespace SMSAndWhatsAppDeploymentTool
 
                 OutputRT.Text += "Creating Initial Resource Group";
 
-                ResourceGroupResourceHandler rgrh = new();
-                SelectedGroup = await rgrh.FullResourceGroupCheck(this);
+                SelectedGroup = await ResourceGroupResourceHandler.FullResourceGroupCheck(this);
 
                 OutputRT.Text += Environment.NewLine + "Group Name: " + SelectedGroup.Data.Name;
                 EnableAll();
@@ -216,7 +214,7 @@ namespace SMSAndWhatsAppDeploymentTool
 
         private void Button1_Click_1(object sender, EventArgs e)
         {
-            Globals.OpenLink("https://digitalpocketdevelopment.sharepoint.com/:w:/s/DigitalPocketDeveloment-Test2/EcpyX6fGaPhFoBygYoe3unoBjHPnfKU2V8ykApG78MJH8w?e=rdwuwK");
+            sbs.infoWebsites.OpenWhatsAppConfiguration();
         }
 
         private void AutoGenerateNamesBTN_Click(object sender, EventArgs e)

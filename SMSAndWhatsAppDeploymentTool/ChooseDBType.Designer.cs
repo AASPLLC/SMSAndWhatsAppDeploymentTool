@@ -28,82 +28,79 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.cosmosBTN = new System.Windows.Forms.Button();
-            this.dataverseBTN = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.linkLabel1 = new System.Windows.Forms.LinkLabel();
-            this.SuspendLayout();
+            cosmosBTN = new Button();
+            dataverseBTN = new Button();
+            label1 = new Label();
+            label2 = new Label();
+            linkLabel1 = new LinkLabel();
+            SuspendLayout();
             // 
             // cosmosBTN
             // 
-            this.cosmosBTN.Location = new System.Drawing.Point(289, 79);
-            this.cosmosBTN.Name = "cosmosBTN";
-            this.cosmosBTN.Size = new System.Drawing.Size(271, 40);
-            this.cosmosBTN.TabIndex = 0;
-            this.cosmosBTN.Text = "Cosmos DB";
-            this.cosmosBTN.UseVisualStyleBackColor = true;
-            this.cosmosBTN.Click += new System.EventHandler(this.CosmosBTN_Click);
+            cosmosBTN.Location = new Point(289, 68);
+            cosmosBTN.Name = "cosmosBTN";
+            cosmosBTN.Size = new Size(271, 40);
+            cosmosBTN.TabIndex = 0;
+            cosmosBTN.Text = "Cosmos DB";
+            cosmosBTN.UseVisualStyleBackColor = true;
+            cosmosBTN.Click += CosmosBTN_Click;
             // 
             // dataverseBTN
             // 
-            this.dataverseBTN.Location = new System.Drawing.Point(12, 79);
-            this.dataverseBTN.Name = "dataverseBTN";
-            this.dataverseBTN.Size = new System.Drawing.Size(271, 40);
-            this.dataverseBTN.TabIndex = 1;
-            this.dataverseBTN.Text = "Dataverse (default)";
-            this.dataverseBTN.UseVisualStyleBackColor = true;
-            this.dataverseBTN.Click += new System.EventHandler(this.DataverseBTN_Click);
+            dataverseBTN.Location = new Point(12, 68);
+            dataverseBTN.Name = "dataverseBTN";
+            dataverseBTN.Size = new Size(271, 40);
+            dataverseBTN.TabIndex = 1;
+            dataverseBTN.Text = "Dataverse (default)";
+            dataverseBTN.UseVisualStyleBackColor = true;
+            dataverseBTN.Click += DataverseBTN_Click;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 43);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(153, 15);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "Choose your database type:";
+            label1.AutoSize = true;
+            label1.Location = new Point(12, 50);
+            label1.Name = "label1";
+            label1.Size = new Size(153, 15);
+            label1.TabIndex = 2;
+            label1.Text = "Choose your database type:";
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 9);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(542, 15);
-            this.label2.TabIndex = 3;
-            this.label2.Text = "The database will be used to store chat history and will need to have periodic ro" +
-    "tated keys for security.";
+            label2.AutoSize = true;
+            label2.Location = new Point(12, 35);
+            label2.Name = "label2";
+            label2.Size = new Size(542, 15);
+            label2.TabIndex = 3;
+            label2.Text = "The database will be used to store chat history and will need to have periodic rotated keys for security.";
             // 
             // linkLabel1
             // 
-            this.linkLabel1.AutoSize = true;
-            this.linkLabel1.Location = new System.Drawing.Point(174, 43);
-            this.linkLabel1.Name = "linkLabel1";
-            this.linkLabel1.Size = new System.Drawing.Size(221, 15);
-            this.linkLabel1.TabIndex = 5;
-            this.linkLabel1.TabStop = true;
-            this.linkLabel1.Text = "Click here for Database Type Information";
-            this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkLabel1_LinkClicked);
+            linkLabel1.AutoSize = true;
+            linkLabel1.Location = new Point(12, 9);
+            linkLabel1.Name = "linkLabel1";
+            linkLabel1.Size = new Size(221, 15);
+            linkLabel1.TabIndex = 5;
+            linkLabel1.TabStop = true;
+            linkLabel1.Text = "Click here for Database Type Information";
+            linkLabel1.LinkClicked += LinkLabel1_LinkClicked;
             // 
             // ChooseDBType
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(574, 136);
-            this.Controls.Add(this.linkLabel1);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.dataverseBTN);
-            this.Controls.Add(this.cosmosBTN);
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "ChooseDBType";
-            this.Text = "Choose Database Type";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.DBTypeForm_Closing);
-            this.Load += new System.EventHandler(this.ChooseDBType_Load);
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(574, 118);
+            Controls.Add(linkLabel1);
+            Controls.Add(label2);
+            Controls.Add(label1);
+            Controls.Add(dataverseBTN);
+            Controls.Add(cosmosBTN);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "ChooseDBType";
+            Text = "Choose Database Type";
+            FormClosing += DBTypeForm_Closing;
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion

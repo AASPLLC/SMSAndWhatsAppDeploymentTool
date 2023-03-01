@@ -7,7 +7,7 @@ using Azure.Core;
 using SMSAndWhatsAppDeploymentTool.JSONParsing;
 using Azure.ResourceManager.Authorization.Models;
 using Azure.ResourceManager.Authorization;
-using AASPGlobalLibrary;
+using SMSAndWhatsAppDeploymentTool.StepByStep;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
@@ -15,6 +15,10 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
     {
         readonly public string AutomationAccountName = "Automation-SMS-And-WhatsApp";
 
+        internal virtual async Task<Guid> InitialCreation(JSONDefaultDataverseLibrary dataverseLibrary, JSONSecretNames SecretNames, string desiredCosmosAccountName, string internalVaultName, StepByStepValues sbs)
+        {
+            return await CreateAutomationAccount(dataverseLibrary, SecretNames, desiredCosmosAccountName, internalVaultName, sbs);
+        }
         internal virtual async Task<Guid> InitialCreation(string desiredCosmosAccountName, string internalVaultName, CosmosDeploy form)
         {
             return await CreateAutomationAccount(desiredCosmosAccountName, internalVaultName, form);
@@ -676,6 +680,42 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 #pragma warning disable CS8629 // Nullable value type may be null.
             return response.Data.Identity.PrincipalId.Value;
 #pragma warning restore CS8629 // Nullable value type may be null.
+        }
+        async Task<Guid> CreateAutomationAccount(JSONDefaultDataverseLibrary dataverseLibrary, JSONSecretNames secretNames, string desiredCosmosAccountName, string internalVaultName, StepByStepValues sbs)
+        {
+            AutomationAccountResource response;
+#pragma warning disable CS8604 // Possible null reference argument.
+            if (sbs.DBType == 0)
+            {
+                response = await CreateVariables(
+                dataverseLibrary,
+                sbs.SelectedGroup,
+                    sbs.SelectedRegion,
+                    secretNames,
+                    internalVaultName);
+            }
+            else
+            {
+                response = await CreateVariables(
+                    sbs.SelectedGroup,
+                    sbs.SelectedRegion,
+                    desiredCosmosAccountName,
+                    internalVaultName);
+            }
+#pragma warning restore CS8604 // Possible null reference argument.
+
+#pragma warning disable CS8629 // Nullable value type may be null.
+            ResourceIdentifier contributor = ResourceIdentifier.Parse("/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c");
+            RoleAssignmentCreateOrUpdateContent authorizationroledefinition = new(contributor, response.Data.Identity.PrincipalId.Value)
+            {
+                PrincipalType = RoleManagementPrincipalType.ServicePrincipal
+            };
+            try { await sbs.SelectedGroup.GetRoleAssignments().CreateOrUpdateAsync(WaitUntil.Completed, Guid.NewGuid().ToString(), authorizationroledefinition); } catch { }
+#pragma warning restore CS8629 // Nullable value type may be null.
+
+            _ = await CreateRunbook(response, AutoPowerShellCosmosArchiver(), "AutoArchiver ", sbs.SelectedRegion);
+
+            return await CreateRunbook(response, AutoPowerShellKeyCode(), "AutoRotation", sbs.SelectedRegion);
         }
         async Task<Guid> CreateAutomationAccount(string desiredCosmosAccountName, string internalVaultName, CosmosDeploy form)
         {

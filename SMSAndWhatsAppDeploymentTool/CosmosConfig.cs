@@ -1,16 +1,21 @@
 ﻿using Azure.Core;
 using Azure.ResourceManager.Resources;
+using SMSAndWhatsAppDeploymentTool.StepByStep;
 
 namespace SMSAndWhatsAppDeploymentTool
 {
-    internal partial class CosmosConfig : Form
+    public partial class CosmosConfig : Form
     {
         readonly ChooseDBType dBType;
         readonly CosmosDeploy cosmosDeploy;
-        internal CosmosConfig(ChooseDBType dBType)
+        readonly int setupType = 0;
+        readonly StepByStepValues sbs;
+        internal CosmosConfig(ChooseDBType dBType, int setupType, StepByStepValues sbs)
         {
-            cosmosDeploy = new(dBType);
+            this.sbs = sbs;
+            cosmosDeploy = new(dBType, sbs);
             this.dBType = dBType;
+            this.setupType = setupType;
             InitializeComponent();
 
             //US added first
@@ -69,20 +74,47 @@ namespace SMSAndWhatsAppDeploymentTool
             comboBox3.SelectedIndex = 0;
         }
 
+        void DisableAll()
+        {
+            button1.Enabled = false;
+            comboBox1.Enabled = false;
+            button3.Enabled = false;
+            comboBox3.Enabled = false;
+        }
+
+        void EnableAll()
+        {
+            button1.Enabled = true;
+            comboBox1.Enabled = true;
+            button3.Enabled = true;
+            comboBox3.Enabled = true;
+        }
+
         List<SubscriptionResource> subids = new();
 
         private void InstallConfig_Load(object sender, EventArgs e)
         {
-            cosmosDeploy.Arm = new ArmClientHandler();
-            //List<string> names = new();
-            (List<string> names, subids) = cosmosDeploy.Arm.SetupSubscriptionName();
+            List<string> names;
+            if (setupType == 1)
+            {
+                cosmosDeploy.Arm = new();
+                (names, subids) = cosmosDeploy.Arm.SetupSubscriptionName();
+            }
+            else
+            {
+                sbs.Arm = new();
+                (names, subids) = sbs.Arm.SetupSubscriptionName();
+            }
             comboBox1.Items.AddRange(names.ToArray());
             comboBox1.SelectedIndex = 0;
         }
 
         private void Button1_Click(object sender, EventArgs e)
         {
-            cosmosDeploy.SelectedSubscription = subids[comboBox1.SelectedIndex];
+            if (setupType == 1)
+                cosmosDeploy.SelectedSubscription = subids[comboBox1.SelectedIndex];
+            else
+                sbs.SelectedSubscription = subids[comboBox1.SelectedIndex];
 
             button1.Enabled = false;
             comboBox1.Enabled = false;
@@ -98,12 +130,28 @@ namespace SMSAndWhatsAppDeploymentTool
 
         private async void Button3_Click(object sender, EventArgs e)
         {
-            cosmosDeploy.SelectedRegion = comboBox3.Text;
+            DisableAll();
+            if (setupType == 1)
+            {
+                cosmosDeploy.SelectedRegion = comboBox3.Text;
+                cosmosDeploy.AutoAPI = checkBox1.Checked;
 
-            this.Hide();
+                await cosmosDeploy.Init();
+                this.Hide();
+                cosmosDeploy.ShowDialog();
+            }
+            else
+            {
+                sbs.SelectedRegion = comboBox3.Text;
+                sbs.DBType = 1;
+                sbs.AutoAPI = checkBox1.Checked;
 
-            await cosmosDeploy.Init();
-            cosmosDeploy.ShowDialog();
+                ChooseKeyVaultNames1 s = new(sbs, this);
+                await s.Init();
+                this.Hide();
+                s.ShowDialog();
+            }
+            EnableAll();
         }
     }
 }

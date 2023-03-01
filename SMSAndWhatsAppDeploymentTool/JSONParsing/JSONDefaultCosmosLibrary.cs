@@ -1,6 +1,9 @@
-﻿namespace SMSAndWhatsAppDeploymentTool.JSONParsing
+﻿using AASPGlobalLibrary;
+using System.Text.Json;
+
+namespace SMSAndWhatsAppDeploymentTool.JSONParsing
 {
-    public class JSONDefaultCosmosLibrary
+    internal class JSONDefaultCosmosLibrary
     {
         public string? smsIDName { get; set; }
         public string? whatsappIDName { get; set; }
@@ -14,5 +17,20 @@
         public string? countersContainerName { get; set; }
         public string? phoneContainerName { get; set; }
         public string? whatsappphoneContainerName { get; set; }
+
+        public static async Task<JSONDefaultCosmosLibrary> Load()
+        {
+            return await Globals.LoadJSON<JSONDefaultCosmosLibrary>(Environment.CurrentDirectory + "/JSONS/defaultLibraryCosmos.json");
+        }
+
+        readonly JsonSerializerOptions options = new()
+        {
+            WriteIndented = true
+        };
+
+        public override string ToString()
+        {
+            return JsonSerializer.Serialize(this, options);
+        }
     }
 }

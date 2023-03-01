@@ -1,4 +1,7 @@
-﻿namespace SMSAndWhatsAppDeploymentTool.JSONParsing
+﻿using AASPGlobalLibrary;
+using System.Text.Json;
+
+namespace SMSAndWhatsAppDeploymentTool.JSONParsing
 {
     public class JSONCreateAppSettings
     {
@@ -10,6 +13,16 @@
             public string? tenantId { get; set; }
             public string? clientSecret { get; set; }
             public string? authTenant { get; set; }
+
+            readonly JsonSerializerOptions options = new()
+            {
+                WriteIndented = true
+            };
+
+            public override string ToString()
+            {
+                return JsonSerializer.Serialize(this, options);
+            }
         }
     }
 }

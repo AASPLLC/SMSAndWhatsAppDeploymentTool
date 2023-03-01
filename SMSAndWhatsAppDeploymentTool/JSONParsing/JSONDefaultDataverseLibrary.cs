@@ -1,6 +1,9 @@
-﻿namespace SMSAndWhatsAppDeploymentTool.JSONParsing
+﻿using AASPGlobalLibrary;
+using System.Text.Json;
+
+namespace SMSAndWhatsAppDeploymentTool.JSONParsing
 {
-    public class JSONDefaultDataverseLibrary
+    internal class JSONDefaultDataverseLibrary
     {
         public string? StartingPrefix { get; set; }
         public string? api { get; set; }
@@ -14,5 +17,20 @@
         public string? metadataPhoneNumberID { get; set; }
         public string? metadataEmailAccount { get; set; }
         public string? metadataDisplayName { get; set; }
+
+        public static async Task<JSONDefaultDataverseLibrary> Load()
+        {
+            return await Globals.LoadJSON<JSONDefaultDataverseLibrary>(Environment.CurrentDirectory + "/JSONS/defaultLibraryDataverse.json");
+        }
+
+        readonly JsonSerializerOptions options = new()
+        {
+            WriteIndented = true
+        };
+
+        public override string ToString()
+        {
+            return JsonSerializer.Serialize(this, options);
+        }
     }
 }

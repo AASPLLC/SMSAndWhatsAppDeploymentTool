@@ -2,11 +2,24 @@
 using Azure.Core;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.AppService.Models;
+using SMSAndWhatsAppDeploymentTool.StepByStep;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
     internal class AppServicePlanResourceHandler
     {
+        internal virtual async Task InitialCreation(StepByStepValues sbs)
+        {
+            try
+            {
+                _ = await sbs.SelectedGroup.GetAppServicePlanAsync("MinimumPlanForFunctionAppWithSubnet");
+                Console.Write(Environment.NewLine + "Minimum App Plan already exists in your environment, skipping.");
+            }
+            catch (RequestFailedException ex) when (ex.Status == 404)
+            {
+                await CreateMinimumAppPlan(sbs);
+            }
+        }
         internal virtual async Task<ResourceIdentifier> InitialCreation(DataverseDeploy form)
         {
             foreach (var item in form.SelectedGroup.GetAppServicePlans())
@@ -128,6 +141,36 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return appPlanResonse.Value.Id;
         }
 
+        static async Task<ResourceIdentifier> CreateMinimumAppPlan(StepByStepValues sbs)
+        {
+            Console.Write(Environment.NewLine + "Waiting for App Plan Creation");
+            var appPlanResonse = await sbs.SelectedGroup.GetAppServicePlans().CreateOrUpdateAsync(WaitUntil.Completed, "MinimumPlanForFunctionAppWithSubnet", new AppServicePlanData(sbs.SelectedRegion)
+            {
+                Sku = new AppServiceSkuDescription()
+                {
+                    Name = "S1",
+                    Tier = "Standard",
+                    Size = "S1",
+                    Family = "S",
+                    Capacity = 1
+                },
+                Kind = "app",
+                IsPerSiteScaling = false,
+                IsElasticScaleEnabled = false,
+                MaximumElasticWorkerCount = 0,
+                IsSpot = false,
+                IsReserved = false,
+                IsXenon = false,
+                IsHyperV = false,
+                TargetWorkerCount = 0,
+                TargetWorkerSizeId = 0,
+                IsZoneRedundant = false
+            });
+
+            Console.Write(Environment.NewLine + "Minimum App plan for SMS Function App created");
+
+            return appPlanResonse.Value.Id;
+        }
         static async Task<ResourceIdentifier> CreateMinimumAppPlan(DataverseDeploy form)
         {
             form.OutputRT.Text += Environment.NewLine + "Waiting for App Plan Creation";

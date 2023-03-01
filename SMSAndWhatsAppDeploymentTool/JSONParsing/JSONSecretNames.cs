@@ -1,6 +1,9 @@
-﻿namespace SMSAndWhatsAppDeploymentTool.JSONParsing
+﻿using AASPGlobalLibrary;
+using System.Text.Json;
+
+namespace SMSAndWhatsAppDeploymentTool.JSONParsing
 {
-    public class JSONSecretNames
+    internal class JSONSecretNames
     {
         public string? PDynamicsEnvironment { get; set; }
         public string? PAccountsDBPrefix { get; set; }
@@ -28,5 +31,20 @@
         public string? DbName5 { get; set; }
         public string? AutomationId { get; set; }
         public string? SMSTemplate { get; set; }
+
+        public static async Task<JSONSecretNames> Load()
+        {
+            return await Globals.LoadJSON<JSONSecretNames>(Environment.CurrentDirectory + "/JSONS/SecretNames.json");
+        }
+
+        readonly JsonSerializerOptions options = new()
+        {
+            WriteIndented = true
+        };
+
+        public override string ToString()
+        {
+            return JsonSerializer.Serialize(this, options);
+        }
     }
 }
