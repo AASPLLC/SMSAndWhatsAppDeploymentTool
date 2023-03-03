@@ -108,7 +108,6 @@
             objectTB.PlaceholderText = "Enter an already used API Object ID here";
             objectTB.Size = new Size(355, 23);
             objectTB.TabIndex = 79;
-            objectTB.Text = "e197832f-4249-498f-80e6-ec0cca2d4084";
             // 
             // label3
             // 
@@ -135,7 +134,6 @@
             appIdTB.PlaceholderText = "Enter an already used API Client ID here";
             appIdTB.Size = new Size(355, 23);
             appIdTB.TabIndex = 75;
-            appIdTB.Text = "e4151293-e8d7-4753-9aff-7aaf35cd6cdc";
             // 
             // label5
             // 
