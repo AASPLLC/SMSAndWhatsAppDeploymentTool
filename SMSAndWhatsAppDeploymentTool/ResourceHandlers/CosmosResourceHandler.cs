@@ -24,7 +24,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         }
 
         internal static bool found = false;
-        internal virtual async Task InitialCreation(string desiredCosmosName, StepByStepValues sbs)
+        internal virtual async Task<bool> InitialCreation(string desiredCosmosName, StepByStepValues sbs)
         {
 #pragma warning disable CS8604
             desiredCosmosName = GetDesiredCosmosName(desiredCosmosName, sbs.SelectedGroup);
@@ -34,7 +34,14 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             //else
             if (sbs.secretNames.DbName != null)
                 await CreateCosmosDB(sbs.secretNames.DbName, desiredCosmosName, sbs);
-            await sbs.CreateCosmosSecret(desiredCosmosName);
+            sbs.DesiredCosmosAccount = desiredCosmosName;
+            if (desiredCosmosName == "")
+                return false;
+            else
+            {
+                await sbs.CreateCosmosSecret(desiredCosmosName);
+                return true;
+            }
         }
         internal virtual async Task InitialCreation(JSONDefaultCosmosLibrary cosmosLibrary, ResourceIdentifier subnetID, string DBName, string desiredCosmosName, string vnetName, CosmosDeploy form, bool useArm = false)
         {
@@ -77,6 +84,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 Id = subnetID,
                 IgnoreMissingVnetServiceEndpoint = true
             });
+            Console.Write(Environment.NewLine + "Virtual network prepped for cosmos");
             try
             {
                 var item = sbs.SelectedGroup.GetCosmosDBAccount(desiredCosmosName).Value;
@@ -84,17 +92,28 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
             catch
             {
+                Console.Write(Environment.NewLine + "Creating or Updating Cosmos");
                 try
                 {
                     CosmosDBAccountResource dbAccountResponse = (await sbs.SelectedGroup.GetCosmosDBAccounts().CreateOrUpdateAsync(WaitUntil.Completed, desiredCosmosName, accountcontent)).Value;
+                    Console.Write(Environment.NewLine + "Account created");
                     CosmosDBSqlDatabaseResource dbResponse = (await dbAccountResponse.GetCosmosDBSqlDatabases().CreateOrUpdateAsync(WaitUntil.Completed, DBName, new(sbs.SelectedRegion, new(DBName)))).Value;
+                    Console.Write(Environment.NewLine + "Main DB created");
 #pragma warning disable CS8604
                     await AddContainer(dbResponse, cosmosLibrary?.accountsIDName, cosmosLibrary?.accountsContainerName, sbs.SelectedRegion);
+                    Console.Write(Environment.NewLine + "Accounts Container created");
                     await AddContainer(dbResponse, cosmosLibrary?.countersIDName, cosmosLibrary?.countersContainerName, sbs.SelectedRegion);
+                    Console.Write(Environment.NewLine + "Counters Container created");
                     await AddContainer(dbResponse, cosmosLibrary?.smsIDName, cosmosLibrary?.smsContainerName, sbs.SelectedRegion);
+                    Console.Write(Environment.NewLine + "SMS Container created");
                     await AddContainer(dbResponse, cosmosLibrary?.whatsappIDName, cosmosLibrary?.whatsappContainerName, sbs.SelectedRegion);
+                    Console.Write(Environment.NewLine + "WhatsApp Container created");
                     await AddContainer(dbResponse, cosmosLibrary?.phoneIDName, cosmosLibrary?.phoneContainerName, sbs.SelectedRegion);
-                    await AddContainer(dbResponse, cosmosLibrary?.whatsappphoneIDName, cosmosLibrary?.whatsappphoneContainerName, sbs.SelectedRegion);
+                    Console.Write(Environment.NewLine + "Phone Container created");
+                    //keeping in case whatsapp api changes, this might be required some day
+                    //await AddContainer(dbResponse, cosmosLibrary?.whatsappphoneIDName, cosmosLibrary?.whatsappphoneContainerName, sbs.SelectedRegion);
+                    //Console.Write("WhatsApp Phone Container created");
+                    Console.Write(Environment.NewLine + "Finished");
 #pragma warning restore CS8604
                 }
                 catch (Exception ex)
@@ -111,6 +130,10 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                             "Full error in case Microsoft needs it: " + Environment.NewLine + ex.Message;
                         mb.ShowDialog();
                         mb.Close();
+                    }
+                    else if(ex.Message.Contains("Value cannot be an empty string. (Parameter 'accountName')"))
+                    {
+                        Console.Write(Environment.NewLine + "Desired account name is empty and existing service not found.");
                     }
                     else
                     {
@@ -142,6 +165,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 Id = subnetID,
                 IgnoreMissingVnetServiceEndpoint = true
             });
+            form.OutputRT.Text += Environment.NewLine + "Virtual network prepped for cosmos";
             try
             {
                 var item = form.SelectedGroup.GetCosmosDBAccount(desiredCosmosName).Value;
@@ -149,17 +173,27 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
             catch
             {
+                form.OutputRT.Text += Environment.NewLine + "Creating or Updating Cosmos";
                 try
                 {
                     CosmosDBAccountResource dbAccountResponse = (await form.SelectedGroup.GetCosmosDBAccounts().CreateOrUpdateAsync(WaitUntil.Completed, desiredCosmosName, accountcontent)).Value;
+                    form.OutputRT.Text += Environment.NewLine + "Cosmos Account created";
                     CosmosDBSqlDatabaseResource dbResponse = (await dbAccountResponse.GetCosmosDBSqlDatabases().CreateOrUpdateAsync(WaitUntil.Completed, DBName, new(form.SelectedRegion, new(DBName)))).Value;
+                    form.OutputRT.Text += Environment.NewLine + "Cosmos Main DB created";
 #pragma warning disable CS8604
                     await AddContainer(dbResponse, cosmosLibrary?.accountsIDName, cosmosLibrary?.accountsContainerName, form.SelectedRegion);
+                    form.OutputRT.Text += Environment.NewLine + "Cosmos Accounts Container created";
                     await AddContainer(dbResponse, cosmosLibrary?.countersIDName, cosmosLibrary?.countersContainerName, form.SelectedRegion);
+                    form.OutputRT.Text += Environment.NewLine + "Cosmos Counters Container created";
                     await AddContainer(dbResponse, cosmosLibrary?.smsIDName, cosmosLibrary?.smsContainerName, form.SelectedRegion);
+                    form.OutputRT.Text += Environment.NewLine + "Cosmos SMS Container created";
                     await AddContainer(dbResponse, cosmosLibrary?.whatsappIDName, cosmosLibrary?.whatsappContainerName, form.SelectedRegion);
+                    form.OutputRT.Text += Environment.NewLine + "Cosmos WhatsApp Container created";
                     await AddContainer(dbResponse, cosmosLibrary?.phoneIDName, cosmosLibrary?.phoneContainerName, form.SelectedRegion);
-                    await AddContainer(dbResponse, cosmosLibrary?.whatsappphoneIDName, cosmosLibrary?.whatsappphoneContainerName, form.SelectedRegion);
+                    form.OutputRT.Text += Environment.NewLine + "Cosmos Phone Container created";
+                    //keeping in case whatsapp api changes, this might be required some day
+                    //await AddContainer(dbResponse, cosmosLibrary?.whatsappphoneIDName, cosmosLibrary?.whatsappphoneContainerName, form.SelectedRegion);
+                    //form.OutputRT.Text += "Cosmos WhatsApp Phone Container created";
 #pragma warning restore CS8604
                 }
                 catch (Exception ex)

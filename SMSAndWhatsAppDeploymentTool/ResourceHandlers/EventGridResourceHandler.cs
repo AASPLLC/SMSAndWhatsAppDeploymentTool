@@ -42,7 +42,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             {
                 await Task.Delay(1000);
                 counter++;
-                Console.Write(", " + counter);
+                try { Console.Write(", " + counter); } catch { sbs.InvokableText.Invoke(() => { sbs.InvokableText.Text += ", " + counter; }); }
                 return systemGridResponse.WaitForCompletionResponse();
             });
 

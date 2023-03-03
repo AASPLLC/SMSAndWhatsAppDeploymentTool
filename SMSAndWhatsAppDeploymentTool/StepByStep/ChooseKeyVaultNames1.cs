@@ -1,7 +1,6 @@
 ﻿using AASPGlobalLibrary;
 using SMSAndWhatsAppDeploymentTool.ResourceHandlers;
 using SMSAndWhatsAppDeploymentTool.StepByStep;
-using System.Data;
 
 namespace SMSAndWhatsAppDeploymentTool
 {
@@ -35,13 +34,21 @@ namespace SMSAndWhatsAppDeploymentTool
 
         internal void DisableAll()
         {
+            AutoGenerateNamesBTN.Enabled = false;
+            UniqueStringBTN.Enabled = false;
             desiredPublicKeyvaultNameTB.Enabled = false;
             desiredInternalKeyvaultNameTB.Enabled = false;
+            NextBTN.Enabled = false;
+            BackBTN.Enabled = false;
         }
         internal void EnableAll()
         {
+            AutoGenerateNamesBTN.Enabled = true;
+            UniqueStringBTN.Enabled = true;
             desiredPublicKeyvaultNameTB.Enabled = true;
             desiredInternalKeyvaultNameTB.Enabled = true;
+            NextBTN.Enabled = true;
+            BackBTN.Enabled = true;
         }
 
         private void Form_Closing(object sender, FormClosedEventArgs e)
@@ -49,9 +56,10 @@ namespace SMSAndWhatsAppDeploymentTool
             dc?.Close();
             cc?.Close();
         }
-        private void Form_Load(object sender, EventArgs e)
+        private async void Form_Load(object sender, EventArgs e)
         {
             _ = new SetConsoleOutput(OutputRT);
+            await Init();
         }
 
         private void BackBTN_Click(object sender, EventArgs e)
@@ -61,12 +69,23 @@ namespace SMSAndWhatsAppDeploymentTool
 
         private async void NextBTN_Click(object sender, EventArgs e)
         {
-            KeyVaultResourceHandler kvrh = new();
-            await kvrh.InitialCreation(desiredPublicKeyvaultNameTB.Text, desiredInternalKeyvaultNameTB.Text, sbs);
+            DisableAll();
+            if (NextBTN.Text == "Next")
+            {
+                Hide();
+                APIRegistration form = new(sbs, this);
+                form.ShowDialog();
+            }
+            else
+            {
+                OutputRT.Text = "";
+                KeyVaultResourceHandler kvrh = new();
+                await kvrh.InitialCreation(desiredPublicKeyvaultNameTB.Text, desiredInternalKeyvaultNameTB.Text, sbs);
 
-            Hide();
-            APIRegistration form = new(sbs, this);
-            form.ShowDialog();
+                if (sbs.DesiredPublicVault != "" && sbs.DesiredInternalVault != "")
+                    ((Control)sender).Text = "Next";
+            }
+            EnableAll();
         }
 
         internal async Task Init()

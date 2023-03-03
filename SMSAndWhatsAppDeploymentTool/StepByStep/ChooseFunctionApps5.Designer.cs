@@ -186,11 +186,11 @@
             desiredSMSFunctionAppNameTB.Size = new Size(430, 23);
             desiredSMSFunctionAppNameTB.TabIndex = 61;
             // 
-            // ChooseFunctionApps4
+            // ChooseFunctionApps6
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(829, 492);
+            ClientSize = new Size(829, 495);
             Controls.Add(desiredCosmosRESTAPIFunctionNameTB);
             Controls.Add(cosmosrestLBL);
             Controls.Add(whatsappLBL);
@@ -208,7 +208,7 @@
             Controls.Add(label2);
             MaximizeBox = false;
             MinimizeBox = false;
-            Name = "ChooseFunctionApps4";
+            Name = "ChooseFunctionApps6";
             Text = "Function Applications";
             FormClosed += Form_Closing;
             Load += Form_Load;

@@ -4,24 +4,49 @@ using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.Models;
 using Azure;
 using Azure.ResourceManager.WebPubSub;
-using System.Text.Json;
-using SMSAndWhatsAppDeploymentTool.JSONParsing;
-using Azure.ResourceManager.Resources.Models;
 using Azure.ResourceManager.Resources;
 using SMSAndWhatsAppDeploymentTool.StepByStep;
 using Azure.ResourceManager.Network;
+using Azure.ResourceManager.Authorization.Models;
+using Azure.ResourceManager.Storage;
+using Azure.ResourceManager.Authorization;
+using Microsoft.Azure.Cosmos;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
     internal class FunctionAppResourceHandler
     {
-        internal virtual async Task InitialCreation(string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, StepByStepValues sbs, string desiredRestAppName = "")
+        internal virtual async Task<bool> InitialCreation(string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, StepByStepValues sbs, string desiredRestAppName = "")
         {
-            await DeepCheckSMS(desiredSMSFunctionAppName, sbs);
-            await DeepCheckWhatsApp(desiredWhatsAppFunctionAppName, sbs);
+            desiredSMSFunctionAppName = await DeepCheckSMS(desiredSMSFunctionAppName, sbs);
+            desiredWhatsAppFunctionAppName = await DeepCheckWhatsApp(desiredWhatsAppFunctionAppName, sbs);
             if (sbs.DBType == 1)
-                await DeepCheckCosmosApp(desiredRestAppName, sbs);
+                desiredRestAppName = await DeepCheckCosmosApp(desiredRestAppName, sbs);
             await sbs.UpdateFunctionAppConfigs(desiredSMSFunctionAppName, desiredWhatsAppFunctionAppName, desiredRestAppName);
+
+
+            if (sbs.DBType == 0)
+            {
+                if (desiredSMSFunctionAppName == "" || desiredWhatsAppFunctionAppName == "")
+                    return false;
+                else
+                {
+                    KeyVaultResourceHandler kvrh = new();
+                    await kvrh.UpdateInternalVaultProperties(sbs, desiredSMSFunctionAppName, desiredWhatsAppFunctionAppName);
+                    return true;
+                }
+            }
+            else
+            {
+                if (desiredRestAppName == "" || desiredSMSFunctionAppName == "" || desiredWhatsAppFunctionAppName == "")
+                    return false;
+                else
+                {
+                    KeyVaultResourceHandler kvrh = new();
+                    await kvrh.UpdateInternalVaultProperties(sbs, desiredSMSFunctionAppName, desiredWhatsAppFunctionAppName, desiredRestAppName);
+                    return true;
+                }
+            }
         }
         internal virtual async Task<(WebSiteResource, WebSiteResource)> InitialCreation(ResourceIdentifier appPlan, ResourceIdentifier vnetIdentity, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, DataverseDeploy form)
         {
@@ -167,7 +192,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             //make sure IAM is setup for storage account
             if (functionAppResource.Data.Identity.PrincipalId != null)
-                await CreateStorageRoleAccessARM(functionAppResource.Data.Identity.PrincipalId.Value.ToString(), sbs);
+                await SetIAMToStorageName(sbs.SelectedGroup, sbs, functionAppResource.Data.Identity.PrincipalId.Value);
+            //await CreateStorageRoleAccessARM(functionAppResource.Data.Identity.PrincipalId.Value.ToString(), sbs);
         }
         static async Task<WebSiteResource> CreateSMSFunctionApp(string storagedesiredname, string desiredName, ResourceIdentifier appPlan, ResourceIdentifier vnetId, DataverseDeploy form)
         {
@@ -518,6 +544,49 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return await form.SelectedGroup.GetWebSiteAsync(desiredName + "CosmosREST");
         }
 
+        static async Task SetIAMToStorageName(ResourceGroupResource SelectedGroup, StepByStepValues sbs, Guid Principal)
+        {
+            ResourceIdentifier VaultOfficerID = new("1");
+            string VaultOfficerGUID = "";
+            var allroledefinitions = (await SelectedGroup.GetStorageAccountAsync(sbs.DesiredStorageName)).Value.GetAuthorizationRoleDefinitions();
+            foreach (var roledefinition in allroledefinitions)
+            {
+                if (roledefinition.Data.RoleName == "Storage Account Contributor")
+                {
+                    VaultOfficerGUID = roledefinition.Data.Name;
+                    VaultOfficerID = roledefinition.Data.Id;
+                    break;
+                }
+            }
+
+            RoleAssignmentCreateOrUpdateContent content = new(VaultOfficerID, Principal)
+            {
+                PrincipalType = RoleManagementPrincipalType.ServicePrincipal
+            };
+            await (await SelectedGroup.GetStorageAccountAsync(sbs.DesiredStorageName)).Value.GetRoleAssignments().CreateOrUpdateAsync(WaitUntil.Completed, VaultOfficerGUID, content);
+        }
+        static async Task SetIAMToStorageName(ResourceGroupResource SelectedGroup, string desiredName, Guid Principal)
+        {
+            ResourceIdentifier VaultOfficerID = new("1");
+            string VaultOfficerGUID = "";
+            var allroledefinitions = (await SelectedGroup.GetStorageAccountAsync(desiredName)).Value.GetAuthorizationRoleDefinitions();
+            foreach (var roledefinition in allroledefinitions)
+            {
+                if (roledefinition.Data.RoleName == "Storage Account Contributor")
+                {
+                    VaultOfficerGUID = roledefinition.Data.Name;
+                    VaultOfficerID = roledefinition.Data.Id;
+                    break;
+                }
+            }
+
+            RoleAssignmentCreateOrUpdateContent content = new(VaultOfficerID, Principal)
+            {
+                PrincipalType = RoleManagementPrincipalType.ServicePrincipal
+            };
+            await (await SelectedGroup.GetStorageAccountAsync(desiredName)).Value.GetRoleAssignments().CreateOrUpdateAsync(WaitUntil.Completed, VaultOfficerGUID, content);
+        }
+
         static async Task<bool> CheckSMSFunctionAppName(string desiredName, StepByStepValues sbs)
         {
             desiredName = desiredName.Trim();
@@ -527,8 +596,9 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 Console.Write(Environment.NewLine + desiredName + "SMSApp" + " already exists in your environment, skipping.");
 
                 //make sure IAM is setup for storage account
-                if (temp.Value.Data.Identity.PrincipalId != null)
-                    await CreateStorageRoleAccessARM(temp.Value.Data.Identity.PrincipalId.Value.ToString(), sbs);
+                if (temp.Value.Data.Identity.PrincipalId != null && sbs.SelectedGroup != null)
+                    await SetIAMToStorageName(sbs.SelectedGroup, sbs, temp.Value.Data.Identity.PrincipalId.Value);
+                    //await CreateStorageRoleAccessARM(temp.Value.Data.Identity.PrincipalId.Value.ToString(), sbs);
                 return false;
             }
             catch (RequestFailedException ex)
@@ -805,7 +875,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
         }
 
-        static async Task DeepCheckSMS(string desiredSMSFunctionAppName, StepByStepValues sbs)
+        static async Task<string> DeepCheckSMS(string desiredSMSFunctionAppName, StepByStepValues sbs)
         {
             foreach (var item in sbs.SelectedGroup.GetWebSites())
             {
@@ -816,6 +886,9 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 }
             }
             await InitialSMSCreation(desiredSMSFunctionAppName, sbs);
+            if (desiredSMSFunctionAppName != "" && !desiredSMSFunctionAppName.EndsWith("SMSApp"))
+                desiredSMSFunctionAppName += "SMSApp";
+            return desiredSMSFunctionAppName;
         }
         static async Task<WebSiteResource> DeepCheckSMS(ResourceIdentifier appPlan, ResourceIdentifier vnetIdentity, string desiredStorageName, string desiredSMSFunctionAppName, DataverseDeploy form)
         {
@@ -830,7 +903,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             //make sure IAM is setup for storage account
             if (smsSiteResource.Data.Identity.PrincipalId != null)
-                await CreateStorageRoleAccessARM(desiredStorageName, smsSiteResource.Data.Identity.PrincipalId.Value.ToString(), form);
+                await SetIAMToStorageName(form.SelectedGroup, desiredSMSFunctionAppName, smsSiteResource.Data.Identity.PrincipalId.Value);
+            //await CreateStorageRoleAccessARM(desiredStorageName, smsSiteResource.Data.Identity.PrincipalId.Value.ToString(), form);
 
             return smsSiteResource;
         }
@@ -847,12 +921,13 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             //make sure IAM is setup for storage account
             if (smsSiteResource.Data.Identity.PrincipalId != null)
-                await CreateStorageRoleAccessARM(desiredStorageName, smsSiteResource.Data.Identity.PrincipalId.Value.ToString(), form);
+                await SetIAMToStorageName(form.SelectedGroup, desiredSMSFunctionAppName, smsSiteResource.Data.Identity.PrincipalId.Value);
+            //await CreateStorageRoleAccessARM(desiredStorageName, smsSiteResource.Data.Identity.PrincipalId.Value.ToString(), form);
 
             return smsSiteResource;
         }
 
-        static async Task DeepCheckWhatsApp(string desiredWhatsAppFunctionAppName, StepByStepValues sbs)
+        static async Task<string> DeepCheckWhatsApp(string desiredWhatsAppFunctionAppName, StepByStepValues sbs)
         {
             foreach (var item in sbs.SelectedGroup.GetWebSites())
             {
@@ -863,6 +938,9 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 }
             }
             await InitialWhatsAppCreation(desiredWhatsAppFunctionAppName, sbs);
+            if (desiredWhatsAppFunctionAppName != "" && !desiredWhatsAppFunctionAppName.EndsWith("WhatsApp"))
+                desiredWhatsAppFunctionAppName += "WhatsApp";
+            return desiredWhatsAppFunctionAppName;
         }
         static async Task<WebSiteResource> DeepCheckWhatsApp(ResourceIdentifier appPlan, ResourceIdentifier vnetIdentity, string desiredWhatsAppFunctionAppName, DataverseDeploy form)
         {
@@ -887,7 +965,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return await InitialWhatsAppCreation(appPlan, vnetIdentity, desiredWhatsAppFunctionAppName, form);
         }
 
-        static async Task DeepCheckCosmosApp(string desiredCosmosRestName, StepByStepValues sbs)
+        static async Task<string> DeepCheckCosmosApp(string desiredCosmosRestName, StepByStepValues sbs)
         {
             foreach (var item in sbs.SelectedGroup.GetWebSites())
             {
@@ -898,6 +976,9 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 }
             }
             await InitialRESTCreation(desiredCosmosRestName, sbs);
+            if (desiredCosmosRestName != "" && !desiredCosmosRestName.EndsWith("CosmosREST"))
+                desiredCosmosRestName += "CosmosREST";
+            return desiredCosmosRestName;
         }
         static async Task<WebSiteResource> DeepCheckCosmosApp(ResourceIdentifier appPlan, ResourceIdentifier vnetIdentity, string desiredCosmosRestName, CosmosDeploy form)
         {
@@ -911,7 +992,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return await InitialRESTCreation(appPlan, vnetIdentity, desiredCosmosRestName, form);
         }
 
-        static async Task CreateStorageRoleAccessARM(string smsId, StepByStepValues sbs)
+        /*static async Task CreateStorageRoleAccessARM(string smsId, StepByStepValues sbs)
         {
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
             Console.Write(Environment.NewLine + "Creating IAM Access to storage acccount for SMS Function App.");
@@ -1168,6 +1249,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                     form.OutputRT.Text += Environment.NewLine + e.Message;
             }
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
-        }
+        }*/
     }
 }

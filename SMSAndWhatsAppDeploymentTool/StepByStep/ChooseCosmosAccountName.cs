@@ -6,8 +6,8 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
     public partial class ChooseCosmosAccountName : Form
     {
         readonly StepByStepValues sbs;
-        readonly APIRegistration lastStep;
-        public ChooseCosmosAccountName(StepByStepValues sbs, APIRegistration lastStep)
+        readonly ChooseVirtualNetwork3 lastStep;
+        public ChooseCosmosAccountName(StepByStepValues sbs, ChooseVirtualNetwork3 lastStep)
         {
             this.sbs = sbs;
             this.lastStep = lastStep;
@@ -17,12 +17,16 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
         internal void DisableAll()
         {
             desiredCosmosAccountNameFunctionNameTB.Enabled = false;
+            AutoGenerateNamesBTN.Enabled = false;
+            UniqueStringBTN.Enabled = false;
             BackBTN.Enabled = false;
             NextBTN.Enabled = false;
         }
         internal void EnableAll()
         {
             desiredCosmosAccountNameFunctionNameTB.Enabled = true;
+            AutoGenerateNamesBTN.Enabled = true;
+            UniqueStringBTN.Enabled = true;
             BackBTN.Enabled = true;
             NextBTN.Enabled = true;
         }
@@ -41,12 +45,21 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
 
         private async void NextBTN_Click(object sender, EventArgs e)
         {
-            CosmosResourceHandler crh = new();
-            await crh.InitialCreation(desiredCosmosAccountNameFunctionNameTB.Text, sbs);
-
-            Hide();
-            ChooseCommunicationsName2 form = new(sbs, this);
-            form.ShowDialog();
+            DisableAll();
+            if (NextBTN.Text == "Next")
+            {
+                Hide();
+                ChooseStorageName4 form = new(sbs, this);
+                form.ShowDialog();
+            }
+            else
+            {
+                OutputRT.Text = "";
+                CosmosResourceHandler crh = new();
+                if (await crh.InitialCreation(desiredCosmosAccountNameFunctionNameTB.Text, sbs))
+                    ((Control)sender).Text = "Next";
+            }
+            EnableAll();
         }
 
         private void BackBTN_Click(object sender, EventArgs e)

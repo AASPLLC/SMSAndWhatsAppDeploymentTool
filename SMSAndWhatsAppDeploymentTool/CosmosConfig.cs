@@ -142,12 +142,11 @@ namespace SMSAndWhatsAppDeploymentTool
             }
             else
             {
+                ChooseKeyVaultNames1 s = new(sbs, this);
                 sbs.SelectedRegion = comboBox3.Text;
                 sbs.DBType = 1;
                 sbs.AutoAPI = checkBox1.Checked;
 
-                ChooseKeyVaultNames1 s = new(sbs, this);
-                await s.Init();
                 this.Hide();
                 s.ShowDialog();
             }

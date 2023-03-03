@@ -4,6 +4,7 @@ using Azure.ResourceManager.Storage;
 using Azure.Core;
 using Azure.ResourceManager.Resources;
 using SMSAndWhatsAppDeploymentTool.StepByStep;
+using System.Windows.Forms;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
@@ -19,7 +20,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return desiredStorageName;
         }
 
-        internal virtual async Task InitialCreation(string desiredStorageName, StepByStepValues sbs)
+        internal virtual async Task<bool> InitialCreation(string desiredStorageName, StepByStepValues sbs)
         {
             foreach (var item in sbs.SelectedGroup.GetStorageAccounts())
             {
@@ -31,6 +32,10 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             {
                 await CreateStorageAccountResource(desiredStorageName, sbs);
             }
+            if (desiredStorageName == "")
+                return false;
+            else
+                return true;
         }
         internal virtual async Task<(StorageAccountResource, string)> InitialCreation(string desiredStorageName, DataverseDeploy form)
         {
@@ -127,7 +132,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             {
                 await Task.Delay(1000);
                 counter++;
-                Console.Write(", " + counter);
+                try { Console.Write(", " + counter); } catch { sbs.InvokableText.Invoke(() => { sbs.InvokableText.Text += ", " + counter; }); }
                 return storageAccountResponse.WaitForCompletionResponse();
             });
 
@@ -292,6 +297,11 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             desiredName = desiredName.Trim();
             try
             {
+                if (desiredName == "")
+                {
+                    Console.Write(Environment.NewLine + "Storage name is empty and an existing service could not be found.");
+                    return false;
+                }
                 _ = await sbs.SelectedGroup.GetStorageAccountAsync(desiredName);
                 Console.Write(Environment.NewLine + desiredName + " already exists in your environment, skipping.");
                 return false;
@@ -324,6 +334,11 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             desiredName = desiredName.Trim();
             try
             {
+                if (desiredName == "")
+                {
+                    Console.Write(Environment.NewLine + "Storage name is empty and an existing service could not be found.");
+                    return false;
+                }
                 _ = await form.SelectedGroup.GetStorageAccountAsync(desiredName);
                 form.OutputRT.Text += Environment.NewLine + desiredName + " already exists in your environment, skipping.";
                 return false;
@@ -356,6 +371,11 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             desiredName = desiredName.Trim();
             try
             {
+                if (desiredName == "")
+                {
+                    Console.Write(Environment.NewLine + "Storage name is empty and an existing service could not be found.");
+                    return false;
+                }
                 _ = await form.SelectedGroup.GetStorageAccountAsync(desiredName);
                 form.OutputRT.Text += Environment.NewLine + desiredName + " already exists in your environment, skipping.";
                 return false;

@@ -133,11 +133,11 @@
             // 
             // NextBTN
             // 
-            NextBTN.Location = new Point(665, 481);
+            NextBTN.Location = new Point(698, 481);
             NextBTN.Name = "NextBTN";
             NextBTN.Size = new Size(75, 23);
             NextBTN.TabIndex = 59;
-            NextBTN.Text = "Finish";
+            NextBTN.Text = "Create";
             NextBTN.UseVisualStyleBackColor = true;
             NextBTN.Click += NextBTN_Click;
             // 
@@ -156,7 +156,7 @@
             OutputRT.Location = new Point(12, 291);
             OutputRT.Name = "OutputRT";
             OutputRT.ReadOnly = true;
-            OutputRT.Size = new Size(728, 184);
+            OutputRT.Size = new Size(761, 184);
             OutputRT.TabIndex = 56;
             OutputRT.Text = "";
             // 
@@ -171,7 +171,7 @@
             // 
             // UniqueStringBTN
             // 
-            UniqueStringBTN.Location = new Point(640, 140);
+            UniqueStringBTN.Location = new Point(640, 42);
             UniqueStringBTN.Margin = new Padding(4, 5, 4, 5);
             UniqueStringBTN.Name = "UniqueStringBTN";
             UniqueStringBTN.Size = new Size(133, 23);
@@ -182,7 +182,7 @@
             // 
             // AutoGenerateNamesBTN
             // 
-            AutoGenerateNamesBTN.Location = new Point(640, 107);
+            AutoGenerateNamesBTN.Location = new Point(640, 9);
             AutoGenerateNamesBTN.Margin = new Padding(4, 5, 4, 5);
             AutoGenerateNamesBTN.Name = "AutoGenerateNamesBTN";
             AutoGenerateNamesBTN.Size = new Size(133, 23);
@@ -191,11 +191,11 @@
             AutoGenerateNamesBTN.UseVisualStyleBackColor = true;
             AutoGenerateNamesBTN.Click += AutoGenerateNamesBTN_Click;
             // 
-            // ChooseKeyVaultNames6
+            // ChooseKeyVaultNames1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(799, 512);
+            ClientSize = new Size(786, 512);
             Controls.Add(UniqueStringBTN);
             Controls.Add(AutoGenerateNamesBTN);
             Controls.Add(NextBTN);
@@ -213,7 +213,7 @@
             Controls.Add(keyvaultLBL);
             MaximizeBox = false;
             MinimizeBox = false;
-            Name = "ChooseKeyVaultNames6";
+            Name = "ChooseKeyVaultNames1";
             Text = "Key Vaults";
             FormClosed += Form_Closing;
             Load += Form_Load;

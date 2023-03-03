@@ -62,6 +62,7 @@
 RBAC does not need to be used and no one will need direct access to the DB except when creating the first account.
 Review this document to create the first account after deployment: 
 
-This Cosmos will be NoSQL and serverless by default. Currently, this cannot be changed by design.</value>
+This Cosmos will be NoSQL and serverless by default. Currently, this cannot be changed by design.
+This process can take a few minutes to finish.</value>
   </data>
 </root>

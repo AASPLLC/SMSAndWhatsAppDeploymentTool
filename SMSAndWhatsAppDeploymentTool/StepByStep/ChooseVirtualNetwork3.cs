@@ -16,11 +16,15 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
 
         internal void DisableAll()
         {
+            defaultSubnetTB.Enabled = false;
+            appsSubnetTB.Enabled = false;
             BackBTN.Enabled = false;
             NextBTN.Enabled = false;
         }
         internal void EnableAll()
         {
+            defaultSubnetTB.Enabled = true;
+            appsSubnetTB.Enabled = true;
             BackBTN.Enabled = true;
             NextBTN.Enabled = true;
         }
@@ -32,12 +36,30 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
 
         private async void NextBTN_Click(object sender, EventArgs e)
         {
-            VirtualNetworkResourceHandler vnrh = new();
-            await vnrh.InitialCreation(defaultSubnetTB.Text, appsSubnetTB.Text, sbs);
+            DisableAll();
+            if (NextBTN.Text == "Next")
+            {
+                Hide();
+                if (sbs.DBType == 0)
+                {
+                    ChooseStorageName4 form = new(sbs, this);
+                    form.ShowDialog();
+                }
+                else
+                {
+                    ChooseCosmosAccountName form = new(sbs, this);
+                    form.ShowDialog();
+                }
+            }
+            else
+            {
+                OutputRT.Text = "";
+                VirtualNetworkResourceHandler vnrh = new();
+                await vnrh.InitialCreation(defaultSubnetTB.Text, appsSubnetTB.Text, sbs);
 
-            Hide();
-            ChooseStorageName4 form = new(sbs, this);
-            form.ShowDialog();
+                ((Control)sender).Text = "Next";
+            }
+            EnableAll();
         }
 
         private void Form_Closing(object sender, FormClosedEventArgs e)

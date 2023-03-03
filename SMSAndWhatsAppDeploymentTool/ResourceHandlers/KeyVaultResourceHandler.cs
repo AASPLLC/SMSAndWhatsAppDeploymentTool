@@ -11,6 +11,9 @@ using SMSAndWhatsAppDeploymentTool.JSONParsing;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Core;
 using SMSAndWhatsAppDeploymentTool.StepByStep;
+using Azure.ResourceManager.Authorization;
+using Azure.ResourceManager.Authorization.Models;
+using Azure.ResourceManager.Automation;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
@@ -42,6 +45,48 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             }
             return (desiredPublicVault, desiredInternalVault);
         }
+        static async Task SetIAMToVaults(ResourceGroupResource SelectedGroup)
+        {
+            ResourceIdentifier VaultOfficerID = new("1");
+            string VaultOfficerGUID = "";
+            var allroledefinitions = SelectedGroup.GetAuthorizationRoleDefinitions();
+            foreach (var roledefinition in allroledefinitions)
+            {
+                if (roledefinition.Data.RoleName == "Key Vault Secrets Officer")
+                {
+                    VaultOfficerGUID = roledefinition.Data.Name;
+                    VaultOfficerID = roledefinition.Data.Id;
+                    break;
+                }
+            }
+
+            RoleAssignmentCreateOrUpdateContent content = new(VaultOfficerID, Guid.Parse(await TokenHandler.JwtGetUsersInfo.GetUsersID()))
+            {
+                PrincipalType = RoleManagementPrincipalType.User
+            };
+            await SelectedGroup.GetRoleAssignments().CreateOrUpdateAsync(WaitUntil.Completed, VaultOfficerGUID, content);
+        }
+        internal static async Task RemoveIAMToVaults(ResourceGroupResource SelectedGroup)
+        {
+            ResourceIdentifier VaultOfficerID = new("1");
+            string VaultOfficerGUID = "";
+            var allroledefinitions = SelectedGroup.GetAuthorizationRoleDefinitions();
+            foreach (var roledefinition in allroledefinitions)
+            {
+                if (roledefinition.Data.RoleName == "Key Vault Secrets Officer")
+                {
+                    VaultOfficerGUID = roledefinition.Data.Name;
+                    VaultOfficerID = roledefinition.Data.Id;
+                    break;
+                }
+            }
+
+            RoleAssignmentCreateOrUpdateContent content = new(VaultOfficerID, Guid.Parse(await TokenHandler.JwtGetUsersInfo.GetUsersID()))
+            {
+                PrincipalType = RoleManagementPrincipalType.User
+            };
+            await (await SelectedGroup.GetRoleAssignments().CreateOrUpdateAsync(WaitUntil.Completed, VaultOfficerGUID, content)).Value.DeleteAsync(WaitUntil.Completed);
+        }
 
         internal virtual async Task InitialCreation(string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, StepByStepValues sbs)
         {
@@ -65,13 +110,25 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             if (await CheckKeyVaultName(desiredPublicKeyVaultName, sbs))
             {
                 await CreateKeyVaultResource(desiredPublicKeyVaultName, sbs);
+                await CreateSecret(sbs, desiredPublicKeyVaultName, "SmsEndpoint", "0");
             }
             if (await CheckKeyVaultName(desiredInternalKeyVaultName, sbs))
             {
                 await CreateKeyVaultResource(desiredInternalKeyVaultName, sbs);
+                await CreateSecret(sbs, desiredInternalKeyVaultName, "TenantID", "0");
             }
 
-            await sbs.SetupKeyVaults(desiredPublicKeyVaultName, desiredInternalKeyVaultName);
+            sbs.DesiredPublicVault = desiredPublicKeyVaultName;
+            sbs.DesiredInternalVault = desiredInternalKeyVaultName;
+            await sbs.SetupKeyVaults();
+
+            Console.Write(Environment.NewLine + "Setting temporary Key Vault Officer IAM for deployment.");
+            if (sbs.SelectedGroup != null)
+            { 
+                await SetIAMToVaults(sbs.SelectedGroup);
+                Console.Write(Environment.NewLine + "IAM Setup");
+            }
+            Console.Write(Environment.NewLine + "Vaults are finished");
         }
         internal virtual async Task<VaultResource> InitialCreation(JSONSecretNames secretNames, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, StorageAccountResource storageIdentity, string archiveEmail, string[] databases, List<string> apipackage, string connString, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string smsTemplate, DataverseDeploy form)
         {
@@ -89,6 +146,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             if (await CheckKeyVaultName(desiredPublicKeyVaultName, form))
             {
                 publicVault = await CreateKeyVaultResource(desiredPublicKeyVaultName, form.TenantID, form);
+                await CreateSecret(publicVault, "SmsEndpoint", "0");
             }
             else
             {
@@ -98,11 +156,18 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             if (await CheckKeyVaultName(desiredInternalKeyVaultName, form))
             {
                 internalVault = await CreateKeyVaultResource(desiredInternalKeyVaultName, form.TenantID, form);
+                await CreateSecret(internalVault, "TenantID", "0");
             }
             else
             {
                 //skip = true;
                 internalVault = await SkipKeyVault(form.SelectedGroup, desiredInternalKeyVaultName);
+            }
+
+            if (form.SelectedGroup != null)
+            {
+                Console.Write(Environment.NewLine + "Setting temporary Key Vault Officer IAM for deployment.");
+                await SetIAMToVaults(form.SelectedGroup);
             }
 
             if (smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
@@ -130,6 +195,13 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             form.OutputRT.Text += Environment.NewLine + "Updating function app configs";
             await UpdateFunctionConfigs(desiredInternalKeyVaultName, smsSiteResource, whatsAppSiteResource);
             form.OutputRT.Text += Environment.NewLine + "Finished updating function app configs";
+
+            if (form.SelectedGroup != null)
+            {
+                await RemoveIAMToVaults(form.SelectedGroup);
+                Console.Write(Environment.NewLine + "Temporary Key Vault Officer IAM removed.");
+            }
+
             return internalVault;
         }
         internal virtual async Task<VaultResource> InitialCreation(JSONSecretNames secretNames, string desiredRestSite, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, WebSiteResource cosmosAppSiteResource, StorageAccountResource storageIdentity, string archiveEmail, string key, string desiredCosmosName, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, Guid TenantId, string smsTemplate, CosmosDeploy form)
@@ -145,6 +217,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             if (await CheckKeyVaultName(desiredPublicKeyVaultName, form))
             {
                 publicVault = await CreateKeyVaultResource(desiredPublicKeyVaultName, TenantId, form);
+                await CreateSecret(publicVault, "SmsEndpoint", "0");
             }
             else
             {
@@ -154,11 +227,18 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             if (await CheckKeyVaultName(desiredInternalKeyVaultName, form))
             {
                 internalVault = await CreateKeyVaultResource(desiredInternalKeyVaultName, TenantId, form);
+                await CreateSecret(internalVault, "TenantID", "0");
             }
             else
             {
                 //skip = true;
                 internalVault = await SkipKeyVault(form.SelectedGroup, desiredInternalKeyVaultName);
+            }
+
+            if (form.SelectedGroup != null)
+            {
+                Console.Write(Environment.NewLine + "Setting temporary Key Vault Officer IAM for deployment.");
+                await SetIAMToVaults(form.SelectedGroup);
             }
 
             if (smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
@@ -182,9 +262,118 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             form.OutputRT.Text += Environment.NewLine + "Updating function app configs";
             await UpdateFunctionConfigs(desiredInternalKeyVaultName, smsSiteResource, whatsAppSiteResource, cosmosAppSiteResource);
             form.OutputRT.Text += Environment.NewLine + "Finished updating function app configs";
+
+            if (form.SelectedGroup != null)
+            {
+                await RemoveIAMToVaults(form.SelectedGroup);
+                Console.Write(Environment.NewLine + "Temporary Key Vault Officer IAM removed.");
+            }
+
             return internalVault;
         }
 
+        internal virtual async Task UpdateInternalVaultProperties(StepByStepValues sbs, string desiredSMSFunctionApp, string desiredWhatsAppFunctionApp)
+        {
+            if (sbs.TenantID != null)
+            {
+                VaultResource internalVault = (await sbs.SelectedGroup.GetVaultAsync(sbs.DesiredInternalVault)).Value;
+                VaultProperties properties = internalVault.Data.Properties;
+                properties.EnabledForTemplateDeployment = false;
+                properties.EnableRbacAuthorization = false;
+
+                AccessPermissions permissions = new();
+                permissions.Secrets.Add(SecretPermissions.Get);
+                permissions.Secrets.Add(SecretPermissions.List);
+                if (desiredSMSFunctionApp != "")
+                {
+                    Guid? smsPrincipal = (await sbs.SelectedGroup.GetWebSiteAsync(desiredSMSFunctionApp)).Value.Data.Identity.PrincipalId;
+                    if (smsPrincipal != null)
+                        properties.AccessPolicies.Add(new(sbs.TenantID.Value, smsPrincipal.Value.ToString(), permissions));
+                }
+                if (desiredWhatsAppFunctionApp != "")
+                {
+                    Guid? whatsappPrincipal = (await sbs.SelectedGroup.GetWebSiteAsync(desiredWhatsAppFunctionApp)).Value.Data.Identity.PrincipalId;
+                    if (whatsappPrincipal != null)
+                        properties.AccessPolicies.Add(new(sbs.TenantID.Value, whatsappPrincipal.Value.ToString(), permissions));
+                }
+
+                AccessPermissions automationPermissions = new();
+                automationPermissions.Secrets.Add(SecretPermissions.Get);
+                automationPermissions.Secrets.Add(SecretPermissions.Set);
+                automationPermissions.Secrets.Add(SecretPermissions.List);
+                AutomationAccountResource aar = (await sbs.SelectedGroup.GetAutomationAccountAsync(sbs.DesiredAutomationAccount)).Value;
+                _ = await AutomationAccountsHandler.CreateRunbook(aar, AutomationAccountsHandler.AutoPowerShellDataverseArchiver(), "AutoArchiver ", sbs.SelectedRegion);
+                properties.AccessPolicies.Add(new(sbs.TenantID.Value, (await AutomationAccountsHandler.CreateRunbook(aar, AutomationAccountsHandler.AutoPowerShellKeyCode(), "AutoRotation", sbs.SelectedRegion)).ToString(), automationPermissions));
+
+                AccessPermissions addSelf = new();
+                addSelf.Secrets.Add(SecretPermissions.Get);
+                addSelf.Secrets.Add(SecretPermissions.Set);
+                addSelf.Secrets.Add(SecretPermissions.List);
+                properties.AccessPolicies.Add(new(sbs.TenantID.Value, await TokenHandler.JwtGetUsersInfo.GetUsersID(), addSelf));
+
+                VaultCreateOrUpdateContent content = new(sbs.SelectedRegion, properties);
+                _ = (await sbs.SelectedGroup.GetVaults().CreateOrUpdateAsync(WaitUntil.Completed, internalVault.Data.Name, content)).Value;
+            }
+        }
+        internal virtual async Task UpdateInternalVaultProperties(StepByStepValues sbs, string desiredSMSFunctionApp, string desiredWhatsAppFunctionApp, string desiredRestApp)
+        {
+            if (sbs.TenantID != null)
+            {
+                VaultResource internalVault = (await sbs.SelectedGroup.GetVaultAsync(sbs.DesiredInternalVault)).Value;
+                VaultProperties properties = internalVault.Data.Properties;
+                properties.EnabledForTemplateDeployment = false;
+                properties.EnableRbacAuthorization = false;
+
+                if (sbs.secretNames.AutomationId != null)
+                {
+                    if (desiredRestApp != "")
+                    {
+                        AccessPermissions restpermissions = new();
+                        restpermissions.Secrets.Add(SecretPermissions.Get);
+                        restpermissions.Secrets.Add(SecretPermissions.List);
+                        Guid? restPrincipal = (await sbs.SelectedGroup.GetWebSiteAsync(desiredRestApp)).Value.Data.Identity.PrincipalId;
+                        if (restPrincipal != null)
+                        {
+                            await CreateSecret(sbs, sbs.DesiredInternalVault, sbs.secretNames.AutomationId, restPrincipal.Value.ToString());
+                            properties.AccessPolicies.Add(new(sbs.TenantID.Value, restPrincipal.Value.ToString(), restpermissions));
+                        }
+                    }
+                }
+
+                AccessPermissions permissions = new();
+                permissions.Secrets.Add(SecretPermissions.Get);
+                permissions.Secrets.Add(SecretPermissions.List);
+                if (desiredSMSFunctionApp != "")
+                {
+                    Guid? smsPrincipal = (await sbs.SelectedGroup.GetWebSiteAsync(desiredSMSFunctionApp)).Value.Data.Identity.PrincipalId;
+                    if (smsPrincipal != null)
+                        properties.AccessPolicies.Add(new(sbs.TenantID.Value, smsPrincipal.Value.ToString(), permissions));
+                }
+                if (desiredWhatsAppFunctionApp != "")
+                {
+                    Guid? whatsappPrincipal = (await sbs.SelectedGroup.GetWebSiteAsync(desiredWhatsAppFunctionApp)).Value.Data.Identity.PrincipalId;
+                    if (whatsappPrincipal != null)
+                        properties.AccessPolicies.Add(new(sbs.TenantID.Value, whatsappPrincipal.Value.ToString(), permissions));
+                }
+
+                AccessPermissions automationPermissions = new();
+                automationPermissions.Secrets.Add(SecretPermissions.Get);
+                automationPermissions.Secrets.Add(SecretPermissions.Set);
+                automationPermissions.Secrets.Add(SecretPermissions.List);
+                AutomationAccountResource aar = (await sbs.SelectedGroup.GetAutomationAccountAsync(sbs.DesiredAutomationAccount)).Value;
+                _ = await AutomationAccountsHandler.CreateRunbook(aar, AutomationAccountsHandler.AutoPowerShellCosmosArchiver(), "AutoArchiver ", sbs.SelectedRegion);
+                properties.AccessPolicies.Add(new(sbs.TenantID.Value, (await AutomationAccountsHandler.CreateRunbook(aar, AutomationAccountsHandler.AutoPowerShellKeyCode(), "AutoRotation", sbs.SelectedRegion)).ToString(), automationPermissions));
+
+                AccessPermissions addSelf = new();
+                addSelf.Secrets.Add(SecretPermissions.Get);
+                addSelf.Secrets.Add(SecretPermissions.Set);
+                addSelf.Secrets.Add(SecretPermissions.List);
+                properties.AccessPolicies.Add(new(sbs.TenantID.Value, await TokenHandler.JwtGetUsersInfo.GetUsersID(), addSelf));
+
+                VaultCreateOrUpdateContent content = new(sbs.SelectedRegion, properties);
+                _ = (await sbs.SelectedGroup.GetVaults().CreateOrUpdateAsync(WaitUntil.Completed, internalVault.Data.Name, content)).Value;
+            }
+        }
         internal virtual async Task UpdateInternalVaultProperties(string smsObjectId, string whatsAppObjectId, string automationObjectId, VaultResource vaultResource, Guid TenantID, AzureLocation SelectedRegion, ResourceGroupResource SelectedGroup)
         {
             VaultProperties properties = vaultResource.Data.Properties;
@@ -233,6 +422,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         }
 
 #pragma warning disable IDE0051 // Remove unused private members
+        //user will need access to set old versions to false
         static async Task CreateSecretManaged(VaultResource vr, string key, string value)
 #pragma warning restore IDE0051 // Remove unused private members
         {
@@ -256,7 +446,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 }));
             }
         }
-        internal static async Task CreateSecret(StepByStepValues sbs, string desiredVault, string key, string value)
+        internal static async Task<bool> CreateSecret(StepByStepValues sbs, string desiredVault, string key, string value)
         {
             try
             {
@@ -276,6 +466,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                         Value = value
                     }));
                 }
+                return false;
             }
             catch
             {
@@ -283,6 +474,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 {
                     Value = value
                 }));
+                return true;
             }
         }
         static async Task CreateSecret(VaultResource vr, string key, string value)
@@ -517,6 +709,11 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             desiredName = desiredName.Trim();
             try
             {
+                if (desiredName == "")
+                {
+                    Console.Write(Environment.NewLine + "Key Vault text is empty and Secret check could not be found.");
+                    return false;
+                }
                 _ = await sbs.SelectedGroup.GetVaultAsync(desiredName);
                 Console.Write(Environment.NewLine + desiredName + " and " + desiredName + " already exists in your environment, skipping.");
                 return false;
@@ -550,6 +747,11 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             desiredName = desiredName.Trim();
             try
             {
+                if (desiredName == "")
+                {
+                    Console.Write(Environment.NewLine + "Key Vault text is empty and Secret check could not be found.");
+                    return false;
+                }
                 _ = await form.SelectedGroup.GetVaultAsync(desiredName);
                 form.OutputRT.Text += Environment.NewLine + desiredName + " and " + desiredName + " already exists in your environment, skipping.";
                 return false;
@@ -583,6 +785,11 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             desiredName = desiredName.Trim();
             try
             {
+                if (desiredName == "")
+                {
+                    Console.Write(Environment.NewLine + "Key Vault text is empty and Secret check could not be found.");
+                    return false;
+                }
                 _ = await form.SelectedGroup.GetVaultAsync(desiredName);
                 form.OutputRT.Text += Environment.NewLine + desiredName + " already exists in your environment, skipping.";
                 return false;

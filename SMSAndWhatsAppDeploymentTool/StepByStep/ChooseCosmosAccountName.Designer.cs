@@ -128,7 +128,7 @@
             label2.AutoSize = true;
             label2.Location = new Point(43, 9);
             label2.Name = "label2";
-            label2.Size = new Size(616, 75);
+            label2.Size = new Size(616, 90);
             label2.TabIndex = 63;
             label2.Text = resources.GetString("label2.Text");
             // 

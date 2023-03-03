@@ -14,6 +14,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 defaultSubnet = "10.1.0.0";
             if (appSubnet == "")
                 appSubnet = "10.1.0.32";
+
             if (await CheckVirtualNetworkName(sbs))
             {
                 _ = await sbs.SelectedGroup.GetVirtualNetworks().CreateOrUpdateAsync(WaitUntil.Completed, "StorageConnection", CreateVirtualNetworkData(defaultSubnet, appSubnet, sbs.SelectedRegion, false));

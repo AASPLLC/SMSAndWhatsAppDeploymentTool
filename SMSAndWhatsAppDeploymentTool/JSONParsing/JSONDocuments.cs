@@ -84,5 +84,11 @@ namespace SMSAndWhatsAppDeploymentTool.JSONParsing
             if (NetworkingDetails != null)
                 Globals.LoadPath(NetworkingDetails);
         }
+
+        public void OpenManualAPIInstructions()
+        {
+            if (ManualAPIRegistration != null)
+                Globals.LoadPath(ManualAPIRegistration);
+        }
     }
 }

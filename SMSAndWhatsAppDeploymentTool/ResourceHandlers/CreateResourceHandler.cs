@@ -163,10 +163,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 smsTemplate,
                 form);
 
-            JSONDefaultDataverseLibrary dataverseLibrary = await Globals.LoadJSON<JSONDefaultDataverseLibrary>(form.DataverseLibraryPath);
             AutomationAccountsHandler aah = new();
             Guid automationaccountid = await aah.InitialCreation(
-                dataverseLibrary,
                 secretNames,
                 desiredInternalKeyVaultName,
                 form);

@@ -102,7 +102,7 @@
             NextBTN.Name = "NextBTN";
             NextBTN.Size = new Size(75, 23);
             NextBTN.TabIndex = 55;
-            NextBTN.Text = "Next";
+            NextBTN.Text = "Create";
             NextBTN.UseVisualStyleBackColor = true;
             NextBTN.Click += NextBTN_Click;
             // 

@@ -2,6 +2,7 @@
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Communication;
+using Azure.ResourceManager.CosmosDB;
 using Azure.ResourceManager.Resources;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using SMSAndWhatsAppDeploymentTool.JSONParsing;
@@ -19,6 +20,8 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
         internal Guid? TenantID;
         internal JSONDocuments infoWebsites = new();
         internal JSONSecretNames secretNames = new();
+        //only used for async fixes in certain situations
+        internal Control InvokableText = new();
 
         internal string SelectedEnvironment = "";
         internal string SelectedOrgId = "";
@@ -28,58 +31,61 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
         internal string DesiredStorageName = "";
         internal string DesiredPublicVault = "";
         internal string DesiredInternalVault = "";
+        internal string DesiredAutomationAccount = "";
+        internal string DesiredCosmosAccount = "";
 
-        internal async Task SetupKeyVaults(string desiredPublicKeyVaultName, string desiredInternalKeyVaultName)
+        internal async Task SetupKeyVaults()
         {
-            DesiredPublicVault = desiredPublicKeyVaultName;
-            DesiredInternalVault = desiredInternalKeyVaultName;
-            await CreateDBTypeAndTenantSecrets();
-        }
-        async Task CreateDBTypeAndTenantSecrets()
-        {
-            if (secretNames.Type != null)
+            if (DesiredPublicVault != "" && DesiredInternalVault != "")
             {
-                await KeyVaultResourceHandler.CreateSecret(
-                    this,
-                    DesiredPublicVault,
-                    secretNames.Type,
-                    DBType.ToString()
-                    );
-                await KeyVaultResourceHandler.CreateSecret(
-                    this,
-                    DesiredInternalVault,
-                    secretNames.Type,
-                    DBType.ToString()
-                    );
-            }
-            if (secretNames.PTenantID != null && TenantID != null)
-            {
-                await KeyVaultResourceHandler.CreateSecret(
-                    this,
-                    DesiredInternalVault,
-                    secretNames.PTenantID,
-                    TenantID.Value.ToString());
+                if (secretNames.Type != null)
+                {
+                    await KeyVaultResourceHandler.CreateSecret(
+                        this,
+                        DesiredPublicVault,
+                        secretNames.Type,
+                        DBType.ToString()
+                        );
+                    await KeyVaultResourceHandler.CreateSecret(
+                        this,
+                        DesiredInternalVault,
+                        secretNames.Type,
+                        DBType.ToString()
+                        );
+                }
+                if (secretNames.PTenantID != null && TenantID != null)
+                {
+                    await KeyVaultResourceHandler.CreateSecret(
+                        this,
+                        DesiredInternalVault,
+                        secretNames.PTenantID,
+                        TenantID.Value.ToString());
+                }
             }
         }
 
-        internal async Task CreateAllDataverseResources(string apiClientId, string apiObjectId, bool createSystemAccount)
+        internal async Task<bool> CreateAllDataverseResources(string apiClientId, string apiObjectId, bool createSystemAccount)
         {
             DataverseHandler dh = new();
             string DataverseLibraryPath = Environment.CurrentDirectory + "/JSONS/defaultLibraryDataverse.json";
             try { await dh.InitAsync(SelectedEnvironment, DataverseLibraryPath); }
             catch { await dh.InitAsync(SelectedEnvironment); }
+            bool successful = false;
             if (!AutoAPI)
             {
-                await SetupDataverseEnvironment(dh, apiClientId, apiObjectId, createSystemAccount);
+                if (await SetupDataverseEnvironment(dh, apiClientId, apiObjectId, createSystemAccount))
+                    successful = true;
             }
             else
             {
-                await SetupDataverseEnvironment(dh, createSystemAccount);
+                if (await SetupDataverseEnvironment(dh, createSystemAccount))
+                    successful = true;
             }
             if (secretNames.PDynamicsEnvironment != null)
                 await KeyVaultResourceHandler.CreateSecret(this, DesiredPublicVault, secretNames.PDynamicsEnvironment, SelectedEnvironment);
             if (secretNames.IoOrgID != null)
                 await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoOrgID, SelectedOrgId);
+            return successful;
         }
         async Task CreateDatabases(DataverseHandler dh, string clientid, string[] databases)
         {
@@ -116,7 +122,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                 }
             }
         }
-        async Task SetupDataverseEnvironment(DataverseHandler dh, string apiClientId, string apiObjectId, bool createSystemAccount)
+        async Task<bool> SetupDataverseEnvironment(DataverseHandler dh, string apiClientId, string apiObjectId, bool createSystemAccount)
         {
             if (TenantID != null && secretNames.IoSecret != null && secretNames.IoClientID != null && secretNames.DbName1 != null && secretNames.DbName2 != null && secretNames.DbName3 != null && secretNames.DbName4 != null && secretNames.DbName5 != null)
             {
@@ -130,7 +136,9 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
 
                 if (createSystemAccount)
                     apiClientId = await dh.CreateSystemAccount(new VerifyAppId(), apiClientId.Trim(), SelectedOrgId);
+
                 await CreateDatabases(dh, apiClientId, databases);
+
                 await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoClientID, apiClientId);
 
                 if (secretNames.PAccountsDBPrefix != null)
@@ -161,25 +169,50 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                         await VaultHandler.GetSecretInteractive(DesiredInternalVault, secretNames.IoSecret),
                         new[] { "https://graph.microsoft.com/.default" },
                         TenantID.Value.ToString());
+                    Console.Write(Environment.NewLine + "Secure login passed.");
+                    return true;
                 }
                 catch (Exception e)
                 {
-                    Console.Write(Environment.NewLine + e.ToString());
+                    Console.Write(Environment.NewLine + "Unable to locate secret login: " + e.ToString());
                     SecuredExistingSecret securedExistingSecret = new();
                     securedExistingSecret.ShowDialog();
                     if (securedExistingSecret.GetSecuredString() != "")
                         await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoSecret, securedExistingSecret.GetSecuredString());
                     securedExistingSecret.Dispose();
+
+                    try
+                    {
+                        _ = await TokenHandler.GetConfidentialClientAccessToken(
+                            apiClientId,
+                            await VaultHandler.GetSecretInteractive(DesiredInternalVault, secretNames.IoSecret),
+                            new[] { "https://graph.microsoft.com/.default" },
+                            TenantID.Value.ToString());
+                        Console.Write(Environment.NewLine + "Secure login passed.");
+                        return true;
+                    }
+                    catch
+                    {
+                        Console.Write(Environment.NewLine + "Secure login failed.");
+                        Console.Write(Environment.NewLine + "Create a new API or manually create a secret named ArchiveAccess.");
+                        return false;
+                    }
                 }
             }
+            else
+            {
+                Console.Write(Environment.NewLine + "Secret Names JSON is missing IoSecret, IoClientID, DBNames, and/or the TenantID is invalid");
+                Console.Write(Environment.NewLine + "Secure login failed.");
+                return false;
+            }
         }
-        async Task SetupDataverseEnvironment(DataverseHandler dh, bool createSystemAccount)
+        async Task<bool> SetupDataverseEnvironment(DataverseHandler dh, bool createSystemAccount)
         {
             if (secretNames.IoSecret != null && secretNames.IoClientID != null && secretNames.DbName1 != null && secretNames.DbName2 != null && secretNames.DbName3 != null && secretNames.DbName4 != null && secretNames.DbName5 != null)
             {
                 string[] databases = { secretNames.DbName1, secretNames.DbName2, secretNames.DbName3, secretNames.DbName4, secretNames.DbName5 };
 
-                string dataverseAPIName = "SMSAndWhatsAppAPI";
+                string APIName = "SMSAndWhatsAppAPI";
                 Console.Write(Environment.NewLine + "Starting dataverse deployment");
                 MessageBox.Show("May need to login a few times. Takes time for API creation to finalize in Azure.");
                 Console.Write(Environment.NewLine + "Waiting for API Creation");
@@ -187,13 +220,15 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                 try
                 {
                     var gs = GraphHandler.GetServiceClientWithoutAPI();
-                    var app = await CreateAzureAPIHandler.CreateAzureAPIAsync(gs, dataverseAPIName);
+                    var app = await CreateAzureAPIHandler.CreateAzureAPIAsync(gs, APIName);
 
                     Console.Write(Environment.NewLine + "Created: " + app.DisplayName);
 
                     if (createSystemAccount)
                         app.AppId = await dh.CreateSystemAccount(new VerifyAppId(), app.AppId.Trim(), SelectedOrgId);
+
                     await CreateDatabases(dh, app.AppId, databases);
+
                     await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoClientID, await VaultHandler.GetSecretInteractive(DesiredInternalVault, secretNames.IoClientID));
                     await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, app.Id, app.DisplayName, "ArchiveAccess"));
 
@@ -217,6 +252,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                         await KeyVaultResourceHandler.CreateSecret(this, DesiredPublicVault, secretNames.PPhoneNumberDBPrefix, databases[3].ToLower() + "eses");
                         await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.PPhoneNumberDBPrefix, databases[3].ToLower() + "eses");
                     }
+                    return true;
                 }
                 catch (Exception e)
                 {
@@ -227,25 +263,33 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                         "Full Error: " + e.ToString();
                     mb.ShowDialog();
                     mb.Close();
+                    return false;
                 }
+            }
+            else
+            {
+                Console.Write(Environment.NewLine + "Secret Names JSON is missing IoSecret, IoClientID, and/or DBNames");
+                return false;
             }
         }
 
-        internal async Task SetupCosmosEnvironment()
+        internal async Task<bool> SetupCosmosEnvironment()
         {
-            if (secretNames.IoSecret != null && secretNames.IoClientID != null && secretNames.DbName1 != null && secretNames.DbName2 != null && secretNames.DbName3 != null && secretNames.DbName4 != null && secretNames.DbName5 != null)
+            if (secretNames.IoSecret != null && secretNames.IoClientID != null)
             {
-                string dataverseAPIName = "SMSAndWhatsAppAPI";
-                Console.Write(Environment.NewLine + "Starting dataverse deployment");
-                MessageBox.Show("May need to login a few times. Takes time for API creation to finalize in Azure.");
+                string APIName = "SMSAndWhatsAppAPI";
                 Console.Write(Environment.NewLine + "Waiting for API Creation");
 
                 try
                 {
                     var gs = GraphHandler.GetServiceClientWithoutAPI();
-                    var app = await CreateAzureAPIHandler.CreateAzureAPIAsync(gs, dataverseAPIName, true);
+                    var app = await CreateAzureAPIHandler.CreateAzureAPIAsync(gs, APIName, true);
+
+                    await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoClientID, await VaultHandler.GetSecretInteractive(DesiredInternalVault, secretNames.IoClientID));
+                    await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, app.Id, app.DisplayName, "ArchiveAccess"));
 
                     Console.Write(Environment.NewLine + "Created: " + app.DisplayName);
+                    return true;
                 }
                 catch (Exception e)
                 {
@@ -256,17 +300,83 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                         "Full Error: " + e.ToString();
                     mb.ShowDialog();
                     mb.Close();
+                    return false;
                 }
+            }
+            else
+            {
+                Console.Write(Environment.NewLine + "Secret Names JSON is missing IoSecret and/or IoClientID");
+                return false;
+            }
+        }
+        internal async Task<bool> SetupCosmosEnvironment(string apiClientId)
+        {
+            if (TenantID != null && secretNames.IoSecret != null && secretNames.IoClientID != null)
+            {
+                Console.Write(Environment.NewLine + "Checking existing API.");
+
+                await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoClientID, apiClientId);
+
+                try
+                {
+                    _ = await TokenHandler.GetConfidentialClientAccessToken(
+                        apiClientId,
+                        await VaultHandler.GetSecretInteractive(DesiredInternalVault, secretNames.IoSecret),
+                        new[] { "https://graph.microsoft.com/.default" },
+                        TenantID.Value.ToString());
+                    Console.Write(Environment.NewLine + "Secure login passed.");
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    Console.Write(Environment.NewLine + "Unable to locate secret login: " + e.ToString());
+                    SecuredExistingSecret securedExistingSecret = new();
+                    securedExistingSecret.ShowDialog();
+                    if (securedExistingSecret.GetSecuredString() != "")
+                        await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoSecret, securedExistingSecret.GetSecuredString());
+                    securedExistingSecret.Dispose();
+
+                    try
+                    {
+                        _ = await TokenHandler.GetConfidentialClientAccessToken(
+                            apiClientId,
+                            await VaultHandler.GetSecretInteractive(DesiredInternalVault, secretNames.IoSecret),
+                            new[] { "https://graph.microsoft.com/.default" },
+                            TenantID.Value.ToString());
+                        Console.Write(Environment.NewLine + "Secure login passed.");
+                        return true;
+                    }
+                    catch
+                    {
+                        Console.Write(Environment.NewLine + "Secure login failed.");
+                        Console.Write(Environment.NewLine + "Create a new API or manually create a secret named ArchiveAccess.");
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                Console.Write(Environment.NewLine + "Secret Names JSON is missing IoSecret, IoClientID, and/or the TenantID is invalid");
+                Console.Write(Environment.NewLine + "Secure login failed.");
+                return false;
             }
         }
 
         internal async Task UpdateFunctionAppConfigs(string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredRestAppName)
         {
             Console.Write(Environment.NewLine + "Updating function app configs");
-            await KeyVaultResourceHandler.UpdateSMSConfigs(desiredSMSFunctionAppName, this);
-            await KeyVaultResourceHandler.UpdateWhatsAppConfigs(desiredWhatsAppFunctionAppName, this);
-            if (DBType == 1)
+            if (desiredSMSFunctionAppName != "")
+                await KeyVaultResourceHandler.UpdateSMSConfigs(desiredSMSFunctionAppName, this);
+            else
+                Console.Write(Environment.NewLine + "WARNING: SMS Configuration skipped, no function app found.");
+            if (desiredWhatsAppFunctionAppName != "")
+                await KeyVaultResourceHandler.UpdateWhatsAppConfigs(desiredWhatsAppFunctionAppName, this);
+            else
+                Console.Write(Environment.NewLine + "WARNING: WhatsApp Configuration skipped, no function app found.");
+            if (DBType == 1 && desiredRestAppName != "")
                 await KeyVaultResourceHandler.UpdateCosmosConfigs(desiredRestAppName, this);
+            else
+                Console.Write(Environment.NewLine + "WARNING: Cosmos REST API Configuration skipped, no function app found.");
             Console.Write(Environment.NewLine + "Finished updating function app configs");
         }
 
@@ -286,39 +396,60 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
         {
             if (secretNames.SMSTemplate != null && !smsTemplate.Contains("COMPANYNAMEHERE") && smsTemplate != "")
             {
-                await KeyVaultResourceHandler.CreateSecret(
+                if (await KeyVaultResourceHandler.CreateSecret(
                     this,
                     DesiredPublicVault,
                     secretNames.SMSTemplate,
                     smsTemplate
-                    );
+                    ))
+                    Console.Write(Environment.NewLine + "SMS Template has been created.");
+                else
+                    Console.Write(Environment.NewLine + "SMS Template has been changed if different.");
             }
+            else
+                Console.Write(Environment.NewLine + "SMS Template skipped, no change to sms template field found.");
         }
         internal async Task CreateWhatsAppSecrets(string whatsappSystemAccessToken, string verifyHTTPToken)
         {
             if (secretNames.IoCallback != null && verifyHTTPToken != "")
             {
-                await KeyVaultResourceHandler.CreateSecret(
+                if (await KeyVaultResourceHandler.CreateSecret(
                     this,
                     DesiredInternalVault,
                     secretNames.IoCallback,
-                    verifyHTTPToken);
+                    verifyHTTPToken))
+                    Console.Write(Environment.NewLine + "Callback verify has been created.");
+                else
+                    Console.Write(Environment.NewLine + "Callback verify has been changed if different.");
             }
+            else
+                Console.Write(Environment.NewLine + "Callback skipped, text is empty.");
             if (secretNames.PWhatsAppAccess != null && whatsappSystemAccessToken != "")
             {
+                bool IsNew;
                 if (whatsappSystemAccessToken.StartsWith("Bearer "))
-                    await KeyVaultResourceHandler.CreateSecret(this, DesiredPublicVault, secretNames.PWhatsAppAccess, whatsappSystemAccessToken);
+                    IsNew = await KeyVaultResourceHandler.CreateSecret(this, DesiredPublicVault, secretNames.PWhatsAppAccess, whatsappSystemAccessToken);
                 else
-                    await KeyVaultResourceHandler.CreateSecret(this, DesiredPublicVault, secretNames.PWhatsAppAccess, "Bearer " + whatsappSystemAccessToken);
+                    IsNew = await KeyVaultResourceHandler.CreateSecret(this, DesiredPublicVault, secretNames.PWhatsAppAccess, "Bearer " + whatsappSystemAccessToken);
+                if (IsNew)
+                    Console.Write(Environment.NewLine + "System Access token has been created.");
+                else
+                    Console.Write(Environment.NewLine + "System Access token has been changed if different.");
             }
+            else
+                Console.Write(Environment.NewLine + "System Access skipped, text is empty.");
         }
         internal async Task CreateCosmosSecret(string desiredRestSite)
         {
-            if (secretNames.RESTSite != null && desiredRestSite != "")
+            if (secretNames.RESTSite != null)
             {
                 await KeyVaultResourceHandler.CreateSecret(this, DesiredPublicVault, secretNames.RESTSite, desiredRestSite);
                 await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.RESTSite, desiredRestSite);
             }
+            if (secretNames.IoCosmos != null)
+                await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoCosmos, DesiredCosmosAccount);
+            if (secretNames.IoKey != null)
+                await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoKey, (await (await SelectedGroup.GetCosmosDBAccountAsync(DesiredCosmosAccount)).Value.GetKeysAsync()).Value.PrimaryReadonlyMasterKey);
         }
 
         internal async Task SetupSubscriptionInfo()

@@ -180,6 +180,7 @@ namespace SMSAndWhatsAppDeploymentTool
             }
             else
             {
+                ChooseKeyVaultNames1 s = new(sbs, this);
                 sbs.SelectedRegion = comboBox3.Text;
                 sbs.DBType = 0;
 #pragma warning disable CS8602 // Converting null literal or possible null value to non-nullable type.
@@ -190,8 +191,6 @@ namespace SMSAndWhatsAppDeploymentTool
 #pragma warning restore CS8601 // Converting null literal or possible null value to non-nullable type.
 #pragma warning restore CS8602 // Converting null literal or possible null value to non-nullable type.
 
-                ChooseKeyVaultNames1 s = new(sbs, this);
-                await s.Init();
                 this.Hide();
                 s.ShowDialog();
             }

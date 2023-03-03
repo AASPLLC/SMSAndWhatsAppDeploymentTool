@@ -1,4 +1,5 @@
 ﻿using AASPGlobalLibrary;
+using SMSAndWhatsAppDeploymentTool.ResourceHandlers;
 
 namespace SMSAndWhatsAppDeploymentTool.StepByStep
 {
@@ -15,6 +16,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
 
         internal void DisableAll()
         {
+            UniqueStringBTN.Enabled = false;
             whatsappSystemTokenTB.Enabled = false;
             whatsappCallbackTokenTB.Enabled = false;
             BackBTN.Enabled = false;
@@ -23,6 +25,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
         }
         internal void EnableAll()
         {
+            UniqueStringBTN.Enabled = true;
             whatsappSystemTokenTB.Enabled = true;
             whatsappCallbackTokenTB.Enabled = true;
             BackBTN.Enabled = true;
@@ -37,17 +40,57 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
 
         private async void NextBTN_Click(object sender, EventArgs e)
         {
-            await sbs.CreateSMSTemplateSecret(SMSTemplateTB.Text);
-            await sbs.CreateWhatsAppSecrets(whatsappSystemTokenTB.Text, whatsappCallbackTokenTB.Text);
-            if (sbs.DBType == 0)
+            DisableAll();
+            if (NextBTN.Text == "Next")
             {
-
+                if (sbs.SelectedGroup != null)
+                    await KeyVaultResourceHandler.RemoveIAMToVaults(sbs.SelectedGroup);
+                this.Hide();
                 var result = MessageBox.Show("Deployment Complete");
                 if (result == DialogResult.OK) { Close(); }
+                //FinishUp8 form = new(sbs, this);
+                //form.ShowDialog();
             }
-            //Hide();
-            //ChooseKeyVaultNames6 form = new(sbs, this, whatsappSystemTokenTB.Text, whatsappCallbackTokenTB.Text, SMSTemplateTB.Text);
-            //form.ShowDialog();
+            else
+            {
+                OutputRT.Text = "";
+                await sbs.CreateSMSTemplateSecret(SMSTemplateTB.Text);
+                await sbs.CreateWhatsAppSecrets(whatsappSystemTokenTB.Text, whatsappCallbackTokenTB.Text);
+
+                bool SMSTemplateExists = false;
+                bool CallbackExists = false;
+                bool SystemAccessExists = false;
+                if (sbs.secretNames.SMSTemplate != null)
+                {
+                    try
+                    {
+                        _ = await VaultHandler.GetSecretInteractive(sbs.DesiredPublicVault, sbs.secretNames.SMSTemplate);
+                        SMSTemplateExists = true;
+                    }
+                    catch { Console.Write(Environment.NewLine + "An existing template has not been detected, unable to continue."); }
+                }
+                if (sbs.secretNames.IoCallback != null)
+                {
+                    try
+                    {
+                        _ = await VaultHandler.GetSecretInteractive(sbs.DesiredInternalVault, sbs.secretNames.IoCallback);
+                        CallbackExists = true;
+                    }
+                    catch { Console.Write(Environment.NewLine + "An existing callback has not been detected, unable to continue."); }
+                }
+                if (sbs.secretNames.PWhatsAppAccess != null)
+                {
+                    try
+                    {
+                        _ = await VaultHandler.GetSecretInteractive(sbs.DesiredPublicVault, sbs.secretNames.PWhatsAppAccess);
+                        SystemAccessExists = true;
+                    }
+                    catch { Console.Write(Environment.NewLine + "An existing system access token has not been detected, unable to continue."); }
+                }
+                if (SMSTemplateExists && CallbackExists && SystemAccessExists)
+                    ((Control)sender).Text = "Next";
+            }
+            EnableAll();
         }
 
         private void UniqueStringBTN_Click(object sender, EventArgs e)

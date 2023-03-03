@@ -20,7 +20,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return desiredCommsname;
         }
 
-        internal virtual async Task InitialCreation(string desiredCommunicationsName, StepByStepValues sbs)
+        internal virtual async Task<bool> InitialCreation(string desiredCommunicationsName, StepByStepValues sbs)
         {
             foreach (var item in sbs.SelectedGroup.GetCommunicationServiceResources())
             {
@@ -32,7 +32,13 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 await CreateAzureCommunicationsResource(desiredCommunicationsName, sbs);
                 sbs.DesiredCommsName = desiredCommunicationsName;
             }
-            await sbs.CreateSMSConnectionStringSecret();
+            if (desiredCommunicationsName == "")
+                return false;
+            else
+            {
+                await sbs.CreateSMSConnectionStringSecret();
+                return true;
+            }
         }
         internal virtual async Task<(ResourceIdentifier, string)> InitialCreation(string desiredCommunicationsName, DataverseDeploy form)
         {
@@ -103,6 +109,11 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             desiredName = desiredName.Trim();
             try
             {
+                if (desiredName == "")
+                {
+                    Console.Write(Environment.NewLine + "Communication desired name is empty and no existing service could be found.");
+                    return false;
+                }
                 _ = (await (await sbs.SelectedGroup.GetCommunicationServiceResourceAsync(desiredName)).Value.GetKeysAsync()).Value.PrimaryConnectionString;
                 sbs.DesiredCommsName = desiredName;
                 Console.Write(Environment.NewLine + desiredName + " already exists in your environment, skipping.");
@@ -157,6 +168,11 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             desiredName = desiredName.Trim();
             try
             {
+                if (desiredName == "")
+                {
+                    Console.Write(Environment.NewLine + "Communication desired name is empty and no existing service could be found.");
+                    return false;
+                }
                 _ = await form.SelectedGroup.GetCommunicationServiceResourceAsync(desiredName);
                 form.OutputRT.Text += Environment.NewLine + desiredName + " already exists in your environment, skipping.";
                 return false;
@@ -210,6 +226,11 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             desiredName = desiredName.Trim();
             try
             {
+                if (desiredName == "")
+                {
+                    Console.Write(Environment.NewLine + "Communication desired name is empty and no existing service could be found.");
+                    return false;
+                }
                 _ = await form.SelectedGroup.GetCommunicationServiceResourceAsync(desiredName);
                 form.OutputRT.Text += Environment.NewLine + desiredName + " already exists in your environment, skipping.";
                 return false;

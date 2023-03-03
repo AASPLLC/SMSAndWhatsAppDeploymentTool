@@ -18,6 +18,8 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
 
         internal void DisableAll()
         {
+            AutoGenerateNamesBTN.Enabled = false;
+            UniqueStringBTN.Enabled = false;
             desiredSMSFunctionAppNameTB.Enabled = false;
             desiredWhatsAppFunctionNameTB.Enabled = false;
             if (sbs.DBType == 1)
@@ -27,6 +29,8 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
         }
         internal void EnableAll()
         {
+            AutoGenerateNamesBTN.Enabled = true;
+            UniqueStringBTN.Enabled = true;
             desiredSMSFunctionAppNameTB.Enabled = true;
             desiredWhatsAppFunctionNameTB.Enabled = true;
             if (sbs.DBType == 1)
@@ -42,28 +46,43 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
 
         private async void NextBTN_Click(object sender, EventArgs e)
         {
-            FunctionAppResourceHandler farh = new();
-            if (sbs.DBType == 0)
+            DisableAll();
+            if (NextBTN.Text == "Next")
             {
-                await farh.InitialCreation(
-                    desiredSMSFunctionAppNameTB.Text,
-                    desiredWhatsAppFunctionNameTB.Text,
-                    sbs
-                    );
+                Hide();
+                SetupWhatsApp6 form = new(sbs, this);
+                form.ShowDialog();
             }
             else
             {
-                await farh.InitialCreation(
-                    desiredSMSFunctionAppNameTB.Text,
-                    desiredWhatsAppFunctionNameTB.Text,
-                    sbs,
-                    desiredCosmosRESTAPIFunctionNameTB.Text
-                    );
-            }
+                OutputRT.Text = "";
 
-            Hide();
-            SetupWhatsApp6 form = new(sbs, this);
-            form.ShowDialog();
+                AutomationAccountsHandler aah = new();
+                await aah.InitialCreation(sbs);
+
+                FunctionAppResourceHandler farh = new();
+                if (sbs.DBType == 0)
+                {
+                    if (await farh.InitialCreation(
+                        desiredSMSFunctionAppNameTB.Text,
+                        desiredWhatsAppFunctionNameTB.Text,
+                        sbs
+                        ))
+                        ((Control)sender).Text = "Next";
+                }
+                else
+                {
+                    if (await farh.InitialCreation(
+                        desiredSMSFunctionAppNameTB.Text,
+                        desiredWhatsAppFunctionNameTB.Text,
+                        sbs,
+                        desiredCosmosRESTAPIFunctionNameTB.Text
+                        ))
+                        ((Control)sender).Text = "Next";
+                }
+
+            }
+            EnableAll();
         }
 
         private void AutoGenerateNamesBTN_Click(object sender, EventArgs e)

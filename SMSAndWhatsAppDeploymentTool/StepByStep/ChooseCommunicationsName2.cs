@@ -6,30 +6,27 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
     public partial class ChooseCommunicationsName2 : Form
     {
         readonly StepByStepValues sbs;
-        readonly APIRegistration? lastStep;
-        readonly ChooseCosmosAccountName? lastStep2;
+        readonly APIRegistration lastStep;
         public ChooseCommunicationsName2(StepByStepValues sbs, APIRegistration lastStep)
         {
             this.sbs = sbs;
             this.lastStep = lastStep;
             InitializeComponent();
         }
-        public ChooseCommunicationsName2(StepByStepValues sbs, ChooseCosmosAccountName lastStep)
-        {
-            this.sbs = sbs;
-            this.lastStep2 = lastStep;
-            InitializeComponent();
-        }
 
         internal void DisableAll()
         {
             desiredCommunicationsNameTB.Enabled = false;
+            AutoGenerateNamesBTN.Enabled = false;
+            UniqueStringBTN.Enabled = false;
             BackBTN.Enabled = false;
             NextBTN.Enabled = false;
         }
         internal void EnableAll()
         {
             desiredCommunicationsNameTB.Enabled = true;
+            AutoGenerateNamesBTN.Enabled = true;
+            UniqueStringBTN.Enabled = true;
             BackBTN.Enabled = true;
             NextBTN.Enabled = true;
         }
@@ -41,12 +38,21 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
 
         private async void NextBTN_Click(object sender, EventArgs e)
         {
-            CommunicationResourceHandler crh = new();
-            await crh.InitialCreation(desiredCommunicationsNameTB.Text, sbs);
-
-            Hide();
-            ChooseVirtualNetwork3 form = new(sbs, this);
-            form.ShowDialog();
+            DisableAll();
+            if (NextBTN.Text == "Next")
+            {
+                Hide();
+                ChooseVirtualNetwork3 form = new(sbs, this);
+                form.ShowDialog();
+            }
+            else
+            {
+                OutputRT.Text = "";
+                CommunicationResourceHandler crh = new();
+                if (await crh.InitialCreation(desiredCommunicationsNameTB.Text, sbs))
+                    ((Control)sender).Text = "Next";
+            }
+            EnableAll();
         }
 
         private void AutoGenerateNamesBTN_Click(object sender, EventArgs e)
@@ -63,8 +69,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
 
         private void Form_Closing(object sender, FormClosedEventArgs e)
         {
-            lastStep?.Close();
-            lastStep2?.Close();
+            lastStep.Close();
         }
 
         private void Form_Load(object sender, EventArgs e)
