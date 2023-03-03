@@ -10,7 +10,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
     internal class StorageAccountResourceHandler
     {
-        static string GetDesiredStorageName(string desiredStorageName, ResourceGroupResource SelectedGroup)
+        internal static string GetDesiredStorageName(string desiredStorageName, ResourceGroupResource SelectedGroup)
         {
             foreach (var item in SelectedGroup.GetStorageAccounts())
             {
@@ -39,7 +39,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         }
         internal virtual async Task<(StorageAccountResource, string)> InitialCreation(string desiredStorageName, DataverseDeploy form)
         {
-            desiredStorageName = GetDesiredStorageName(desiredStorageName, form.SelectedGroup);
             if (await CheckStorageAccountName(desiredStorageName, form))
             {
                 return await CreateStorageAccountResource(desiredStorageName, form);
@@ -51,7 +50,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         }
         internal virtual async Task<(StorageAccountResource, string)> InitialCreation(string desiredStorageName, CosmosDeploy form)
         {
-            desiredStorageName = GetDesiredStorageName(desiredStorageName, form.SelectedGroup);
             if (await CheckStorageAccountName(desiredStorageName, form))
             {
                 return await CreateStorageAccountResource(desiredStorageName, form);

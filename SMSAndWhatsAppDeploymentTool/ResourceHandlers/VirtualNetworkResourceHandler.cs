@@ -27,6 +27,11 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         }
         internal virtual async Task<ResourceIdentifier> InitialCreation(string defaultSubnet, string appSubnet, DataverseDeploy form)
         {
+            if (defaultSubnet == "")
+                defaultSubnet = "10.1.0.0";
+            if (appSubnet == "")
+                appSubnet = "10.1.0.32";
+
             if (await CheckVirtualNetworkName(form))
             {
                 VirtualNetworkResource vnetResource = (await form.SelectedGroup.GetVirtualNetworks().CreateOrUpdateAsync(WaitUntil.Completed, "StorageConnection", CreateVirtualNetworkData(defaultSubnet, appSubnet, form.SelectedRegion, false, form))).Value;
@@ -41,6 +46,11 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         }
         internal virtual async Task<(ResourceIdentifier, string)> InitialCreation(string defaultSubnet, string appSubnet, CosmosDeploy form)
         {
+            if (defaultSubnet == "")
+                defaultSubnet = "10.1.0.0";
+            if (appSubnet == "")
+                appSubnet = "10.1.0.32";
+
             if (await CheckVirtualNetworkName(form))
             {
                 VirtualNetworkData virtualNetworkData = (await form.SelectedGroup.GetVirtualNetworks().CreateOrUpdateAsync(WaitUntil.Completed, "StorageConnection", CreateVirtualNetworkData(defaultSubnet, appSubnet, form.SelectedRegion, true, form))).Value.Data;

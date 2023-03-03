@@ -19,7 +19,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
     internal class KeyVaultResourceHandler
     {
-        static async Task<(string, string)> GetDesiredKeyVaultName(string desiredPublicVault, string desiredInternalVault, ResourceGroupResource SelectedGroup)
+        internal static async Task<(string, string)> GetDesiredKeyVaultName(string desiredPublicVault, string desiredInternalVault, ResourceGroupResource SelectedGroup)
         {
             foreach (var item in SelectedGroup.GetVaults())
             {
@@ -132,10 +132,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         }
         internal virtual async Task<VaultResource> InitialCreation(JSONSecretNames secretNames, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, StorageAccountResource storageIdentity, string archiveEmail, string[] databases, List<string> apipackage, string connString, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string smsTemplate, DataverseDeploy form)
         {
-            (desiredPublicKeyVaultName, desiredInternalKeyVaultName) = await GetDesiredKeyVaultName(
-                desiredPublicKeyVaultName,
-                desiredInternalKeyVaultName,
-                form.SelectedGroup);
             //string prefix = "smsapp_";
             //must be lowercase or errors will occur
             //prefix = prefix.ToLower();
@@ -146,28 +142,47 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             if (await CheckKeyVaultName(desiredPublicKeyVaultName, form))
             {
                 publicVault = await CreateKeyVaultResource(desiredPublicKeyVaultName, form.TenantID, form);
+
+                if (form.SelectedGroup != null)
+                {
+                    Console.Write(Environment.NewLine + "Setting temporary Key Vault Officer IAM for deployment.");
+                    await SetIAMToVaults(form.SelectedGroup);
+                }
                 await CreateSecret(publicVault, "SmsEndpoint", "0");
             }
             else
             {
                 //skip = true;
                 publicVault = await SkipKeyVault(form.SelectedGroup, desiredPublicKeyVaultName);
+
+                if (form.SelectedGroup != null)
+                {
+                    Console.Write(Environment.NewLine + "Setting temporary Key Vault Officer IAM for deployment.");
+                    await SetIAMToVaults(form.SelectedGroup);
+                }
             }
             if (await CheckKeyVaultName(desiredInternalKeyVaultName, form))
             {
                 internalVault = await CreateKeyVaultResource(desiredInternalKeyVaultName, form.TenantID, form);
+
+                if (form.SelectedGroup != null)
+                {
+                    Console.Write(Environment.NewLine + "Setting temporary Key Vault Officer IAM for deployment.");
+                    await SetIAMToVaults(form.SelectedGroup);
+                }
                 await CreateSecret(internalVault, "TenantID", "0");
             }
             else
             {
+#pragma warning disable CS8604
                 //skip = true;
                 internalVault = await SkipKeyVault(form.SelectedGroup, desiredInternalKeyVaultName);
-            }
-
-            if (form.SelectedGroup != null)
-            {
-                Console.Write(Environment.NewLine + "Setting temporary Key Vault Officer IAM for deployment.");
-                await SetIAMToVaults(form.SelectedGroup);
+#pragma warning restore CS8604
+                if (form.SelectedGroup != null)
+                {
+                    Console.Write(Environment.NewLine + "Setting temporary Key Vault Officer IAM for deployment.");
+                    await SetIAMToVaults(form.SelectedGroup);
+                }
             }
 
             if (smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
@@ -204,12 +219,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
             return internalVault;
         }
-        internal virtual async Task<VaultResource> InitialCreation(JSONSecretNames secretNames, string desiredRestSite, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, WebSiteResource cosmosAppSiteResource, StorageAccountResource storageIdentity, string archiveEmail, string key, string desiredCosmosName, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, Guid TenantId, string smsTemplate, CosmosDeploy form)
+        internal virtual async Task<VaultResource> InitialCreation(JSONSecretNames secretNames, string desiredRestSite, WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, WebSiteResource cosmosAppSiteResource, StorageAccountResource storageIdentity, string archiveEmail, string key, string desiredCosmosName, string smsEndpoint, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, Guid TenantId, string smsTemplate, CosmosDeploy form, List<string> package)
         {
-            (desiredPublicKeyVaultName, desiredInternalKeyVaultName) = await GetDesiredKeyVaultName(
-                desiredPublicKeyVaultName,
-                desiredInternalKeyVaultName,
-                form.SelectedGroup);
             VaultResource publicVault;
             VaultResource internalVault;
             //bool skip = false;
@@ -257,7 +268,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                     key,
                     desiredCosmosName,
                     smsTemplate,
-                    form);
+                    form,
+                    package);
 
             form.OutputRT.Text += Environment.NewLine + "Updating function app configs";
             await UpdateFunctionConfigs(desiredInternalKeyVaultName, smsSiteResource, whatsAppSiteResource, cosmosAppSiteResource);
@@ -389,12 +401,16 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             automationPermissions.Secrets.Add(SecretPermissions.Set);
             automationPermissions.Secrets.Add(SecretPermissions.List);
             properties.AccessPolicies.Add(new(TenantID, automationObjectId, automationPermissions));
+            AccessPermissions addSelf = new();
+            addSelf.Secrets.Add(SecretPermissions.Get);
+            addSelf.Secrets.Add(SecretPermissions.Set);
+            addSelf.Secrets.Add(SecretPermissions.List);
+            properties.AccessPolicies.Add(new(TenantID, await TokenHandler.JwtGetUsersInfo.GetUsersID(), addSelf));
             VaultCreateOrUpdateContent content = new(SelectedRegion, properties);
             _ = (await SelectedGroup.GetVaults().CreateOrUpdateAsync(WaitUntil.Completed, vaultResource.Data.Name, content)).Value;
         }
         internal virtual async Task UpdateInternalVaultProperties(JSONSecretNames secretNames, string smsObjectId, string whatsAppObjectId, string restAppObjectId, string automationObjectId, VaultResource vaultResource, Guid TenantID, AzureLocation SelectedRegion, ResourceGroupResource SelectedGroup)
         {
-
             if (secretNames != null)
             {
                 if (restAppObjectId != "")
@@ -417,6 +433,11 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             automationPermissions.Secrets.Add(SecretPermissions.Set);
             automationPermissions.Secrets.Add(SecretPermissions.List);
             properties.AccessPolicies.Add(new(TenantID, automationObjectId, automationPermissions));
+            AccessPermissions addSelf = new();
+            addSelf.Secrets.Add(SecretPermissions.Get);
+            addSelf.Secrets.Add(SecretPermissions.Set);
+            addSelf.Secrets.Add(SecretPermissions.List);
+            properties.AccessPolicies.Add(new(TenantID, await TokenHandler.JwtGetUsersInfo.GetUsersID(), addSelf));
             VaultCreateOrUpdateContent content = new(SelectedRegion, properties);
             _ = (await SelectedGroup.GetVaults().CreateOrUpdateAsync(WaitUntil.Completed, vaultResource.Data.Name, content)).Value;
         }
@@ -567,7 +588,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return keyVaultResponse;
         }
 
-        static async Task CreateKeyVaultSecretsDataverse(JSONSecretNames secretNames, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string archiveEmail, string whatsappSystemAccessToken, string verifyHTTPToken, string smsEndpoint, string storageName, string storageAccountPrimaryKey, List<string> package, string dynamicsOrgId, string[] databases, string smsTemplate, DataverseDeploy form)
+        static async Task<bool> CreateKeyVaultSecretsDataverse(JSONSecretNames secretNames, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string archiveEmail, string whatsappSystemAccessToken, string verifyHTTPToken, string smsEndpoint, string storageName, string storageAccountPrimaryKey, List<string> package, string dynamicsOrgId, string[] databases, string smsTemplate, DataverseDeploy form)
         {
 #pragma warning disable CS8604 // Possible null reference argument.
             if (secretNames != null)
@@ -585,31 +606,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 await CreateSecret(internalVault, secretNames.PPhoneNumberDBPrefix, databases[3].ToLower() + "eses");
                 await CreateSecret(internalVault, secretNames.IoOrgID, dynamicsOrgId);
                 await CreateSecret(internalVault, secretNames.IoClientID, package[1]);
-                if (package[2] == "0")
-                {
-                    var gs = GraphHandler.GetServiceClientWithoutAPI();
-                    await CreateSecret(internalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, package[3], package[1], "ArchiveAccess"));
-                }
-                else
-                {
-                    try
-                    {
-                        _ = await TokenHandler.GetConfidentialClientAccessToken(
-                            package[1],
-                            await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
-                            new[] { "https://graph.microsoft.com/.default" },
-                            TenantID.ToString());
-                    }
-                    catch(Exception e)
-                    {
-                        form.OutputRT.Text += Environment.NewLine + e.ToString();
-                        SecuredExistingSecret securedExistingSecret = new();
-                        securedExistingSecret.ShowDialog();
-                        if (securedExistingSecret.GetSecuredString() != "")
-                            await CreateSecret(internalVault, secretNames.IoSecret, securedExistingSecret.GetSecuredString());
-                        securedExistingSecret.Dispose();
-                    }
-                }
 
                 await CreateSecret(publicVault, secretNames.PCommsEndpoint, smsEndpoint);
                 if (whatsappSystemAccessToken != "")
@@ -634,17 +630,88 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
                 await CreateSecret(publicVault, secretNames.Type, "0");
                 await CreateSecret(internalVault, secretNames.Type, "0");
-            }
 #pragma warning restore CS8604 // Possible null reference argument.
 
-            VaultProperties properties = publicVault.Data.Properties;
-            properties.EnabledForTemplateDeployment = false;
-            VaultCreateOrUpdateContent content = new(form.SelectedRegion, properties);
-            _ = (await form.SelectedGroup.GetVaults().CreateOrUpdateAsync(WaitUntil.Completed, publicVault.Data.Name, content)).Value;
+                VaultProperties properties = publicVault.Data.Properties;
+                properties.EnabledForTemplateDeployment = false;
+                VaultCreateOrUpdateContent content = new(form.SelectedRegion, properties);
+                _ = (await form.SelectedGroup.GetVaults().CreateOrUpdateAsync(WaitUntil.Completed, publicVault.Data.Name, content)).Value;
 
-            form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created and locked by RBAC access.";
+                if (secretNames.IoSecret != null)
+                {
+                    if (package[2] == "0")
+                    {
+                        var gs = GraphHandler.GetServiceClientWithoutAPI();
+                        await CreateSecret(internalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, package[3], package[1], "ArchiveAccess"));
+                        return true;
+                    }
+                    else
+                    {
+                        try
+                        {
+                            _ = await TokenHandler.GetConfidentialClientAccessToken(
+                                package[1],
+                                await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
+                                new[] { "https://graph.microsoft.com/.default" },
+                                TenantID.ToString());
+                            Console.Write(Environment.NewLine + "Secure login passed.");
+                            form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created or updated.";
+                            return true;
+                        }
+                        catch (Exception e)
+                        {
+                            Console.Write(Environment.NewLine + "Unable to locate secret login: " + e.ToString());
+                            Console.Write(Environment.NewLine + "Attempting Auto fix...");
+                            try
+                            {
+                                var gs = GraphHandler.GetServiceClientWithoutAPI();
+                                await CreateSecret(internalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, package[3], package[1], "ArchiveAccess"));
+                                _ = await TokenHandler.GetConfidentialClientAccessToken(
+                                    package[1],
+                                    await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
+                                    new[] { "https://graph.microsoft.com/.default" },
+                                    TenantID.ToString());
+                                Console.Write(Environment.NewLine + "Secure login passed.");
+                                form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created or updated.";
+                                return true;
+                            }
+                            catch
+                            {
+                                Console.Write(Environment.NewLine + "Auto fix failed...");
+                                SecuredExistingSecret securedExistingSecret = new();
+                                securedExistingSecret.ShowDialog();
+                                if (securedExistingSecret.GetSecuredString() != "")
+                                    await CreateSecret(internalVault, secretNames.IoSecret, securedExistingSecret.GetSecuredString());
+                                securedExistingSecret.Dispose();
+                            }
+
+                            try
+                            {
+                                _ = await TokenHandler.GetConfidentialClientAccessToken(
+                                    package[1],
+                                    await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
+                                    new[] { "https://graph.microsoft.com/.default" },
+                                    TenantID.ToString());
+                                Console.Write(Environment.NewLine + "Secure login passed.");
+                                form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created or updated.";
+                                return true;
+                            }
+                            catch
+                            {
+                                Console.Write(Environment.NewLine + "Secure login failed.");
+                                Console.Write(Environment.NewLine + "Create a new API or manually create a secret named ArchiveAccess.");
+                                return false;
+                            }
+                        }
+                    }
+                }
+                else
+                    return false;
+            }
+            else
+                return false;
         }
-        static async Task CreateKeyVaultSecretsCosmos(JSONSecretNames secretNames, string archiveEmail, string desiredRestSite, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsEndpoint, string storageName, string storageAccountPrimaryKey, string desiredCosmosName, string smsTemplate, CosmosDeploy form)
+        static async Task<bool> CreateKeyVaultSecretsCosmos(JSONSecretNames secretNames, string archiveEmail, string desiredRestSite, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsEndpoint, string storageName, string storageAccountPrimaryKey, string desiredCosmosName, string smsTemplate, CosmosDeploy form, List<string> package)
         {
             //so far not possible due to the custom security. you cannot create an account without already having one that has admin access.
             /*if (createAdminAccount)
@@ -660,6 +727,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             {
                 if (!smsTemplate.Contains("COMPANYNAMEHERE") && smsTemplate != "")
                     await CreateSecret(publicVault, secretNames.SMSTemplate, smsTemplate);
+                await CreateSecret(internalVault, secretNames.IoClientID, package[1]);
                 await CreateSecret(publicVault, secretNames.PCommsEndpoint, smsEndpoint);
                 if (whatsappSystemAccessToken != "")
                 {
@@ -693,7 +761,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                     await CreateSecret(internalVault, secretNames.IoCosmos, desiredCosmosName);
                     await CreateSecret(internalVault, secretNames.IoKey, (await cosmosDB.GetKeysAsync()).Value.PrimaryReadonlyMasterKey);
                 }
-            }
 #pragma warning restore CS8604 // Possible null reference argument.
 
             VaultProperties properties = publicVault.Data.Properties;
@@ -701,7 +768,79 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             VaultCreateOrUpdateContent content = new(form.SelectedRegion, properties);
             _ = (await form.SelectedGroup.GetVaults().CreateOrUpdateAsync(WaitUntil.Completed, publicVault.Data.Name, content)).Value;
 
-            form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created and locked by RBAC access.";
+                if (secretNames.IoSecret != null)
+                {
+                    if (package[2] == "0")
+                    {
+                        var gs = GraphHandler.GetServiceClientWithoutAPI();
+                        await CreateSecret(internalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, package[3], package[1], "ArchiveAccess"));
+                        return true;
+                    }
+                    else
+                    {
+                        try
+                        {
+                            _ = await TokenHandler.GetConfidentialClientAccessToken(
+                                package[1],
+                                await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
+                                new[] { "https://graph.microsoft.com/.default" },
+                                TenantID.ToString());
+                            Console.Write(Environment.NewLine + "Secure login passed.");
+                            form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created or updated.";
+                            return true;
+                        }
+                        catch (Exception e)
+                        {
+                            Console.Write(Environment.NewLine + "Unable to locate secret login: " + e.ToString());
+                            Console.Write(Environment.NewLine + "Attempting Auto fix...");
+                            try
+                            {
+                                var gs = GraphHandler.GetServiceClientWithoutAPI();
+                                await CreateSecret(internalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, package[3], package[1], "ArchiveAccess"));
+                                _ = await TokenHandler.GetConfidentialClientAccessToken(
+                                    package[1],
+                                    await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
+                                    new[] { "https://graph.microsoft.com/.default" },
+                                    TenantID.ToString());
+                                Console.Write(Environment.NewLine + "Secure login passed.");
+                                form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created or updated.";
+                                return true;
+                            }
+                            catch
+                            {
+                                Console.Write(Environment.NewLine + "Auto fix failed...");
+                                SecuredExistingSecret securedExistingSecret = new();
+                                securedExistingSecret.ShowDialog();
+                                if (securedExistingSecret.GetSecuredString() != "")
+                                    await CreateSecret(internalVault, secretNames.IoSecret, securedExistingSecret.GetSecuredString());
+                                securedExistingSecret.Dispose();
+                            }
+
+                            try
+                            {
+                                _ = await TokenHandler.GetConfidentialClientAccessToken(
+                                    package[1],
+                                    await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
+                                    new[] { "https://graph.microsoft.com/.default" },
+                                    TenantID.ToString());
+                                Console.Write(Environment.NewLine + "Secure login passed.");
+                                form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created or updated.";
+                                return true;
+                            }
+                            catch
+                            {
+                                Console.Write(Environment.NewLine + "Secure login failed.");
+                                Console.Write(Environment.NewLine + "Create a new API or manually create a secret named ArchiveAccess.");
+                                return false;
+                            }
+                        }
+                    }
+                }
+                else
+                    return false;
+            }
+            else
+                return false;
         }
 
         static async Task<bool> CheckKeyVaultName(string desiredName, StepByStepValues sbs)

@@ -99,176 +99,281 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return apipackage;
         }
 
-        internal virtual async Task CreateAllDataverseResources(string defaultSubnet, string appsSubnet, DataverseHandler dh, Guid? TenantId, string archiveEmail, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string smsTemplate, DataverseDeploy form)
+        internal virtual async Task CreateAllDataverseResources(string defaultSubnet, string appsSubnet, DataverseHandler dh, Guid? TenantId, string archiveEmail, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string smsTemplate, DataverseDeploy form, List<string> apipackage, string[] databases)
         {
-            CommunicationResourceHandler crh = new();
-            (var smsIdentityId, var smsEndpoint) = await crh.InitialCreation(
-                desiredCommunicationsName,
-                form);
+            desiredCommunicationsName = CommunicationResourceHandler.GetDesiredCommsName(desiredCommunicationsName, form.SelectedGroup);
+            if (desiredCommunicationsName != "")
+            {
+                CommunicationResourceHandler crh = new();
+                (var smsIdentityId, var smsEndpoint) = await crh.InitialCreation(
+                    desiredCommunicationsName,
+                    form);
 
-            VirtualNetworkResourceHandler vnrh = new();
-            ResourceIdentifier vnetSubnetIdentity = await vnrh.InitialCreation(
-                defaultSubnet,
-                appsSubnet,
-                form);
+                VirtualNetworkResourceHandler vnrh = new();
+                ResourceIdentifier vnetSubnetIdentity = await vnrh.InitialCreation(
+                    defaultSubnet,
+                    appsSubnet,
+                    form);
 
-            StorageAccountResourceHandler sarh = new();
-            (StorageAccountResource storageIdentity, string connString) = await sarh.InitialCreation(desiredStorageName, form);
+                desiredStorageName = StorageAccountResourceHandler.GetDesiredStorageName(desiredStorageName, form.SelectedGroup);
+                if (desiredStorageName != "")
+                {
+                    StorageAccountResourceHandler sarh = new();
+                    (StorageAccountResource storageIdentity, string connString) = await sarh.InitialCreation(desiredStorageName, form);
 
-            EventGridResourceHandler egrh = new();
-            await egrh.InitialCreation(
-                desiredCommunicationsName,
-                smsIdentityId,
-                storageIdentity.Id,
-                form);
+                    EventGridResourceHandler egrh = new();
+                    await egrh.InitialCreation(
+                        desiredCommunicationsName,
+                        smsIdentityId,
+                        storageIdentity.Id,
+                        form);
 
-            AppServicePlanResourceHandler asprh = new();
-            ResourceIdentifier appPlan = await asprh.InitialCreation(
-                form);
+                    AppServicePlanResourceHandler asprh = new();
+                    ResourceIdentifier appPlan = await asprh.InitialCreation(
+                        form);
 
-            FunctionAppResourceHandler farh = new();
-            (WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource) = await farh.InitialCreation(
-                appPlan,
-                vnetSubnetIdentity,
-                desiredStorageName,
-                desiredSMSFunctionAppName,
-                desiredWhatsAppFunctionAppName,
-                form);
+                    foreach (var item in form.SelectedGroup.GetWebSites())
+                    {
+                        if (item.Data.Name.EndsWith("SMSApp"))
+                        {
+                            desiredSMSFunctionAppName = item.Data.Name[..^6];
+                            break;
+                        }
+                    }
+                    foreach (var item in form.SelectedGroup.GetWebSites())
+                    {
+                        if (item.Data.Name.EndsWith("WhatsApp"))
+                        {
+                            desiredWhatsAppFunctionAppName = item.Data.Name[..^8];
+                            break;
+                        }
+                    }
 
-            JSONSecretNames secretNames = await JSONSecretNames.Load();
-#pragma warning disable CS8601
-            string[] databases = { secretNames.DbName1, secretNames.DbName2, secretNames.DbName3, secretNames.DbName4, secretNames.DbName5 };
-#pragma warning restore CS8601
-            List<string> apipackage = await SetupDataverseEnvironment(
-                databases,
-                dh,
-                form);
+                    if (desiredSMSFunctionAppName == "")
+                        form.OutputRT.Text = "SMS Function field is empty and no existing resource an be found.";
+                    else if (desiredWhatsAppFunctionAppName == "")
+                        form.OutputRT.Text = "WhatsApp Function field is empty and no existing resource an be found.";
+                    else
+                    {
+                        FunctionAppResourceHandler farh = new();
+                        (WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource) = await farh.InitialCreation(
+                            appPlan,
+                            vnetSubnetIdentity,
+                            desiredStorageName,
+                            desiredSMSFunctionAppName,
+                            desiredWhatsAppFunctionAppName,
+                            form);
 
-            //dataverse creation and config updates happens during this phase as well, might try to split up at some point, complicated for security reasons
-            KeyVaultResourceHandler kvrh = new();
-            VaultResource internalVault = await kvrh.InitialCreation(
-                secretNames,
-                smsSiteResource,
-                whatsAppSiteResource,
-                storageIdentity,
-                archiveEmail,
-                databases,
-                apipackage,
-                connString,
-                smsEndpoint,
-                whatsappSystemAccessToken,
-                whatsappCallbackToken,
-                desiredPublicKeyVaultName,
-                desiredInternalKeyVaultName,
-                smsTemplate,
-                form);
+                        JSONSecretNames secretNames = await JSONSecretNames.Load();
 
-            AutomationAccountsHandler aah = new();
-            Guid automationaccountid = await aah.InitialCreation(
-                secretNames,
-                desiredInternalKeyVaultName,
-                form);
+                        (desiredPublicKeyVaultName, desiredInternalKeyVaultName) = await KeyVaultResourceHandler.GetDesiredKeyVaultName(
+                                desiredPublicKeyVaultName,
+                                desiredInternalKeyVaultName,
+                                form.SelectedGroup);
 
-            KeyVaultResourceHandler kvrh2 = new();
-            await kvrh2.UpdateInternalVaultProperties(
-                smsSiteResource.Data.Identity.PrincipalId.Value.ToString(),
-                whatsAppSiteResource.Data.Identity.PrincipalId.Value.ToString(),
-                automationaccountid.ToString(),
-                internalVault,
-                TenantId.Value,
-                form.SelectedRegion,
-                form.SelectedGroup);
+                        if (desiredPublicKeyVaultName == "")
+                            form.OutputRT.Text = "Public Key Vault field is empty and no existing resource an be found.";
+                        else if (desiredPublicKeyVaultName == "")
+                            form.OutputRT.Text = "Internal Key Vault field is empty and no existing resource an be found.";
+                        else
+                        {
+                            //dataverse creation and config updates happens during this phase as well, might try to split up at some point, complicated for security reasons
+                            KeyVaultResourceHandler kvrh = new();
+                            VaultResource internalVault = await kvrh.InitialCreation(
+                                secretNames,
+                                smsSiteResource,
+                                whatsAppSiteResource,
+                                storageIdentity,
+                                archiveEmail,
+                                databases,
+                                apipackage,
+                                connString,
+                                smsEndpoint,
+                                whatsappSystemAccessToken,
+                                whatsappCallbackToken,
+                                desiredPublicKeyVaultName,
+                                desiredInternalKeyVaultName,
+                                smsTemplate,
+                                form);
+
+                            AutomationAccountsHandler aah = new();
+                            Guid automationaccountid = await aah.InitialCreation(
+                                secretNames,
+                                desiredInternalKeyVaultName,
+                                form);
+
+                            KeyVaultResourceHandler kvrh2 = new();
+                            await kvrh2.UpdateInternalVaultProperties(
+                                smsSiteResource.Data.Identity.PrincipalId.Value.ToString(),
+                                whatsAppSiteResource.Data.Identity.PrincipalId.Value.ToString(),
+                                automationaccountid.ToString(),
+                                internalVault,
+                                TenantId.Value,
+                                form.SelectedRegion,
+                                form.SelectedGroup);
+                        }
+                    }
+                }
+                else
+                    form.OutputRT.Text = Environment.NewLine + "Storage Account field is empty and no existing resource found.";
+            }
+            else
+                form.OutputRT.Text = Environment.NewLine + "Communications field is empty and no existing resource found.";
         }
-        internal virtual async Task CreateAllCosmosResources(string defaultSubnet, string appsSubnet, Guid? TenantId, string archiveEmail, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string desiredRestSite, string desiredCosmosName, string smsTemplate, CosmosDeploy form)
+        internal virtual async Task CreateAllCosmosResources(string defaultSubnet, string appsSubnet, Guid? TenantId, string archiveEmail, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string desiredRestSite, string desiredCosmosName, string smsTemplate, CosmosDeploy form, List<string> apipackage)
         {
-            CommunicationResourceHandler crh = new();
-            (var smsIdentityId, var smsEndpoint) = await crh.InitialCreation(
-                desiredCommunicationsName,
-                form);
+            desiredCommunicationsName = CommunicationResourceHandler.GetDesiredCommsName(desiredCommunicationsName, form.SelectedGroup);
+            if (desiredCommunicationsName != "")
+            {
+                CommunicationResourceHandler crh = new();
+                (var smsIdentityId, var smsEndpoint) = await crh.InitialCreation(
+                    desiredCommunicationsName,
+                    form);
 
-            VirtualNetworkResourceHandler vnrh = new();
-            (ResourceIdentifier vnetSubnetIdentity, string vnetName) = await vnrh.InitialCreation(
-                defaultSubnet,
-                appsSubnet,
-                form);
+                VirtualNetworkResourceHandler vnrh = new();
+                (ResourceIdentifier vnetSubnetIdentity, string vnetName) = await vnrh.InitialCreation(
+                    defaultSubnet,
+                    appsSubnet,
+                    form);
 
-            StorageAccountResourceHandler sarh = new();
-            (StorageAccountResource storageIdentity, string key) = await sarh.InitialCreation(
-                desiredStorageName,
-                form);
+                desiredStorageName = StorageAccountResourceHandler.GetDesiredStorageName(desiredStorageName, form.SelectedGroup);
+                if (desiredStorageName != "")
+                {
+                    StorageAccountResourceHandler sarh = new();
+                    (StorageAccountResource storageIdentity, string key) = await sarh.InitialCreation(
+                        desiredStorageName,
+                        form);
 
-            EventGridResourceHandler egrh = new();
-            await egrh.InitialCreation(
-                desiredCommunicationsName,
-                smsIdentityId,
-                storageIdentity.Id,
-                form);
+                    EventGridResourceHandler egrh = new();
+                    await egrh.InitialCreation(
+                        desiredCommunicationsName,
+                        smsIdentityId,
+                        storageIdentity.Id,
+                        form);
 
-            AppServicePlanResourceHandler asprh = new();
-            ResourceIdentifier appPlan = await asprh.InitialCreation(form);
+                    AppServicePlanResourceHandler asprh = new();
+                    ResourceIdentifier appPlan = await asprh.InitialCreation(form);
 
-            FunctionAppResourceHandler farh = new();
-            (WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, WebSiteResource cosmosAppSiteResource) = await farh.InitialCreation(
-                appPlan,
-                vnetSubnetIdentity,
-                desiredStorageName,
-                desiredSMSFunctionAppName,
-                desiredWhatsAppFunctionAppName,
-                desiredRestSite,
-                form);
-            //required to create keyvault secret properly.
-            desiredRestSite = cosmosAppSiteResource.Data.Name;
+                    foreach (var item in form.SelectedGroup.GetWebSites())
+                    {
+                        if (item.Data.Name.EndsWith("SMSApp"))
+                        {
+                            desiredSMSFunctionAppName = item.Data.Name[..^6];
+                            break;
+                        }
+                    }
+                    foreach (var item in form.SelectedGroup.GetWebSites())
+                    {
+                        if (item.Data.Name.EndsWith("WhatsApp"))
+                        {
+                            desiredWhatsAppFunctionAppName = item.Data.Name[..^8];
+                            break;
+                        }
+                    }
+                    foreach (var item in form.SelectedGroup.GetWebSites())
+                    {
+                        if (item.Data.Name.EndsWith("CosmosREST"))
+                        {
+                            desiredRestSite = item.Data.Name[..^10];
+                            break;
+                        }
+                    }
 
-            JSONSecretNames secretNames = await JSONSecretNames.Load();
-            JSONDefaultCosmosLibrary cosmosLibrary = await JSONDefaultCosmosLibrary.Load();
+                    if (desiredSMSFunctionAppName == "")
+                        form.OutputRT.Text = "SMS Function field is empty and no existing resource an be found.";
+                    else if (desiredWhatsAppFunctionAppName == "")
+                        form.OutputRT.Text = "WhatsApp Function field is empty and no existing resource an be found.";
+                    else if (desiredRestSite == "")
+                        form.OutputRT.Text = "Cosmos REST API Function field is empty and no existing resource an be found.";
+                    else
+                    {
+                        FunctionAppResourceHandler farh = new();
+                        (WebSiteResource smsSiteResource, WebSiteResource whatsAppSiteResource, WebSiteResource cosmosAppSiteResource) = await farh.InitialCreation(
+                            appPlan,
+                            vnetSubnetIdentity,
+                            desiredStorageName,
+                            desiredSMSFunctionAppName,
+                            desiredWhatsAppFunctionAppName,
+                            desiredRestSite,
+                            form);
+                        //required to create keyvault secret properly.
+                        desiredRestSite = cosmosAppSiteResource.Data.Name;
+
+                        desiredCosmosName = CosmosResourceHandler.GetDesiredCosmosName(desiredCosmosName, form.SelectedGroup);
+                        if (desiredCosmosName != "")
+                        {
+                            JSONSecretNames secretNames = await JSONSecretNames.Load();
 #pragma warning disable CS8604
-            CosmosResourceHandler cosmosrh = new();
-            await cosmosrh.InitialCreation(
-                cosmosLibrary,
-                vnetSubnetIdentity,
-                secretNames.DbName,
-                desiredCosmosName,
-                vnetName,
-                form);
+                            CosmosResourceHandler cosmosrh = new();
+                            await cosmosrh.InitialCreation(
+                                vnetSubnetIdentity,
+                                secretNames.DbName,
+                                desiredCosmosName,
+                                vnetName,
+                                form);
 #pragma warning restore CS8604
-            //dataverse creation and config updates happens during this phase as well, might try to split up at some point, complicated for security reasons
-            KeyVaultResourceHandler kvrh = new();
-            VaultResource internalVault = await kvrh.InitialCreation(
-                secretNames,
-                desiredRestSite,
-                smsSiteResource,
-                whatsAppSiteResource,
-                cosmosAppSiteResource,
-                storageIdentity,
-                archiveEmail,
-                key,
-                desiredCosmosName,
-                smsEndpoint,
-                whatsappSystemAccessToken,
-                whatsappCallbackToken,
-                desiredPublicKeyVaultName,
-                desiredInternalKeyVaultName,
-                TenantId.Value,
-                smsTemplate,
-                form);
 
-            AutomationAccountsHandler aah = new();
-            Guid automationaccountid = await aah.InitialCreation(
-                desiredCosmosName,
-                desiredInternalKeyVaultName,
-                form);
+                            (desiredPublicKeyVaultName, desiredInternalKeyVaultName) = await KeyVaultResourceHandler.GetDesiredKeyVaultName(
+                                desiredPublicKeyVaultName,
+                                desiredInternalKeyVaultName,
+                                form.SelectedGroup);
 
-            KeyVaultResourceHandler kvrh2 = new();
-            await kvrh2.UpdateInternalVaultProperties(
-                secretNames,
-                smsSiteResource.Data.Identity.PrincipalId.Value.ToString(),
-                whatsAppSiteResource.Data.Identity.PrincipalId.Value.ToString(),
-                cosmosAppSiteResource.Data.Identity.PrincipalId.Value.ToString(),
-                automationaccountid.ToString(),
-                internalVault,
-                TenantId.Value,
-                form.SelectedRegion,
-                form.SelectedGroup);
+                            if (desiredPublicKeyVaultName == "")
+                                form.OutputRT.Text = "Public Key Vault field is empty and no existing resource an be found.";
+                            else if (desiredInternalKeyVaultName == "")
+                                form.OutputRT.Text = "Internal Key Vault field is empty and no existing resource an be found.";
+                            else
+                            {
+                                //dataverse creation and config updates happens during this phase as well, might try to split up at some point, complicated for security reasons
+                                KeyVaultResourceHandler kvrh = new();
+                                VaultResource internalVault = await kvrh.InitialCreation(
+                                    secretNames,
+                                    desiredRestSite,
+                                    smsSiteResource,
+                                    whatsAppSiteResource,
+                                    cosmosAppSiteResource,
+                                    storageIdentity,
+                                    archiveEmail,
+                                    key,
+                                    desiredCosmosName,
+                                    smsEndpoint,
+                                    whatsappSystemAccessToken,
+                                    whatsappCallbackToken,
+                                    desiredPublicKeyVaultName,
+                                    desiredInternalKeyVaultName,
+                                    TenantId.Value,
+                                    smsTemplate,
+                                    form,
+                                    apipackage);
+
+                                AutomationAccountsHandler aah = new();
+                                Guid automationaccountid = await aah.InitialCreation(
+                                    desiredCosmosName,
+                                    desiredInternalKeyVaultName,
+                                    form);
+
+                                KeyVaultResourceHandler kvrh2 = new();
+                                await kvrh2.UpdateInternalVaultProperties(
+                                    secretNames,
+                                    smsSiteResource.Data.Identity.PrincipalId.Value.ToString(),
+                                    whatsAppSiteResource.Data.Identity.PrincipalId.Value.ToString(),
+                                    cosmosAppSiteResource.Data.Identity.PrincipalId.Value.ToString(),
+                                    automationaccountid.ToString(),
+                                    internalVault,
+                                    TenantId.Value,
+                                    form.SelectedRegion,
+                                    form.SelectedGroup);
+                            }
+                        }
+                        else
+                            form.OutputRT.Text = "Cosmos Account field is empty and no existing resource found.";
+                    }
+                }
+                else
+                    form.OutputRT.Text = Environment.NewLine + "Storage Account field is empty and no existing resource found.";
+            }
+            else
+                form.OutputRT.Text = Environment.NewLine + "Communications field is empty and no existing resource found.";
         }
     }
 #pragma warning restore CS8629 // Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).

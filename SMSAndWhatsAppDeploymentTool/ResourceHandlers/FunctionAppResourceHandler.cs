@@ -900,7 +900,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 }
             }
             WebSiteResource smsSiteResource = await InitialSMSCreation(appPlan, vnetIdentity, desiredSMSFunctionAppName, desiredStorageName, form);
-
+            if (desiredSMSFunctionAppName != "" && !desiredSMSFunctionAppName.EndsWith("SMSApp"))
+                desiredSMSFunctionAppName += "SMSApp";
             //make sure IAM is setup for storage account
             if (smsSiteResource.Data.Identity.PrincipalId != null)
                 await SetIAMToStorageName(form.SelectedGroup, desiredSMSFunctionAppName, smsSiteResource.Data.Identity.PrincipalId.Value);
@@ -918,7 +919,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 }
             }
             WebSiteResource smsSiteResource = await InitialSMSCreation(appPlan, vnetIdentity, desiredSMSFunctionAppName, desiredStorageName, form);
-
+            if (desiredSMSFunctionAppName != "" && !desiredSMSFunctionAppName.EndsWith("SMSApp"))
+                desiredSMSFunctionAppName += "SMSApp";
             //make sure IAM is setup for storage account
             if (smsSiteResource.Data.Identity.PrincipalId != null)
                 await SetIAMToStorageName(form.SelectedGroup, desiredSMSFunctionAppName, smsSiteResource.Data.Identity.PrincipalId.Value);

@@ -229,7 +229,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
 
                     await CreateDatabases(dh, app.AppId, databases);
 
-                    await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoClientID, await VaultHandler.GetSecretInteractive(DesiredInternalVault, secretNames.IoClientID));
+                    await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoClientID, app.AppId);
                     await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, app.Id, app.DisplayName, "ArchiveAccess"));
 
                     if (secretNames.PAccountsDBPrefix != null)

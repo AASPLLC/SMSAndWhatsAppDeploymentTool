@@ -11,13 +11,11 @@ namespace SMSAndWhatsAppDeploymentTool
     public partial class DataverseConfig : Form
     {
         readonly ChooseDBType dbtype;
-        readonly DataverseDeploy dataverseDeploy;
         readonly int setupType;
         readonly StepByStepValues sbs;
         internal DataverseConfig(ChooseDBType dbtype, int setupType, StepByStepValues sbs)
         {
             this.sbs = sbs;
-            dataverseDeploy = new(dbtype, sbs);
             this.dbtype = dbtype;
             this.setupType = setupType;
             InitializeComponent();
@@ -90,7 +88,6 @@ namespace SMSAndWhatsAppDeploymentTool
             button2.Enabled = false;
             comboBox2.Enabled = false;
         }
-
         void EnableAll()
         {
             button1.Enabled = true;
@@ -104,9 +101,9 @@ namespace SMSAndWhatsAppDeploymentTool
         private async void InstallConfig_Load(object sender, EventArgs e)
         {
             DisableAll();
-            dataverseDeploy.Arm = new ArmClientHandler();
+            ArmClientHandler Arm = new();
             //List<string> names = new();
-            (List<string> names, subids) = dataverseDeploy.Arm.SetupSubscriptionName();
+            (List<string> names, subids) = Arm.SetupSubscriptionName();
             comboBox1.Items.AddRange(names.ToArray());
             comboBox1.SelectedIndex = 0;
 
@@ -134,9 +131,7 @@ namespace SMSAndWhatsAppDeploymentTool
 
         private void Button1_Click(object sender, EventArgs e)
         {
-            if (setupType == 1)
-                dataverseDeploy.SelectedSubscription = subids[comboBox1.SelectedIndex];
-            else
+            if (setupType != 1)
                 sbs.SelectedSubscription = subids[comboBox1.SelectedIndex];
 
             button1.Enabled = false;
@@ -153,30 +148,31 @@ namespace SMSAndWhatsAppDeploymentTool
 
         private void Button3_Click(object sender, EventArgs e)
         {
-            dataverseDeploy.SelectedRegion = comboBox3.Text;
-
             button3.Enabled = false;
             comboBox3.Enabled = false;
             button2.Enabled = true;
             comboBox2.Enabled = true;
         }
 
-        private async void Button2_Click(object sender, EventArgs e)
+        private void Button2_Click(object sender, EventArgs e)
         {
             DisableAll();
             if (setupType == 1)
             {
 #pragma warning disable CS8602 // Converting null literal or possible null value to non-nullable type.
-#pragma warning disable CS8601 // Converting null literal or possible null value to non-nullable type.
-                dataverseDeploy.SelectedEnvironment = info.value[comboBox2.SelectedIndex].UrlName;
-                dataverseDeploy.SelectedOrgId = info.value[comboBox2.SelectedIndex].Id;
-                dataverseDeploy.AutoAPI = checkBox1.Checked;
-#pragma warning restore CS8601 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8604 // Converting null literal or possible null value to non-nullable type.
+                APIRegistration api = new(
+                    sbs,
+                    this,
+                    subids[comboBox1.SelectedIndex],
+                    comboBox3.Text,
+                    info.value[comboBox2.SelectedIndex].UrlName,
+                    info.value[comboBox2.SelectedIndex].Id,
+                    checkBox1.Checked);
+#pragma warning restore CS8604 // Converting null literal or possible null value to non-nullable type.
 #pragma warning restore CS8602 // Converting null literal or possible null value to non-nullable type.
-
-                await dataverseDeploy.Init();
                 this.Hide();
-                dataverseDeploy.ShowDialog();
+                api.ShowDialog();
             }
             else
             {

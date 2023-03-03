@@ -7,13 +7,11 @@ namespace SMSAndWhatsAppDeploymentTool
     public partial class CosmosConfig : Form
     {
         readonly ChooseDBType dBType;
-        readonly CosmosDeploy cosmosDeploy;
         readonly int setupType = 0;
         readonly StepByStepValues sbs;
         internal CosmosConfig(ChooseDBType dBType, int setupType, StepByStepValues sbs)
         {
             this.sbs = sbs;
-            cosmosDeploy = new(dBType, sbs);
             this.dBType = dBType;
             this.setupType = setupType;
             InitializeComponent();
@@ -97,8 +95,8 @@ namespace SMSAndWhatsAppDeploymentTool
             List<string> names;
             if (setupType == 1)
             {
-                cosmosDeploy.Arm = new();
-                (names, subids) = cosmosDeploy.Arm.SetupSubscriptionName();
+                ArmClientHandler Arm = new();
+                (names, subids) = Arm.SetupSubscriptionName();
             }
             else
             {
@@ -111,14 +109,11 @@ namespace SMSAndWhatsAppDeploymentTool
 
         private void Button1_Click(object sender, EventArgs e)
         {
-            if (setupType == 1)
-                cosmosDeploy.SelectedSubscription = subids[comboBox1.SelectedIndex];
-            else
+            if (setupType != 1)
                 sbs.SelectedSubscription = subids[comboBox1.SelectedIndex];
 
             button1.Enabled = false;
             comboBox1.Enabled = false;
-            subids.Clear();
             button3.Enabled = true;
             comboBox3.Enabled = true;
         }
@@ -128,17 +123,20 @@ namespace SMSAndWhatsAppDeploymentTool
             dBType.Close();
         }
 
-        private async void Button3_Click(object sender, EventArgs e)
+        private void Button3_Click(object sender, EventArgs e)
         {
             DisableAll();
             if (setupType == 1)
             {
-                cosmosDeploy.SelectedRegion = comboBox3.Text;
-                cosmosDeploy.AutoAPI = checkBox1.Checked;
-
-                await cosmosDeploy.Init();
+                APIRegistration api = new(
+                    sbs,
+                    this,
+                    subids[comboBox1.SelectedIndex],
+                    comboBox3.Text,
+                    checkBox1.Checked);
+                subids.Clear();
                 this.Hide();
-                cosmosDeploy.ShowDialog();
+                api.ShowDialog();
             }
             else
             {
@@ -146,6 +144,7 @@ namespace SMSAndWhatsAppDeploymentTool
                 sbs.SelectedRegion = comboBox3.Text;
                 sbs.DBType = 1;
                 sbs.AutoAPI = checkBox1.Checked;
+                subids.Clear();
 
                 this.Hide();
                 s.ShowDialog();

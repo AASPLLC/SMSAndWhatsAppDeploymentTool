@@ -34,9 +34,11 @@ namespace SMSAndWhatsAppDeploymentTool
 
         internal bool AutoAPI = false;
 
-        readonly ChooseDBType chooseDBType;
+        readonly APIRegistration chooseDBType;
         readonly StepByStepValues sbs;
-        internal DataverseDeploy(ChooseDBType chooseDBType, StepByStepValues sbs)
+        public List<string> apipackage = new();
+        public string[] databases;
+        internal DataverseDeploy(APIRegistration chooseDBType, StepByStepValues sbs)
         {
             this.sbs = sbs;
             this.chooseDBType = chooseDBType;
@@ -138,7 +140,9 @@ namespace SMSAndWhatsAppDeploymentTool
                     desiredInternalKeyvaultNameTB.Text,
                     SMSTemplateTB.Text,
                     //true, //can add easily as a feature now, currently hardcoded as on
-                    this);
+                    this,
+                    apipackage,
+                    databases);
             }
             EnableAll();
             //}
@@ -153,16 +157,9 @@ namespace SMSAndWhatsAppDeploymentTool
         {
             try { await dh.InitAsync(SelectedEnvironment, DataverseLibraryPath); }
             catch { await dh.InitAsync(SelectedEnvironment); }
-            if (!AutoAPI)
-            {
-                APIRegistration apiRequiredWindow = new(sbs, this);
-                apiRequiredWindow.ShowDialog();
-                (apiClientId, apiObjectId, dataverseCreateAccount) = apiRequiredWindow.GetResponsePackage();
-            }
             try
             {
                 DisableAll();
-                var client = Arm.GetArmClient();
                 if (SelectedSubscription.Data.TenantId != null)
                     TenantID = SelectedSubscription.Data.TenantId.Value;
 

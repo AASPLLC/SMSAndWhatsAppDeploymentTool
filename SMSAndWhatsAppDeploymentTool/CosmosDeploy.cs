@@ -12,7 +12,7 @@ using SMSAndWhatsAppDeploymentTool.StepByStep;
 //it is best not to async the button itself in this case so it can be disabled immediately
 namespace SMSAndWhatsAppDeploymentTool
 {
-    internal partial class CosmosDeploy : Form
+    public partial class CosmosDeploy : Form
     {
         internal ArmClientHandler? Arm { get; set; }
 
@@ -28,9 +28,10 @@ namespace SMSAndWhatsAppDeploymentTool
 
         internal bool AutoAPI = false;
 
-        readonly ChooseDBType chooseDBType;
+        readonly APIRegistration chooseDBType;
         readonly StepByStepValues sbs;
-        internal CosmosDeploy(ChooseDBType chooseDBType, StepByStepValues sbs)
+        public List<string> apipackage = new();
+        internal CosmosDeploy(APIRegistration chooseDBType, StepByStepValues sbs)
         {
             this.sbs = sbs;
             this.chooseDBType = chooseDBType;
@@ -132,7 +133,8 @@ namespace SMSAndWhatsAppDeploymentTool
                     desiredCosmosRESTAPIFunctionNameTB.Text,
                     desiredCosmosAccountNameFunctionNameTB.Text,
                     SMSTemplateTB.Text,
-                    this);
+                    this,
+                    apipackage);
             }
             EnableAll();
             //}
@@ -148,7 +150,6 @@ namespace SMSAndWhatsAppDeploymentTool
             try
             {
                 DisableAll();
-                var client = Arm.GetArmClient();
                 TenantID = SelectedSubscription.Data.TenantId;
 
                 OutputRT.Text += "Creating Initial Resource Group";

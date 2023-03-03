@@ -10,7 +10,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
     internal class CommunicationResourceHandler
     {
-        static string GetDesiredCommsName(string desiredCommsname, ResourceGroupResource SelectedGroup)
+        internal static string GetDesiredCommsName(string desiredCommsname, ResourceGroupResource SelectedGroup)
         {
             foreach (var item in SelectedGroup.GetCommunicationServiceResources())
             {
@@ -42,7 +42,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         }
         internal virtual async Task<(ResourceIdentifier, string)> InitialCreation(string desiredCommunicationsName, DataverseDeploy form)
         {
-            desiredCommunicationsName = GetDesiredCommsName(desiredCommunicationsName, form.SelectedGroup);
             ResourceIdentifier smsIdentity = new("1");
             string smsEndpoint = "";
             bool alreadyFoundOne = false;
@@ -68,7 +67,6 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         }
         internal virtual async Task<(ResourceIdentifier, string)> InitialCreation(string desiredCommunicationsName, CosmosDeploy form)
         {
-            desiredCommunicationsName = GetDesiredCommsName(desiredCommunicationsName, form.SelectedGroup);
             ResourceIdentifier smsIdentity = new("1");
             string smsEndpoint = "";
             bool alreadyFoundOne = false;

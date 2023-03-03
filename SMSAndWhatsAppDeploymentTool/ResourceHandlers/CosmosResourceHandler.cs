@@ -13,7 +13,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
     //keep ARM plus Management way for security team
     internal class CosmosResourceHandler
     {
-        static string GetDesiredCosmosName(string desiredCosmosName, ResourceGroupResource SelectedGroup)
+        internal static string GetDesiredCosmosName(string desiredCosmosName, ResourceGroupResource SelectedGroup)
         {
             foreach (var item in SelectedGroup.GetCosmosDBAccounts())
             {
@@ -43,13 +43,12 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 return true;
             }
         }
-        internal virtual async Task InitialCreation(JSONDefaultCosmosLibrary cosmosLibrary, ResourceIdentifier subnetID, string DBName, string desiredCosmosName, string vnetName, CosmosDeploy form, bool useArm = false)
+        internal virtual async Task InitialCreation(ResourceIdentifier subnetID, string DBName, string desiredCosmosName, string vnetName, CosmosDeploy form, bool useArm = false)
         {
-            desiredCosmosName = GetDesiredCosmosName(desiredCosmosName, form.SelectedGroup);
             //if (useArm)
             //await CreateCosmosARM(form, DBName, Environment.CurrentDirectory + @"\JSONS\CosmosDeploy.json", desiredCosmosName, form.SelectedSubscription.Data.SubscriptionId, vnetName, subnetID.Name);
             //else
-            await CreateCosmosDB(cosmosLibrary, subnetID, DBName, desiredCosmosName, form);
+            await CreateCosmosDB(subnetID, DBName, desiredCosmosName, form);
         }
 
         static async Task AddContainer(CosmosDBSqlDatabaseResource dbResponse, string idName, string containerName, AzureLocation SelectedRegion)
@@ -95,6 +94,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 Console.Write(Environment.NewLine + "Creating or Updating Cosmos");
                 try
                 {
+                    Console.Write(Environment.NewLine + "This process can take a few minutes.");
                     CosmosDBAccountResource dbAccountResponse = (await sbs.SelectedGroup.GetCosmosDBAccounts().CreateOrUpdateAsync(WaitUntil.Completed, desiredCosmosName, accountcontent)).Value;
                     Console.Write(Environment.NewLine + "Account created");
                     CosmosDBSqlDatabaseResource dbResponse = (await dbAccountResponse.GetCosmosDBSqlDatabases().CreateOrUpdateAsync(WaitUntil.Completed, DBName, new(sbs.SelectedRegion, new(DBName)))).Value;
@@ -146,8 +146,9 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 }
             }
         }
-        static async Task CreateCosmosDB(JSONDefaultCosmosLibrary cosmosLibrary, ResourceIdentifier subnetID, string DBName, string desiredCosmosName, CosmosDeploy form)
+        static async Task CreateCosmosDB(ResourceIdentifier subnetID, string DBName, string desiredCosmosName, CosmosDeploy form)
         {
+            JSONDefaultCosmosLibrary cosmosLibrary = await JSONDefaultCosmosLibrary.Load();
             List<CosmosDBAccountLocation> Locations = new();
             CosmosDBAccountLocation locationstuff = new()
             {
