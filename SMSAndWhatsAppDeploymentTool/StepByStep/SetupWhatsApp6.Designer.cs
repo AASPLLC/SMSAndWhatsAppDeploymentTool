@@ -48,12 +48,14 @@
             LinkLabel5 = new LinkLabel();
             label9 = new Label();
             SMSTemplateTB = new TextBox();
+            label5 = new Label();
+            archiveEmailTB = new TextBox();
             SuspendLayout();
             // 
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(333, 289);
+            label4.Location = new Point(333, 324);
             label4.Name = "label4";
             label4.Size = new Size(67, 15);
             label4.TabIndex = 50;
@@ -70,7 +72,7 @@
             // 
             // OutputRT
             // 
-            OutputRT.Location = new Point(12, 383);
+            OutputRT.Location = new Point(12, 401);
             OutputRT.Name = "OutputRT";
             OutputRT.ReadOnly = true;
             OutputRT.Size = new Size(783, 184);
@@ -80,7 +82,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(12, 365);
+            label1.Location = new Point(12, 383);
             label1.Name = "label1";
             label1.Size = new Size(48, 15);
             label1.TabIndex = 53;
@@ -88,7 +90,7 @@
             // 
             // BackBTN
             // 
-            BackBTN.Location = new Point(12, 573);
+            BackBTN.Location = new Point(12, 591);
             BackBTN.Name = "BackBTN";
             BackBTN.Size = new Size(75, 23);
             BackBTN.TabIndex = 54;
@@ -98,7 +100,7 @@
             // 
             // NextBTN
             // 
-            NextBTN.Location = new Point(720, 573);
+            NextBTN.Location = new Point(720, 591);
             NextBTN.Name = "NextBTN";
             NextBTN.Size = new Size(75, 23);
             NextBTN.TabIndex = 55;
@@ -120,7 +122,7 @@
             // LinkLabel1
             // 
             LinkLabel1.AutoSize = true;
-            LinkLabel1.Location = new Point(264, 334);
+            LinkLabel1.Location = new Point(264, 369);
             LinkLabel1.Name = "LinkLabel1";
             LinkLabel1.Size = new Size(201, 15);
             LinkLabel1.TabIndex = 59;
@@ -176,7 +178,7 @@
             // LinkLabel3
             // 
             LinkLabel3.AutoSize = true;
-            LinkLabel3.Location = new Point(280, 319);
+            LinkLabel3.Location = new Point(280, 354);
             LinkLabel3.Name = "LinkLabel3";
             LinkLabel3.Size = new Size(171, 15);
             LinkLabel3.TabIndex = 66;
@@ -187,7 +189,7 @@
             // linkLabel4
             // 
             linkLabel4.AutoSize = true;
-            linkLabel4.Location = new Point(230, 304);
+            linkLabel4.Location = new Point(230, 339);
             linkLabel4.Name = "linkLabel4";
             linkLabel4.Size = new Size(271, 15);
             linkLabel4.TabIndex = 67;
@@ -218,7 +220,7 @@
             // label9
             // 
             label9.AutoSize = true;
-            label9.Location = new Point(12, 255);
+            label9.Location = new Point(12, 262);
             label9.Name = "label9";
             label9.Size = new Size(182, 15);
             label9.TabIndex = 71;
@@ -226,18 +228,37 @@
             // 
             // SMSTemplateTB
             // 
-            SMSTemplateTB.Location = new Point(197, 252);
+            SMSTemplateTB.Location = new Point(197, 259);
             SMSTemplateTB.Name = "SMSTemplateTB";
             SMSTemplateTB.PlaceholderText = "Used to comply with WhatsApp template guidelines";
             SMSTemplateTB.Size = new Size(458, 23);
             SMSTemplateTB.TabIndex = 70;
             SMSTemplateTB.Text = "Hello, This is COMPANYNAMEHERE, in order for the conversation to continue, please respond with an accepted message (Yes, ok, y, etc.) to continue.";
             // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(12, 291);
+            label5.Name = "label5";
+            label5.Size = new Size(115, 15);
+            label5.TabIndex = 73;
+            label5.Text = "Auto Archiver Email:";
+            // 
+            // archiveEmailTB
+            // 
+            archiveEmailTB.Location = new Point(197, 288);
+            archiveEmailTB.Name = "archiveEmailTB";
+            archiveEmailTB.PlaceholderText = "Email address to archive data";
+            archiveEmailTB.Size = new Size(458, 23);
+            archiveEmailTB.TabIndex = 72;
+            // 
             // SetupWhatsApp6
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(807, 602);
+            ClientSize = new Size(807, 620);
+            Controls.Add(label5);
+            Controls.Add(archiveEmailTB);
             Controls.Add(label9);
             Controls.Add(SMSTemplateTB);
             Controls.Add(LinkLabel5);
@@ -260,7 +281,7 @@
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "SetupWhatsApp6";
-            Text = "WhatsApp Configuration";
+            Text = "Configuration";
             FormClosed += Form_Closing;
             Load += Form_Load;
             ResumeLayout(false);
@@ -287,5 +308,8 @@
         private LinkLabel LinkLabel5;
         private Label label9;
         private TextBox SMSTemplateTB;
+        private Label label5;
+        private TextBox textBox1;
+        private TextBox archiveEmailTB;
     }
 }

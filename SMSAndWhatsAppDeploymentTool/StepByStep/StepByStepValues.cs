@@ -130,7 +130,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
 
                 List<string> apipackage = new();
                 Console.Write(Environment.NewLine + "Starting dataverse deployment");
-                MessageBox.Show("May need to login a few times. Takes time for API creation to finalize in Azure.");
+                MessageBox.Show("You may need to login a few times. It will take time for API creation to finalize in Azure." + Environment.NewLine + "Dataverse setups require creating the databases at this point.");
                 apipackage.Add(apiClientId);
                 apipackage.Add(apiObjectId);
 
@@ -194,7 +194,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                     catch
                     {
                         Console.Write(Environment.NewLine + "Secure login failed.");
-                        Console.Write(Environment.NewLine + "Create a new API or manually create a secret named ArchiveAccess.");
+                        Console.Write(Environment.NewLine + "Manually create a secret named ArchiveAccess in the existing API.");
                         return false;
                     }
                 }
@@ -214,7 +214,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
 
                 string APIName = "SMSAndWhatsAppAPI";
                 Console.Write(Environment.NewLine + "Starting dataverse deployment");
-                MessageBox.Show("May need to login a few times. Takes time for API creation to finalize in Azure.");
+                MessageBox.Show("You may need to login a few times. It will take time for API creation to finalize in Azure." + Environment.NewLine + "Dataverse setups require creating the databases at this point.");
                 Console.Write(Environment.NewLine + "Waiting for API Creation");
 
                 try
@@ -230,7 +230,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                     await CreateDatabases(dh, app.AppId, databases);
 
                     await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoClientID, app.AppId);
-                    await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, app.Id, app.DisplayName, "ArchiveAccess"));
+                    await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, app.Id, "ArchiveAccess"));
 
                     if (secretNames.PAccountsDBPrefix != null)
                     {
@@ -286,7 +286,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                     var app = await CreateAzureAPIHandler.CreateAzureAPIAsync(gs, APIName, true);
 
                     await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoClientID, await VaultHandler.GetSecretInteractive(DesiredInternalVault, secretNames.IoClientID));
-                    await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, app.Id, app.DisplayName, "ArchiveAccess"));
+                    await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, app.Id, "ArchiveAccess"));
 
                     Console.Write(Environment.NewLine + "Created: " + app.DisplayName);
                     return true;
@@ -349,7 +349,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                     catch
                     {
                         Console.Write(Environment.NewLine + "Secure login failed.");
-                        Console.Write(Environment.NewLine + "Create a new API or manually create a secret named ArchiveAccess.");
+                        Console.Write(Environment.NewLine + "Manually create a secret named ArchiveAccess in the existing API.");
                         return false;
                     }
                 }
@@ -407,7 +407,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                     Console.Write(Environment.NewLine + "SMS Template has been changed if different.");
             }
             else
-                Console.Write(Environment.NewLine + "SMS Template skipped, no change to sms template field found.");
+                Console.Write(Environment.NewLine + "SMS Template skipped, no change to sms template field found or secretNames json is incorrect.");
         }
         internal async Task CreateWhatsAppSecrets(string whatsappSystemAccessToken, string verifyHTTPToken)
         {
@@ -450,6 +450,23 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                 await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoCosmos, DesiredCosmosAccount);
             if (secretNames.IoKey != null)
                 await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoKey, (await (await SelectedGroup.GetCosmosDBAccountAsync(DesiredCosmosAccount)).Value.GetKeysAsync()).Value.PrimaryReadonlyMasterKey);
+        }
+        internal async Task CreateAutoArchiverSecret(string autoArchiverEmail)
+        {
+            if (secretNames.IoEmail != null)
+            {
+                if (await KeyVaultResourceHandler.CreateSecret(
+                    this,
+                    DesiredInternalVault,
+                    secretNames.IoEmail,
+                    autoArchiverEmail
+                    ))
+                    Console.Write(Environment.NewLine + "Auto Archiver has been created.");
+                else
+                    Console.Write(Environment.NewLine + "Auto Archiver has been changed if different.");
+            }
+            else
+                Console.Write(Environment.NewLine + "Auto Archiver skipped, secretNames json is incorrect.");
         }
 
         internal async Task SetupSubscriptionInfo()

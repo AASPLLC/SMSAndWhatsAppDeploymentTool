@@ -92,8 +92,6 @@
             // autoAppAccountCB
             // 
             autoAppAccountCB.AutoSize = true;
-            autoAppAccountCB.Checked = true;
-            autoAppAccountCB.CheckState = CheckState.Checked;
             autoAppAccountCB.Location = new Point(11, 89);
             autoAppAccountCB.Name = "autoAppAccountCB";
             autoAppAccountCB.Size = new Size(303, 19);
@@ -108,6 +106,7 @@
             objectTB.PlaceholderText = "Enter an already used API Object ID here";
             objectTB.Size = new Size(355, 23);
             objectTB.TabIndex = 79;
+            objectTB.Text = "5ad8c00f-0330-428e-b523-0f133d01bf6e";
             // 
             // label3
             // 
@@ -134,6 +133,7 @@
             appIdTB.PlaceholderText = "Enter an already used API Client ID here";
             appIdTB.Size = new Size(355, 23);
             appIdTB.TabIndex = 75;
+            appIdTB.Text = "8fbaea8b-fbf2-4e64-9716-4bcfd63650b8";
             // 
             // label5
             // 

@@ -56,10 +56,12 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                 OutputRT.Text = "";
                 await sbs.CreateSMSTemplateSecret(SMSTemplateTB.Text);
                 await sbs.CreateWhatsAppSecrets(whatsappSystemTokenTB.Text, whatsappCallbackTokenTB.Text);
+                await sbs.CreateAutoArchiverSecret(archiveEmailTB.Text);
 
                 bool SMSTemplateExists = false;
                 bool CallbackExists = false;
                 bool SystemAccessExists = false;
+                bool AutoArchiver = false;
                 if (sbs.secretNames.SMSTemplate != null)
                 {
                     try
@@ -87,7 +89,16 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                     }
                     catch { Console.Write(Environment.NewLine + "An existing system access token has not been detected, unable to continue."); }
                 }
-                if (SMSTemplateExists && CallbackExists && SystemAccessExists)
+                if (sbs.secretNames.IoEmail != null)
+                {
+                    try
+                    {
+                        _ = await VaultHandler.GetSecretInteractive(archiveEmailTB.Text, sbs.secretNames.IoEmail);
+                        AutoArchiver = true;
+                    }
+                    catch { Console.Write(Environment.NewLine + "An existing system access token has not been detected, unable to continue."); }
+                }
+                if (SMSTemplateExists && CallbackExists && SystemAccessExists && AutoArchiver)
                     ((Control)sender).Text = "Next";
             }
             EnableAll();

@@ -896,15 +896,16 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             {
                 if (item.Data.Name.EndsWith("SMSApp"))
                 {
+                    //make sure IAM is setup for storage account
+                    if (item.Data.Identity.PrincipalId != null)
+                        await SetIAMToStorageName(form.SelectedGroup, desiredStorageName, item.Data.Identity.PrincipalId.Value);
                     return item;
                 }
             }
             WebSiteResource smsSiteResource = await InitialSMSCreation(appPlan, vnetIdentity, desiredSMSFunctionAppName, desiredStorageName, form);
-            if (desiredSMSFunctionAppName != "" && !desiredSMSFunctionAppName.EndsWith("SMSApp"))
-                desiredSMSFunctionAppName += "SMSApp";
             //make sure IAM is setup for storage account
             if (smsSiteResource.Data.Identity.PrincipalId != null)
-                await SetIAMToStorageName(form.SelectedGroup, desiredSMSFunctionAppName, smsSiteResource.Data.Identity.PrincipalId.Value);
+                await SetIAMToStorageName(form.SelectedGroup, desiredStorageName, smsSiteResource.Data.Identity.PrincipalId.Value);
             //await CreateStorageRoleAccessARM(desiredStorageName, smsSiteResource.Data.Identity.PrincipalId.Value.ToString(), form);
 
             return smsSiteResource;
@@ -915,15 +916,16 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             {
                 if (item.Data.Name.EndsWith("SMSApp"))
                 {
+                    //make sure IAM is setup for storage account
+                    if (item.Data.Identity.PrincipalId != null)
+                        await SetIAMToStorageName(form.SelectedGroup, desiredStorageName, item.Data.Identity.PrincipalId.Value);
                     return item;
                 }
             }
             WebSiteResource smsSiteResource = await InitialSMSCreation(appPlan, vnetIdentity, desiredSMSFunctionAppName, desiredStorageName, form);
-            if (desiredSMSFunctionAppName != "" && !desiredSMSFunctionAppName.EndsWith("SMSApp"))
-                desiredSMSFunctionAppName += "SMSApp";
             //make sure IAM is setup for storage account
             if (smsSiteResource.Data.Identity.PrincipalId != null)
-                await SetIAMToStorageName(form.SelectedGroup, desiredSMSFunctionAppName, smsSiteResource.Data.Identity.PrincipalId.Value);
+                await SetIAMToStorageName(form.SelectedGroup, desiredStorageName, smsSiteResource.Data.Identity.PrincipalId.Value);
             //await CreateStorageRoleAccessARM(desiredStorageName, smsSiteResource.Data.Identity.PrincipalId.Value.ToString(), form);
 
             return smsSiteResource;

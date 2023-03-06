@@ -4,7 +4,6 @@ using AASPGlobalLibrary;
 using SMSAndWhatsAppDeploymentTool.ResourceHandlers;
 using SMSAndWhatsAppDeploymentTool.StepByStep;
 
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
 #pragma warning disable CS8618 // Possible null reference argument.
 #pragma warning disable CS8622 // Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).
 

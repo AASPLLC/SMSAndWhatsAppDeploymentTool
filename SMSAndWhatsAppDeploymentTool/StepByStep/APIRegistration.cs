@@ -9,9 +9,6 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
 {
     public partial class APIRegistration : Form
     {
-        readonly string message = "An API with a dynamics 365 connection is required to continue deployment." +
-            Environment.NewLine + "Press OK if you want the API to be automatically created instead.";
-
         readonly StepByStepValues sbs;
         readonly ChooseKeyVaultNames1? lastStep;
         readonly DataverseConfig? lastStep2;
@@ -47,12 +44,6 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
             this.sbs = sbs;
             lastStep2 = lastStep;
             InitializeComponent();
-            if (sbs.DBType == 1)
-            {
-                objectTB.Enabled = false;
-                autoAppAccountCB.Checked = false;
-                autoAppAccountCB.Enabled = false;
-            }
         }
         public APIRegistration(StepByStepValues sbs, CosmosConfig lastStep, SubscriptionResource selectedSub, string selectedRegion, bool autoapi)
         {
@@ -66,12 +57,8 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
             this.sbs = sbs;
             lastStep3 = lastStep;
             InitializeComponent();
-            if (sbs.DBType == 1)
-            {
-                objectTB.Enabled = false;
-                autoAppAccountCB.Checked = false;
-                autoAppAccountCB.Enabled = false;
-            }
+            autoAppAccountCB.Checked = false;
+            autoAppAccountCB.Enabled = false;
         }
 
         internal void DisableAll()
@@ -85,10 +72,8 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
         internal void EnableAll()
         {
             if (sbs.DBType == 0)
-            {
                 autoAppAccountCB.Enabled = true;
-                objectTB.Enabled = true;
-            }
+            objectTB.Enabled = true;
             appIdTB.Enabled = true;
             NextBTN.Enabled = true;
             BackBTN.Enabled = true;
@@ -226,7 +211,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                         string dataverseAPIName = "SMSAndWhatsAppAPI";
                         List<string> apipackage = new();
                         OutputRT.Text += Environment.NewLine + "Starting dataverse deployment";
-                        MessageBox.Show("May need to login a few times. Takes time for API creation to finalize in Azure.");
+                        MessageBox.Show("You may need to login a few times. It will take time for API creation to finalize in Azure." + Environment.NewLine + "Dataverse setups require creating the databases at this point.");
 
                         if (dd.AutoAPI)
                         {
@@ -245,6 +230,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                                 apipackage.Add(app.Id);
 
                                 OutputRT.Text += Environment.NewLine + "Created: " + apipackage[0];
+                                ((Control)sender).Text = "Next";
                             }
                             catch (Exception ex)
                             {
@@ -256,6 +242,13 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                                 mb.ShowDialog();
                                 mb.Close();
                             }
+
+
+                            var results = MessageBox.Show("Make sure a Application User does not already exist." + Environment.NewLine + "Press OK to continue.", "System Account Creation", MessageBoxButtons.OKCancel);
+                            if (results == DialogResult.OK)
+                                autoAppAccountCB.Checked = true;
+                            else
+                                autoAppAccountCB.Checked = false;
 
                             if (autoAppAccountCB.Checked)
                                 apipackage[1] = await dh.CreateSystemAccount(new VerifyAppId(), apipackage[1].Trim(), dd.SelectedOrgId);
@@ -270,10 +263,13 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                             apipackage.Add("1");
                             //apipackage.Add(form.apiSecret);
                             apipackage.Add(objectTB.Text);
+
+                            await CreateDatabases(dh, apipackage[1], databases, dd);
+
+                            if (appIdTB.Text.Trim() != "" && objectTB.Text.Trim() != "")
+                                ((Control)sender).Text = "Next";
                         }
                         dd.apipackage = apipackage;
-
-                        ((Control)sender).Text = "Next";
                     }
                 }
             }
@@ -306,6 +302,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                                 apipackage.Add(app.Id);
 
                                 OutputRT.Text += Environment.NewLine + "Created: " + apipackage[0];
+                                ((Control)sender).Text = "Next";
                             }
                             catch (Exception ex)
                             {
@@ -326,10 +323,11 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                             apipackage.Add("1");
                             //apipackage.Add(form.apiSecret);
                             apipackage.Add(objectTB.Text);
+
+                            if (appIdTB.Text.Trim() != "" && objectTB.Text.Trim() != "")
+                                ((Control)sender).Text = "Next";
                         }
                         cd.apipackage = apipackage;
-
-                        ((Control)sender).Text = "Next";
                     }
                 }
             }
@@ -344,19 +342,7 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
 
         private void BackBTN_Click(object sender, EventArgs e)
         {
-            if (appIdTB.Text != "" && objectTB.Text != "")
-                this.Close();
-            else
-            {
-                var results = MessageBox.Show(message, "Empty Fields Detected", MessageBoxButtons.OKCancel);
-                if (results == DialogResult.OK)
-                {
-                    appIdTB.Text = "";
-                    objectTB.Text = "";
-                    autoAppAccountCB.Checked = true;
-                    this.Close();
-                }
-            }
+            this.Close();
         }
 
         private void LinkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -368,6 +354,36 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
         {
             _ = new SetConsoleOutput(OutputRT);
 
+            if (cd != null)
+            {
+                if (cd.AutoAPI)
+                {
+                    var results = MessageBox.Show("Would you like to create an API automatically?" + Environment.NewLine + "Click no if you would like to enter an already existing API.", "Confirm", MessageBoxButtons.YesNo);
+                    if (results == DialogResult.Yes)
+                    {
+                        appIdTB.Enabled = false;
+                        objectTB.Enabled = false;
+                        //sbs.AutoAPI = true;
+                    }
+                    else
+                        cd.AutoAPI = false;
+                }
+            }
+            if (dd != null)
+            {
+                if (dd.AutoAPI)
+                {
+                    var results = MessageBox.Show("Would you like to create an API automatically?" + Environment.NewLine + "Click no if you would like to enter an already existing API.", "Confirm", MessageBoxButtons.YesNo);
+                    if (results == DialogResult.Yes)
+                    {
+                        appIdTB.Enabled = false;
+                        objectTB.Enabled = false;
+                        //sbs.AutoAPI = true;
+                    }
+                    else
+                        dd.AutoAPI = false;
+                }
+            }
             if (sbs.AutoAPI)
             {
                 var results = MessageBox.Show("Would you like to create an API automatically?" + Environment.NewLine + "Click no if you would like to enter an already existing API.", "Confirm", MessageBoxButtons.YesNo);

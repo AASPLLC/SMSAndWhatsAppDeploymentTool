@@ -11,7 +11,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 #pragma warning disable CS8629 // Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).
     internal class CreateResourceHandler
     {
-        static async Task CreateDatabases(DataverseHandler dh, string clientid, string[] databases, DataverseDeploy form)
+        /*static async Task CreateDatabases(DataverseHandler dh, string clientid, string[] databases, DataverseDeploy form)
         {
             bool finished = false;
             string environmenturl = "https://" + form.SelectedEnvironment + ".crm.dynamics.com";
@@ -51,7 +51,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             string dataverseAPIName = "SMSAndWhatsAppAPI";
             List<string> apipackage = new();
             form.OutputRT.Text += Environment.NewLine + "Starting dataverse deployment";
-            MessageBox.Show("May need to login a few times. Takes time for API creation to finalize in Azure.");
+            MessageBox.Show("You may need to login a few times. It will take time for API creation to finalize in Azure." + Environment.NewLine + "Dataverse setups require creating the databases at this point.");
             if (form.apiClientId == "")
             {
                 form.OutputRT.Text += Environment.NewLine + "Waiting for API Creation";
@@ -97,7 +97,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             await CreateDatabases(dh, apipackage[1], databases, form);
 
             return apipackage;
-        }
+        }*/
 
         internal virtual async Task CreateAllDataverseResources(string defaultSubnet, string appsSubnet, DataverseHandler dh, Guid? TenantId, string archiveEmail, string whatsappSystemAccessToken, string whatsappCallbackToken, string desiredCommunicationsName, string desiredStorageName, string desiredSMSFunctionAppName, string desiredWhatsAppFunctionAppName, string desiredPublicKeyVaultName, string desiredInternalKeyVaultName, string smsTemplate, DataverseDeploy form, List<string> apipackage, string[] databases)
         {

@@ -14,6 +14,8 @@ using SMSAndWhatsAppDeploymentTool.StepByStep;
 using Azure.ResourceManager.Authorization;
 using Azure.ResourceManager.Authorization.Models;
 using Azure.ResourceManager.Automation;
+using Microsoft.WindowsAzure.ResourceStack.Common.Collections;
+using System.Windows.Forms;
 
 namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 {
@@ -588,8 +590,83 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             return keyVaultResponse;
         }
 
+        static async Task<bool> CheckAPISecret(JSONSecretNames secretNames, VaultResource internalVault, List<string> package, string TenantID)
+        {
+            if (secretNames.IoSecret != null)
+            {
+                if (package[2] == "0")
+                {
+                    var gs = GraphHandler.GetServiceClientWithoutAPI();
+                    await CreateSecret(internalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, package[3], "ArchiveAccess"));
+                    return true;
+                }
+                else
+                {
+                    try
+                    {
+                        _ = await TokenHandler.GetConfidentialClientAccessToken(
+                            package[1],
+                            await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
+                            new[] { "https://graph.microsoft.com/.default" },
+                            TenantID);
+                        Console.Write(Environment.NewLine + "Secure login passed.");
+                        return true;
+                    }
+                    catch (Exception e)
+                    {
+                        Console.Write(Environment.NewLine + "Unable to locate secret login: " + e.ToString());
+                        Console.Write(Environment.NewLine + "Attempting Auto fix...");
+                        try
+                        {
+                            var gs = GraphHandler.GetServiceClientWithoutAPI();
+                            await CreateSecret(internalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, package[3], "ArchiveAccess"));
+                            await Task.Delay(10000);
+                            _ = await TokenHandler.GetConfidentialClientAccessToken(
+                                package[1],
+                                await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
+                                new[] { "https://graph.microsoft.com/.default" },
+                                TenantID.ToString());
+                            Console.Write(Environment.NewLine + "Secure login passed.");
+                            Console.Write(Environment.NewLine + "Key Vault secrets created or updated.");
+                            return true;
+                        }
+                        catch
+                        {
+                            Console.Write(Environment.NewLine + "Auto fix failed...");
+                            SecuredExistingSecret securedExistingSecret = new();
+                            securedExistingSecret.ShowDialog();
+                            if (securedExistingSecret.GetSecuredString() != "")
+                                await CreateSecret(internalVault, secretNames.IoSecret, securedExistingSecret.GetSecuredString());
+                            securedExistingSecret.Dispose();
+
+                            try
+                            {
+                                _ = await TokenHandler.GetConfidentialClientAccessToken(
+                                    package[1],
+                                    await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
+                                    new[] { "https://graph.microsoft.com/.default" },
+                                    TenantID.ToString());
+                                Console.Write(Environment.NewLine + "Secure login passed.");
+                                Console.Write(Environment.NewLine + "Key Vault secrets created or updated.");
+                                return true;
+                            }
+                            catch
+                            {
+                                Console.Write(Environment.NewLine + "Secure login failed.");
+                                Console.Write(Environment.NewLine + "Manually create a secret named ArchiveAccess in the existing API.");
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+                return false;
+        }
+
         static async Task<bool> CreateKeyVaultSecretsDataverse(JSONSecretNames secretNames, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string archiveEmail, string whatsappSystemAccessToken, string verifyHTTPToken, string smsEndpoint, string storageName, string storageAccountPrimaryKey, List<string> package, string dynamicsOrgId, string[] databases, string smsTemplate, DataverseDeploy form)
         {
+            bool success;
 #pragma warning disable CS8604 // Possible null reference argument.
             if (secretNames != null)
             {
@@ -630,86 +707,18 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
                 await CreateSecret(publicVault, secretNames.Type, "0");
                 await CreateSecret(internalVault, secretNames.Type, "0");
-#pragma warning restore CS8604 // Possible null reference argument.
 
-                VaultProperties properties = publicVault.Data.Properties;
-                properties.EnabledForTemplateDeployment = false;
-                VaultCreateOrUpdateContent content = new(form.SelectedRegion, properties);
-                _ = (await form.SelectedGroup.GetVaults().CreateOrUpdateAsync(WaitUntil.Completed, publicVault.Data.Name, content)).Value;
-
-                if (secretNames.IoSecret != null)
-                {
-                    if (package[2] == "0")
-                    {
-                        var gs = GraphHandler.GetServiceClientWithoutAPI();
-                        await CreateSecret(internalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, package[3], package[1], "ArchiveAccess"));
-                        return true;
-                    }
-                    else
-                    {
-                        try
-                        {
-                            _ = await TokenHandler.GetConfidentialClientAccessToken(
-                                package[1],
-                                await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
-                                new[] { "https://graph.microsoft.com/.default" },
-                                TenantID.ToString());
-                            Console.Write(Environment.NewLine + "Secure login passed.");
-                            form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created or updated.";
-                            return true;
-                        }
-                        catch (Exception e)
-                        {
-                            Console.Write(Environment.NewLine + "Unable to locate secret login: " + e.ToString());
-                            Console.Write(Environment.NewLine + "Attempting Auto fix...");
-                            try
-                            {
-                                var gs = GraphHandler.GetServiceClientWithoutAPI();
-                                await CreateSecret(internalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, package[3], package[1], "ArchiveAccess"));
-                                _ = await TokenHandler.GetConfidentialClientAccessToken(
-                                    package[1],
-                                    await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
-                                    new[] { "https://graph.microsoft.com/.default" },
-                                    TenantID.ToString());
-                                Console.Write(Environment.NewLine + "Secure login passed.");
-                                form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created or updated.";
-                                return true;
-                            }
-                            catch
-                            {
-                                Console.Write(Environment.NewLine + "Auto fix failed...");
-                                SecuredExistingSecret securedExistingSecret = new();
-                                securedExistingSecret.ShowDialog();
-                                if (securedExistingSecret.GetSecuredString() != "")
-                                    await CreateSecret(internalVault, secretNames.IoSecret, securedExistingSecret.GetSecuredString());
-                                securedExistingSecret.Dispose();
-                            }
-
-                            try
-                            {
-                                _ = await TokenHandler.GetConfidentialClientAccessToken(
-                                    package[1],
-                                    await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
-                                    new[] { "https://graph.microsoft.com/.default" },
-                                    TenantID.ToString());
-                                Console.Write(Environment.NewLine + "Secure login passed.");
-                                form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created or updated.";
-                                return true;
-                            }
-                            catch
-                            {
-                                Console.Write(Environment.NewLine + "Secure login failed.");
-                                Console.Write(Environment.NewLine + "Create a new API or manually create a secret named ArchiveAccess.");
-                                return false;
-                            }
-                        }
-                    }
-                }
-                else
-                    return false;
+                success = await CheckAPISecret(secretNames, internalVault, package, TenantID.ToString());
             }
             else
-                return false;
+                success = false;
+
+            VaultProperties properties = publicVault.Data.Properties;
+            properties.EnabledForTemplateDeployment = false;
+            VaultCreateOrUpdateContent content = new(form.SelectedRegion, properties);
+            _ = (await form.SelectedGroup.GetVaults().CreateOrUpdateAsync(WaitUntil.Completed, publicVault.Data.Name, content)).Value;
+
+            return success;
         }
         static async Task<bool> CreateKeyVaultSecretsCosmos(JSONSecretNames secretNames, string archiveEmail, string desiredRestSite, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string whatsappSystemAccessToken, string verifyHTTPToken, string smsEndpoint, string storageName, string storageAccountPrimaryKey, string desiredCosmosName, string smsTemplate, CosmosDeploy form, List<string> package)
         {
@@ -721,7 +730,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 form.OutputRT.Text += Environment.NewLine + "First account creation attempt: " + await CosmosDBHandler.AddOrUpdateAccount(fullurl, name, name, "+1", "1", "1");
             }*/
 
-
+            bool success;
 #pragma warning disable CS8604 // Possible null reference argument.
             if (secretNames != null)
             {
@@ -761,86 +770,18 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                     await CreateSecret(internalVault, secretNames.IoCosmos, desiredCosmosName);
                     await CreateSecret(internalVault, secretNames.IoKey, (await cosmosDB.GetKeysAsync()).Value.PrimaryReadonlyMasterKey);
                 }
-#pragma warning restore CS8604 // Possible null reference argument.
+
+                success = await CheckAPISecret(secretNames, internalVault, package, TenantID.ToString());
+            }
+            else
+                success = false;
 
             VaultProperties properties = publicVault.Data.Properties;
             properties.EnabledForTemplateDeployment = false;
             VaultCreateOrUpdateContent content = new(form.SelectedRegion, properties);
             _ = (await form.SelectedGroup.GetVaults().CreateOrUpdateAsync(WaitUntil.Completed, publicVault.Data.Name, content)).Value;
 
-                if (secretNames.IoSecret != null)
-                {
-                    if (package[2] == "0")
-                    {
-                        var gs = GraphHandler.GetServiceClientWithoutAPI();
-                        await CreateSecret(internalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, package[3], package[1], "ArchiveAccess"));
-                        return true;
-                    }
-                    else
-                    {
-                        try
-                        {
-                            _ = await TokenHandler.GetConfidentialClientAccessToken(
-                                package[1],
-                                await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
-                                new[] { "https://graph.microsoft.com/.default" },
-                                TenantID.ToString());
-                            Console.Write(Environment.NewLine + "Secure login passed.");
-                            form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created or updated.";
-                            return true;
-                        }
-                        catch (Exception e)
-                        {
-                            Console.Write(Environment.NewLine + "Unable to locate secret login: " + e.ToString());
-                            Console.Write(Environment.NewLine + "Attempting Auto fix...");
-                            try
-                            {
-                                var gs = GraphHandler.GetServiceClientWithoutAPI();
-                                await CreateSecret(internalVault, secretNames.IoSecret, await CreateAzureAPIHandler.AddSecretClientPasswordAsync(gs, package[3], package[1], "ArchiveAccess"));
-                                _ = await TokenHandler.GetConfidentialClientAccessToken(
-                                    package[1],
-                                    await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
-                                    new[] { "https://graph.microsoft.com/.default" },
-                                    TenantID.ToString());
-                                Console.Write(Environment.NewLine + "Secure login passed.");
-                                form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created or updated.";
-                                return true;
-                            }
-                            catch
-                            {
-                                Console.Write(Environment.NewLine + "Auto fix failed...");
-                                SecuredExistingSecret securedExistingSecret = new();
-                                securedExistingSecret.ShowDialog();
-                                if (securedExistingSecret.GetSecuredString() != "")
-                                    await CreateSecret(internalVault, secretNames.IoSecret, securedExistingSecret.GetSecuredString());
-                                securedExistingSecret.Dispose();
-                            }
-
-                            try
-                            {
-                                _ = await TokenHandler.GetConfidentialClientAccessToken(
-                                    package[1],
-                                    await VaultHandler.GetSecretInteractive(internalVault.Data.Name, secretNames.IoSecret),
-                                    new[] { "https://graph.microsoft.com/.default" },
-                                    TenantID.ToString());
-                                Console.Write(Environment.NewLine + "Secure login passed.");
-                                form.OutputRT.Text += Environment.NewLine + "Key Vault secrets created or updated.";
-                                return true;
-                            }
-                            catch
-                            {
-                                Console.Write(Environment.NewLine + "Secure login failed.");
-                                Console.Write(Environment.NewLine + "Create a new API or manually create a secret named ArchiveAccess.");
-                                return false;
-                            }
-                        }
-                    }
-                }
-                else
-                    return false;
-            }
-            else
-                return false;
+            return success;
         }
 
         static async Task<bool> CheckKeyVaultName(string desiredName, StepByStepValues sbs)

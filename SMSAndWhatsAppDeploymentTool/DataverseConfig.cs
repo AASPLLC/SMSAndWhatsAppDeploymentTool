@@ -136,7 +136,6 @@ namespace SMSAndWhatsAppDeploymentTool
 
             button1.Enabled = false;
             comboBox1.Enabled = false;
-            subids.Clear();
             button3.Enabled = true;
             comboBox3.Enabled = true;
         }
@@ -161,6 +160,7 @@ namespace SMSAndWhatsAppDeploymentTool
             {
 #pragma warning disable CS8602 // Converting null literal or possible null value to non-nullable type.
 #pragma warning disable CS8604 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8601 // Converting null literal or possible null value to non-nullable type.
                 APIRegistration api = new(
                     sbs,
                     this,
@@ -169,8 +169,7 @@ namespace SMSAndWhatsAppDeploymentTool
                     info.value[comboBox2.SelectedIndex].UrlName,
                     info.value[comboBox2.SelectedIndex].Id,
                     checkBox1.Checked);
-#pragma warning restore CS8604 // Converting null literal or possible null value to non-nullable type.
-#pragma warning restore CS8602 // Converting null literal or possible null value to non-nullable type.
+                subids.Clear();
                 this.Hide();
                 api.ShowDialog();
             }
@@ -179,14 +178,13 @@ namespace SMSAndWhatsAppDeploymentTool
                 ChooseKeyVaultNames1 s = new(sbs, this);
                 sbs.SelectedRegion = comboBox3.Text;
                 sbs.DBType = 0;
-#pragma warning disable CS8602 // Converting null literal or possible null value to non-nullable type.
-#pragma warning disable CS8601 // Converting null literal or possible null value to non-nullable type.
                 sbs.SelectedEnvironment = info.value[comboBox2.SelectedIndex].UrlName;
                 sbs.SelectedOrgId = info.value[comboBox2.SelectedIndex].Id;
                 sbs.AutoAPI = checkBox1.Checked;
-#pragma warning restore CS8601 // Converting null literal or possible null value to non-nullable type.
 #pragma warning restore CS8602 // Converting null literal or possible null value to non-nullable type.
-
+#pragma warning restore CS8604 // Converting null literal or possible null value to non-nullable type.
+#pragma warning restore CS8601 // Converting null literal or possible null value to non-nullable type.
+                subids.Clear();
                 this.Hide();
                 s.ShowDialog();
             }
