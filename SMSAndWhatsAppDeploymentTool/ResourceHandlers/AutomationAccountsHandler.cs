@@ -145,7 +145,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
         internal static string AutoPowerShellDataverseArchiver()
         {
             return "#0 = time 1 = count" +
-                "\r\n$global:basedon = 1" +
+                "\r\n$global:basedon = 0" +
                 "\r\n#This is the total number of messages to keep if you go based on count." +
                 "\r\n$global:messagecount = 100" +
                 "\r\n$global:TimeOffset = (Get-Date).AddMonths(-1)" +
@@ -622,8 +622,8 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 "\r\n$body = @{" +
                 "\r\n    token = $token" +
                 "\r\n    type = \"0\"" +
-                "\r\n    count = $global:messagecount" +
-                "\r\n    #time = $global:TimeOffset" +
+                "\r\n    #count = $global:messagecount" +
+                "\r\n    time = $global:TimeOffset" +
                 "\r\n}" +
                 "\r\n$json = $body | ConvertTo-Json" +
                 "\r\n" +
