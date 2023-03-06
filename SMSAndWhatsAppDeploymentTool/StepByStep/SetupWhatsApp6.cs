@@ -93,10 +93,10 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                 {
                     try
                     {
-                        _ = await VaultHandler.GetSecretInteractive(archiveEmailTB.Text, sbs.secretNames.IoEmail);
+                        _ = await VaultHandler.GetSecretInteractive(sbs.DesiredInternalVault, sbs.secretNames.IoEmail);
                         AutoArchiver = true;
                     }
-                    catch { Console.Write(Environment.NewLine + "An existing system access token has not been detected, unable to continue."); }
+                    catch { Console.Write(Environment.NewLine + "An existing auto archiver email has not been detected, unable to continue."); }
                 }
                 if (SMSTemplateExists && CallbackExists && SystemAccessExists && AutoArchiver)
                     ((Control)sender).Text = "Next";

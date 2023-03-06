@@ -33,7 +33,7 @@
             // 
             // groupBox1
             // 
-            groupBox1.Location = new Point(120, 51);
+            groupBox1.Location = new Point(110, 76);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(732, 486);
             groupBox1.TabIndex = 0;
