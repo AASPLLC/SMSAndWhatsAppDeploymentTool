@@ -7,6 +7,7 @@ using Azure.ResourceManager.Resources;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using SMSAndWhatsAppDeploymentTool.JSONParsing;
 using SMSAndWhatsAppDeploymentTool.ResourceHandlers;
+using System.Windows.Forms;
 
 namespace SMSAndWhatsAppDeploymentTool.StepByStep
 {
@@ -82,7 +83,10 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
                     successful = true;
             }
             if (secretNames.PDynamicsEnvironment != null)
+            {
                 await KeyVaultResourceHandler.CreateSecret(this, DesiredPublicVault, secretNames.PDynamicsEnvironment, SelectedEnvironment);
+                await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.PDynamicsEnvironment, SelectedEnvironment);
+            }
             if (secretNames.IoOrgID != null)
                 await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.IoOrgID, SelectedOrgId);
             return successful;
@@ -427,11 +431,19 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
             if (secretNames.PWhatsAppAccess != null && whatsappSystemAccessToken != "")
             {
                 bool IsNew;
+                bool IsNew2;
                 if (whatsappSystemAccessToken.StartsWith("Bearer "))
+                {
                     IsNew = await KeyVaultResourceHandler.CreateSecret(this, DesiredPublicVault, secretNames.PWhatsAppAccess, whatsappSystemAccessToken);
+                    IsNew2 = await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.PWhatsAppAccess, whatsappSystemAccessToken);
+                }
                 else
+                {
                     IsNew = await KeyVaultResourceHandler.CreateSecret(this, DesiredPublicVault, secretNames.PWhatsAppAccess, "Bearer " + whatsappSystemAccessToken);
-                if (IsNew)
+                    IsNew2 = await KeyVaultResourceHandler.CreateSecret(this, DesiredInternalVault, secretNames.PWhatsAppAccess, "Bearer " + whatsappSystemAccessToken);
+                }
+
+                if (IsNew || IsNew2)
                     Console.Write(Environment.NewLine + "System Access token has been created.");
                 else
                     Console.Write(Environment.NewLine + "System Access token has been changed if different.");

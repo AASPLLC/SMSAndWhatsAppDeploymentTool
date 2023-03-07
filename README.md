@@ -42,7 +42,8 @@ These values must be specific, but for reference, this is the format:
   "metadataPhoneNumber": "",
   "metadataPhoneNumberID": "",
   "metadataEmailAccount": "",
-  "metadataDisplayName": ""
+  "metadataDisplayName": "",
+  "metadataMediaIdentifier": ""
 }
 ```
 3. The defaultLibraryCosmos.json file is specific to Cosmos DB and is required for the application to deploy correctly.

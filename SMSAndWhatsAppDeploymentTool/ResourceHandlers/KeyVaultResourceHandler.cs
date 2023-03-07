@@ -141,50 +141,34 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
             VaultResource publicVault;
             VaultResource internalVault;
             //bool skip = false;
+
+            if (form.SelectedGroup != null)
+            {
+                Console.Write(Environment.NewLine + "Setting temporary Key Vault Officer IAM for deployment.");
+                await SetIAMToVaults(form.SelectedGroup);
+            }
+
             if (await CheckKeyVaultName(desiredPublicKeyVaultName, form))
             {
                 publicVault = await CreateKeyVaultResource(desiredPublicKeyVaultName, form.TenantID, form);
-
-                if (form.SelectedGroup != null)
-                {
-                    Console.Write(Environment.NewLine + "Setting temporary Key Vault Officer IAM for deployment.");
-                    await SetIAMToVaults(form.SelectedGroup);
-                }
                 await CreateSecret(publicVault, "SmsEndpoint", "0");
-            }
-            else
-            {
-                //skip = true;
-                publicVault = await SkipKeyVault(form.SelectedGroup, desiredPublicKeyVaultName);
-
-                if (form.SelectedGroup != null)
-                {
-                    Console.Write(Environment.NewLine + "Setting temporary Key Vault Officer IAM for deployment.");
-                    await SetIAMToVaults(form.SelectedGroup);
-                }
-            }
-            if (await CheckKeyVaultName(desiredInternalKeyVaultName, form))
-            {
-                internalVault = await CreateKeyVaultResource(desiredInternalKeyVaultName, form.TenantID, form);
-
-                if (form.SelectedGroup != null)
-                {
-                    Console.Write(Environment.NewLine + "Setting temporary Key Vault Officer IAM for deployment.");
-                    await SetIAMToVaults(form.SelectedGroup);
-                }
-                await CreateSecret(internalVault, "TenantID", "0");
             }
             else
             {
 #pragma warning disable CS8604
                 //skip = true;
+                publicVault = await SkipKeyVault(form.SelectedGroup, desiredPublicKeyVaultName);
+            }
+            if (await CheckKeyVaultName(desiredInternalKeyVaultName, form))
+            {
+                internalVault = await CreateKeyVaultResource(desiredInternalKeyVaultName, form.TenantID, form);
+                await CreateSecret(internalVault, "TenantID", "0");
+            }
+            else
+            {
+                //skip = true;
                 internalVault = await SkipKeyVault(form.SelectedGroup, desiredInternalKeyVaultName);
 #pragma warning restore CS8604
-                if (form.SelectedGroup != null)
-                {
-                    Console.Write(Environment.NewLine + "Setting temporary Key Vault Officer IAM for deployment.");
-                    await SetIAMToVaults(form.SelectedGroup);
-                }
             }
 
             if (smsSiteResource.Data.Identity.PrincipalId != null && whatsAppSiteResource.Data.Identity.PrincipalId != null)
@@ -677,6 +661,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 await CreateSecret(publicVault, secretNames.PSMSDBPrefix, databases[1].ToLower() + "eses");
                 await CreateSecret(publicVault, secretNames.PWhatsAppDBPrefix, databases[2].ToLower() + "eses");
                 await CreateSecret(publicVault, secretNames.PPhoneNumberDBPrefix, databases[3].ToLower() + "eses");
+                await CreateSecret(internalVault, secretNames.PDynamicsEnvironment, form.SelectedEnvironment);
                 await CreateSecret(internalVault, secretNames.PAccountsDBPrefix, databases[0].ToLower() + "eses");
                 await CreateSecret(internalVault, secretNames.PSMSDBPrefix, databases[1].ToLower() + "eses");
                 await CreateSecret(internalVault, secretNames.PWhatsAppDBPrefix, databases[2].ToLower() + "eses");
@@ -688,9 +673,15 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 if (whatsappSystemAccessToken != "")
                 {
                     if (whatsappSystemAccessToken.StartsWith("Bearer "))
+                    {
                         await CreateSecret(publicVault, secretNames.PWhatsAppAccess, whatsappSystemAccessToken);
+                        await CreateSecret(internalVault, secretNames.PWhatsAppAccess, whatsappSystemAccessToken);
+                    }
                     else
+                    {
                         await CreateSecret(publicVault, secretNames.PWhatsAppAccess, "Bearer " + whatsappSystemAccessToken);
+                        await CreateSecret(internalVault, secretNames.PWhatsAppAccess, "Bearer " + whatsappSystemAccessToken);
+                    }
                 }
 
                 string urlPrimary = "DefaultEndpointsProtocol=https;AccountName=" + storageName + ";AccountKey=" + storageAccountPrimaryKey + ";EndpointSuffix=core.windows.net";
@@ -741,9 +732,15 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                 if (whatsappSystemAccessToken != "")
                 {
                     if (whatsappSystemAccessToken.StartsWith("Bearer "))
+                    {
                         await CreateSecret(publicVault, secretNames.PWhatsAppAccess, whatsappSystemAccessToken);
+                        await CreateSecret(internalVault, secretNames.PWhatsAppAccess, whatsappSystemAccessToken);
+                    }
                     else
+                    {
                         await CreateSecret(publicVault, secretNames.PWhatsAppAccess, "Bearer " + whatsappSystemAccessToken);
+                        await CreateSecret(internalVault, secretNames.PWhatsAppAccess, "Bearer " + whatsappSystemAccessToken);
+                    }
                 }
                 if (desiredRestSite != "")
                 {
