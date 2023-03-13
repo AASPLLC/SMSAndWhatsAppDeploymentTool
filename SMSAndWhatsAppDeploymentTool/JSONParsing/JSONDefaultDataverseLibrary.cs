@@ -17,6 +17,7 @@ namespace SMSAndWhatsAppDeploymentTool.JSONParsing
         public string? metadataPhoneNumberID { get; set; }
         public string? metadataEmailAccount { get; set; }
         public string? metadataDisplayName { get; set; }
+        public string? metadataCounterName { get; set; }
 
         public static async Task<JSONDefaultDataverseLibrary> Load()
         {
