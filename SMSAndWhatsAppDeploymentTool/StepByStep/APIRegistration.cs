@@ -2,8 +2,6 @@
 using Azure.ResourceManager.Resources;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using SMSAndWhatsAppDeploymentTool.JSONParsing;
-using System.IO.Packaging;
-using System.Windows.Forms;
 
 namespace SMSAndWhatsAppDeploymentTool.StepByStep
 {

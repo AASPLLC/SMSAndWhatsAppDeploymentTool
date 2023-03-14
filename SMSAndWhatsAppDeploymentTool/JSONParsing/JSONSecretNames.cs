@@ -31,6 +31,7 @@ namespace SMSAndWhatsAppDeploymentTool.JSONParsing
         public string? DbName5 { get; set; }
         public string? AutomationId { get; set; }
         public string? SMSTemplate { get; set; }
+        public string? StartingPrefix { get; set; }
 
         public static async Task<JSONSecretNames> Load()
         {

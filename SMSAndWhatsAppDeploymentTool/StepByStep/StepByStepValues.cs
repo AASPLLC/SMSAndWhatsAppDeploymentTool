@@ -7,7 +7,6 @@ using Azure.ResourceManager.Resources;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using SMSAndWhatsAppDeploymentTool.JSONParsing;
 using SMSAndWhatsAppDeploymentTool.ResourceHandlers;
-using System.Windows.Forms;
 
 namespace SMSAndWhatsAppDeploymentTool.StepByStep
 {
@@ -81,6 +80,13 @@ namespace SMSAndWhatsAppDeploymentTool.StepByStep
             {
                 if (await SetupDataverseEnvironment(dh, createSystemAccount))
                     successful = true;
+            }
+
+            JSONDefaultDataverseLibrary dataverseLibrary = await JSONDefaultDataverseLibrary.Load();
+            if (dataverseLibrary != null)
+            {
+                if (secretNames.StartingPrefix != null && dataverseLibrary.StartingPrefix != null)
+                    await KeyVaultResourceHandler.CreateSecret(this, DesiredPublicVault, secretNames.StartingPrefix, dataverseLibrary.StartingPrefix);
             }
             if (secretNames.PDynamicsEnvironment != null)
             {

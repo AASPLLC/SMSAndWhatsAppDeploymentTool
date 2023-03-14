@@ -468,7 +468,7 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
                             await sc.UpdateSecretPropertiesAsync(version);
                         }
                     }
-                    await (await sbs.SelectedGroup.GetVaultAsync(desiredVault)).Value.GetSecrets().CreateOrUpdateAsync(WaitUntil.Completed, key, new SecretCreateOrUpdateContent(new()
+                    var temp = await (await sbs.SelectedGroup.GetVaultAsync(desiredVault)).Value.GetSecrets().CreateOrUpdateAsync(WaitUntil.Completed, key, new SecretCreateOrUpdateContent(new()
                     {
                         Value = value
                     }));
@@ -650,8 +650,13 @@ namespace SMSAndWhatsAppDeploymentTool.ResourceHandlers
 
         static async Task<bool> CreateKeyVaultSecretsDataverse(JSONSecretNames secretNames, VaultResource publicVault, VaultResource internalVault, Guid TenantID, string archiveEmail, string whatsappSystemAccessToken, string verifyHTTPToken, string smsEndpoint, string storageName, string storageAccountPrimaryKey, List<string> package, string dynamicsOrgId, string[] databases, string smsTemplate, DataverseDeploy form)
         {
+            JSONDefaultDataverseLibrary dataverseLibrary = await JSONDefaultDataverseLibrary.Load();
             bool success;
 #pragma warning disable CS8604 // Possible null reference argument.
+            if (dataverseLibrary != null)
+            {
+                await CreateSecret(publicVault, secretNames.StartingPrefix, dataverseLibrary.StartingPrefix);
+            }
             if (secretNames != null)
             {
                 if (!smsTemplate.Contains("COMPANYNAMEHERE") && smsTemplate != "")
